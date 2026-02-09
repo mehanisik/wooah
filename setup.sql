@@ -8,7 +8,9 @@ CREATE TABLE sessions (
   day_index int NOT NULL,
   day_name text NOT NULL,
   workout_type text NOT NULL,
+  started_at timestamptz,
   finished_at timestamptz DEFAULT now(),
+  duration_sec int DEFAULT 0,
   created_at timestamptz DEFAULT now()
 );
 

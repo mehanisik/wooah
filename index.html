@@ -348,6 +348,50 @@ body::before {
   flex-shrink: 0;
 }
 
+/* ===== WORKOUT TIMER ===== */
+.workout-timer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+}
+
+.workout-timer-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.workout-timer-display {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  letter-spacing: 2px;
+  min-width: 70px;
+}
+
+.workout-timer-display.active { color: var(--accent); }
+.workout-timer-display.finished { color: var(--green); }
+
+.workout-timer-label {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  flex: 1;
+}
+
+.workout-timer-start {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+}
+
 /* ===== WORKOUT VIEW ===== */
 .workout-header { margin-bottom: 20px; }
 
@@ -1420,6 +1464,7 @@ let state = {
   totalSessions: 0,
   personalRecords: {}, // "d0-e0": { weight: 80, reps: 5, date: "..." }
   startDate: null,
+  workoutTimers: {}, // "w1-d0": { startedAt: iso, finishedAt: iso, duration: seconds }
 };
 
 function loadState() {
@@ -1553,6 +1598,55 @@ function formatRest(sec) {
   const m = Math.floor(sec / 60);
   const s = sec % 60;
   return m > 0 ? (s > 0 ? `${m}m ${s}s` : `${m} min`) : `${sec}s`;
+}
+
+function timerKey(dayIdx) { return `w${state.currentWeek}-d${dayIdx}`; }
+
+function getWorkoutTimer(dayIdx) {
+  return state.workoutTimers[timerKey(dayIdx)] || null;
+}
+
+function startWorkoutTimer(dayIdx) {
+  const key = timerKey(dayIdx);
+  if (state.workoutTimers[key]) return;
+  state.workoutTimers[key] = { startedAt: new Date().toISOString(), finishedAt: null, duration: 0 };
+  saveState();
+}
+
+function stopWorkoutTimer(dayIdx) {
+  const key = timerKey(dayIdx);
+  const timer = state.workoutTimers[key];
+  if (!timer || timer.finishedAt) return;
+  timer.finishedAt = new Date().toISOString();
+  timer.duration = Math.round((new Date(timer.finishedAt) - new Date(timer.startedAt)) / 1000);
+  saveState();
+}
+
+function formatDuration(totalSec) {
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  if (h > 0) return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+function formatTimeShort(iso) {
+  const d = new Date(iso);
+  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+let workoutTimerInterval = null;
+
+function startWorkoutClock(dayIdx) {
+  clearInterval(workoutTimerInterval);
+  workoutTimerInterval = setInterval(() => {
+    const display = $(`#workoutTimerDisplay-${dayIdx}`);
+    if (!display) { clearInterval(workoutTimerInterval); return; }
+    const timer = getWorkoutTimer(dayIdx);
+    if (!timer || timer.finishedAt) { clearInterval(workoutTimerInterval); return; }
+    const elapsed = Math.round((Date.now() - new Date(timer.startedAt).getTime()) / 1000);
+    display.textContent = formatDuration(elapsed);
+  }, 1000);
 }
 
 // ===== REST TIMER =====
@@ -1724,6 +1818,12 @@ function renderPages() {
   pages.innerHTML = html;
   attachExerciseListeners();
   if (state.activeTab === 8) attachStatsListeners();
+
+  // Resume live clock for active workout timer
+  if (state.activeTab >= 0 && state.activeTab <= 5) {
+    const timer = getWorkoutTimer(state.activeTab);
+    if (timer && !timer.finishedAt) startWorkoutClock(state.activeTab);
+  }
 }
 
 function renderWorkoutPage(day, dayIdx) {
@@ -1736,6 +1836,21 @@ function renderWorkoutPage(day, dayIdx) {
     <div class="workout-title">${day.name}</div>
     <div class="workout-focus">${day.focus}</div>
   </div>`;
+
+  // Workout timer
+  const timer = getWorkoutTimer(dayIdx);
+  if (timer) {
+    const isRunning = !timer.finishedAt;
+    const elapsed = isRunning
+      ? Math.round((Date.now() - new Date(timer.startedAt).getTime()) / 1000)
+      : timer.duration;
+    h += `<div class="workout-timer">
+      <span class="workout-timer-icon">${isRunning ? '&#x23F1;' : '&#x2705;'}</span>
+      <span class="workout-timer-display ${isRunning ? 'active' : 'finished'}" id="workoutTimerDisplay-${dayIdx}">${formatDuration(elapsed)}</span>
+      <span class="workout-timer-label">${isRunning ? 'ELAPSED' : 'TOTAL TIME'}</span>
+      <span class="workout-timer-start">${formatTimeShort(timer.startedAt)}${timer.finishedAt ? ' — ' + formatTimeShort(timer.finishedAt) : ''}</span>
+    </div>`;
+  }
 
   h += `<div class="warmup-section">
     <button class="warmup-toggle" data-warmup="${dayIdx}">
@@ -1955,6 +2070,21 @@ function attachExerciseListeners() {
         const current = getLog(dayIdx, exIdx, setIdx);
         current.done = !current.done;
 
+        // Auto-start workout timer on first set check
+        if (current.done && !getWorkoutTimer(dayIdx)) {
+          startWorkoutTimer(dayIdx);
+          const timerData = getWorkoutTimer(dayIdx);
+          const page = row.closest('.page');
+          const warmup = page.querySelector('.warmup-section');
+          if (warmup) {
+            const timerEl = document.createElement('div');
+            timerEl.className = 'workout-timer';
+            timerEl.innerHTML = `<span class="workout-timer-icon">&#x23F1;</span><span class="workout-timer-display active" id="workoutTimerDisplay-${dayIdx}">0:00</span><span class="workout-timer-label">ELAPSED</span><span class="workout-timer-start">${formatTimeShort(timerData.startedAt)}</span>`;
+            warmup.before(timerEl);
+          }
+          startWorkoutClock(dayIdx);
+        }
+
         if (current.done && !current.weight) {
           if (setIdx > 0) {
             const prev = getLog(dayIdx, exIdx, setIdx - 1);
@@ -2043,19 +2173,24 @@ function finishWorkout() {
     if (state.history[key].length > 12) state.history[key] = state.history[key].slice(-12);
   });
 
+  stopWorkoutTimer(dayIdx);
+  clearInterval(workoutTimerInterval);
   state.finishedDays[finishedKey(dayIdx)] = Date.now();
   state.totalSessions++;
   saveState();
 
   syncToNeon(dayIdx);
 
+  const wTimer = getWorkoutTimer(dayIdx);
+  const durationStr = wTimer && wTimer.duration ? ` (${formatDuration(wTimer.duration)})` : '';
+
   if (newPRs > 0) {
     const flash = $('#prFlash');
     flash.classList.add('show');
     setTimeout(() => flash.classList.remove('show'), 1500);
-    showToast(`${day.name} done! ${newPRs} new PR${newPRs > 1 ? 's' : ''}!`);
+    showToast(`${day.name} done${durationStr}! ${newPRs} new PR${newPRs > 1 ? 's' : ''}!`);
   } else {
-    showToast(`${day.name} logged — Week ${state.currentWeek}`);
+    showToast(`${day.name} logged${durationStr} — Week ${state.currentWeek}`);
   }
 
   renderGreeting();
@@ -2151,6 +2286,12 @@ function renderStatsPage() {
     <div class="stat-row"><span class="stat-row-label">Current Week</span><span class="stat-row-value">${totalWeeks}</span></div>
     <div class="stat-row"><span class="stat-row-label">Personal Records</span><span class="stat-row-value up">${totalPRs}</span></div>
     <div class="stat-row"><span class="stat-row-label">Total Volume Lifted</span><span class="stat-row-value">${totalVolume >= 1000 ? (totalVolume / 1000).toFixed(1) + ' t' : totalVolume.toFixed(0) + ' kg'}</span></div>
+    <div class="stat-row"><span class="stat-row-label">Avg Workout Time</span><span class="stat-row-value">${(() => {
+      const durations = Object.values(state.workoutTimers || {}).filter(t => t.duration > 0).map(t => t.duration);
+      if (durations.length === 0) return '—';
+      const avg = Math.round(durations.reduce((a, b) => a + b, 0) / durations.length);
+      return formatDuration(avg);
+    })()}</span></div>
     <div class="stat-row"><span class="stat-row-label">Training Since</span><span class="stat-row-value">${state.startDate || '—'}</span></div>
   </div>`;
 
@@ -2372,9 +2513,13 @@ async function syncToNeon(dayIdx) {
   try {
     const day = PROGRAM[dayIdx];
 
+    const wTimer = getWorkoutTimer(dayIdx);
+    const startedAt = wTimer ? wTimer.startedAt : new Date().toISOString();
+    const duration = wTimer ? wTimer.duration : 0;
+
     const sessionResult = await neonSQL`
-      INSERT INTO sessions (week, day_index, day_name, workout_type, finished_at)
-      VALUES (${state.currentWeek}, ${dayIdx}, ${day.name}, ${day.type}, ${new Date().toISOString()})
+      INSERT INTO sessions (week, day_index, day_name, workout_type, started_at, finished_at, duration_sec)
+      VALUES (${state.currentWeek}, ${dayIdx}, ${day.name}, ${day.type}, ${startedAt}, ${new Date().toISOString()}, ${duration})
       RETURNING id`;
 
     const sessionId = sessionResult[0].id;
