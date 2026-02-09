@@ -1270,6 +1270,120 @@ body::before {
   color: var(--text-dim);
   margin-bottom: 8px;
 }
+/* ===== CELEBRATION MODAL ===== */
+.celebration-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  z-index: 250;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.celebration-modal.open { display: flex; opacity: 1; }
+
+.celebration-content {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px 24px;
+  max-width: 340px;
+  width: 100%;
+  text-align: center;
+}
+
+.celebration-header {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  letter-spacing: 3px;
+  margin-bottom: 6px;
+}
+
+.celebration-stats {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.celebration-stats .pr-count { color: var(--green); }
+
+.motivation-image {
+  width: 100%;
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.motivation-image.loaded { opacity: 1; }
+
+.image-skeleton {
+  width: 100%;
+  height: 200px;
+  background: var(--surface-2);
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.celebration-btn {
+  width: 100%;
+  padding: 14px;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  letter-spacing: 3px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.celebration-btn:hover { background: var(--accent-dim); }
+
+.celebration-fallback {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  font-style: italic;
+  line-height: 1.6;
+  max-width: 280px;
+  margin: 0 auto 16px;
+}
+
+/* ===== REST DAY MOTIVATION IMAGE ===== */
+.rest-motivation-wrap {
+  margin: 0 auto 20px;
+  max-width: 300px;
+}
+
+.refresh-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 6px 14px;
+  min-height: 44px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.refresh-icon-btn:hover { color: var(--accent); border-color: var(--accent); }
+.refresh-icon-btn .spinner { display: inline-block; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
 </style>
 </head>
 <body>
@@ -1453,6 +1567,133 @@ const REST_QUOTES = [
   "Sleep is the most anabolic thing you can do today.",
   "Trust the process. Your muscles are rebuilding right now."
 ];
+
+// ===== MOTIVATIONAL IMAGE API =====
+async function fetchMotivationalImage() {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    const resp = await fetch('https://inspirobot.me/api?generate=true', { signal: controller.signal });
+    clearTimeout(timeout);
+    if (!resp.ok) throw new Error('API error');
+    const imageUrl = (await resp.text()).trim();
+    return { success: true, imageUrl };
+  } catch {
+    return { success: false, fallbackQuote: MOTIVATIONAL[Math.floor(Math.random() * MOTIVATIONAL.length)] };
+  }
+}
+
+function showMotivationalModal(dayName, newPRs, duration) {
+  let existing = $('#celebrationModal');
+  if (existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.className = 'celebration-modal';
+  modal.id = 'celebrationModal';
+
+  const statsHtml = [
+    duration ? `&#x23F1; ${formatDuration(duration)}` : '',
+    newPRs > 0 ? `<span class="pr-count">&#x1F3C6; ${newPRs} PR${newPRs > 1 ? 's' : ''}</span>` : ''
+  ].filter(Boolean).join('');
+
+  modal.innerHTML = `<div class="celebration-content">
+    <div class="celebration-header">${dayName} COMPLETE</div>
+    ${statsHtml ? `<div class="celebration-stats">${statsHtml}</div>` : ''}
+    <div class="image-skeleton" id="celebSkeleton"></div>
+    <button class="celebration-btn" id="celebDismiss">CONTINUE</button>
+  </div>`;
+
+  document.body.appendChild(modal);
+  requestAnimationFrame(() => modal.classList.add('open'));
+
+  const autoDismiss = setTimeout(() => { modal.classList.remove('open'); setTimeout(() => modal.remove(), 300); }, 10000);
+  const dismiss = () => { clearTimeout(autoDismiss); modal.classList.remove('open'); setTimeout(() => modal.remove(), 300); };
+  modal.querySelector('#celebDismiss').addEventListener('click', dismiss);
+  modal.addEventListener('click', (e) => { if (e.target === modal) dismiss(); });
+
+  fetchMotivationalImage().then(result => {
+    const skeleton = modal.querySelector('#celebSkeleton');
+    if (!skeleton) return;
+    if (result.success) {
+      const img = document.createElement('img');
+      img.className = 'motivation-image';
+      img.alt = 'Motivational image';
+      img.onload = () => img.classList.add('loaded');
+      img.onerror = () => {
+        img.remove();
+        const fallback = document.createElement('div');
+        fallback.className = 'celebration-fallback';
+        fallback.textContent = `"${MOTIVATIONAL[Math.floor(Math.random() * MOTIVATIONAL.length)]}"`;
+        skeleton.replaceWith(fallback);
+      };
+      img.src = result.imageUrl;
+      skeleton.replaceWith(img);
+    } else {
+      const fallback = document.createElement('div');
+      fallback.className = 'celebration-fallback';
+      fallback.textContent = `"${result.fallbackQuote}"`;
+      skeleton.replaceWith(fallback);
+    }
+  });
+}
+
+function loadRestDayImage() {
+  const restPage = document.querySelector('.page.active .rest-page');
+  if (!restPage || restPage.querySelector('.rest-motivation-wrap')) return;
+
+  const quote = restPage.querySelector('.rest-quote');
+  if (!quote) return;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'rest-motivation-wrap';
+  wrap.innerHTML = '<div class="image-skeleton"></div>';
+  quote.insertAdjacentElement('afterend', wrap);
+
+  function load() {
+    const skeleton = wrap.querySelector('.image-skeleton');
+    if (!skeleton) {
+      const oldImg = wrap.querySelector('.motivation-image');
+      if (oldImg) {
+        oldImg.classList.remove('loaded');
+        const newSkeleton = document.createElement('div');
+        newSkeleton.className = 'image-skeleton';
+        oldImg.replaceWith(newSkeleton);
+      }
+    }
+
+    fetchMotivationalImage().then(result => {
+      const target = wrap.querySelector('.image-skeleton') || wrap.querySelector('.motivation-image');
+      if (!target) return;
+      if (result.success) {
+        const img = document.createElement('img');
+        img.className = 'motivation-image';
+        img.alt = 'Motivational image';
+        img.onload = () => img.classList.add('loaded');
+        img.onerror = () => img.remove();
+        img.src = result.imageUrl;
+        target.replaceWith(img);
+      } else {
+        target.remove();
+      }
+    });
+  }
+
+  load();
+
+  const btn = document.createElement('button');
+  btn.className = 'refresh-icon-btn';
+  btn.innerHTML = '&#x21BB; NEW IMAGE';
+  btn.addEventListener('click', () => {
+    const oldImg = wrap.querySelector('.motivation-image');
+    if (oldImg) {
+      const skel = document.createElement('div');
+      skel.className = 'image-skeleton';
+      oldImg.replaceWith(skel);
+    }
+    load();
+  });
+  wrap.appendChild(btn);
+}
 
 // ===== STATE =====
 let state = {
@@ -1824,6 +2065,9 @@ function renderPages() {
     const timer = getWorkoutTimer(state.activeTab);
     if (timer && !timer.finishedAt) startWorkoutClock(state.activeTab);
   }
+
+  // Load motivational image on rest day
+  if (state.activeTab === 6) loadRestDayImage();
 }
 
 function renderWorkoutPage(day, dayIdx) {
@@ -2149,7 +2393,7 @@ function updateFinishBar() {
 }
 
 // ===== FINISH WORKOUT =====
-function finishWorkout() {
+async function finishWorkout() {
   const dayIdx = state.activeTab;
   if (!isDayComplete(dayIdx) || isDayFinished(dayIdx)) return;
 
@@ -2166,7 +2410,6 @@ function finishWorkout() {
       sets.push({ weight: parseFloat(log.weight) || 0, reps: parseInt(log.reps) || 0 });
     }
 
-    // Check PR before saving history
     if (checkForPR(dayIdx, exIdx)) newPRs++;
 
     state.history[key].push({ week: state.currentWeek, sets });
@@ -2182,16 +2425,15 @@ function finishWorkout() {
   syncToNeon(dayIdx);
 
   const wTimer = getWorkoutTimer(dayIdx);
-  const durationStr = wTimer && wTimer.duration ? ` (${formatDuration(wTimer.duration)})` : '';
+  const duration = wTimer && wTimer.duration ? wTimer.duration : 0;
 
   if (newPRs > 0) {
     const flash = $('#prFlash');
     flash.classList.add('show');
     setTimeout(() => flash.classList.remove('show'), 1500);
-    showToast(`${day.name} done${durationStr}! ${newPRs} new PR${newPRs > 1 ? 's' : ''}!`);
-  } else {
-    showToast(`${day.name} logged${durationStr} — Week ${state.currentWeek}`);
   }
+
+  showMotivationalModal(day.name, newPRs, duration);
 
   renderGreeting();
   renderStats();
@@ -2690,7 +2932,7 @@ if ('serviceWorker' in navigator) {
 
 // Prevent iOS rubber-band scrolling on fixed elements
 document.addEventListener('touchmove', function(e) {
-  if (e.target.closest('.modal-overlay, .rest-timer-bar')) {
+  if (e.target.closest('.modal-overlay, .rest-timer-bar, .celebration-modal')) {
     e.preventDefault();
   }
 }, { passive: false });
