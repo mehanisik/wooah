@@ -1,8 +1,9 @@
-const CACHE_NAME = 'ironppl-v1';
+const CACHE_NAME = 'ironppl-v2';
 const ASSETS = [
   '/index.html',
   '/manifest.json',
-  'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;600;700&family=Barlow+Condensed:wght@300;400;500;600;700&display=swap'
+  '/icon-192.png',
+  '/icon-512.png'
 ];
 
 self.addEventListener('install', e => {
@@ -20,10 +21,19 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
+  const url = new URL(e.request.url);
+
+  // Network-only for NeonDB and external API calls
+  if (url.hostname.includes('neon.tech') || url.hostname.includes('esm.sh')) {
+    e.respondWith(fetch(e.request));
+    return;
+  }
+
+  // Stale-while-revalidate for everything else
   e.respondWith(
     caches.match(e.request).then(cached => {
       const fetched = fetch(e.request).then(response => {
-        if (response && response.status === 200) {
+        if (response && response.status === 200 && response.type === 'basic') {
           const clone = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
         }

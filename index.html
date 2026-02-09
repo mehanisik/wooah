@@ -2,19 +2,22 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>IRON PPL — Your Hypertrophy Tracker</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0a0a0a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="IRON PPL">
+<meta name="referrer" content="no-referrer">
+<meta name="format-detection" content="telephone=no">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;600;700&family=Barlow+Condensed:wght@300;400;500;600;700&display=swap" as="style">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;600;700&family=Barlow+Condensed:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<script type="module" src="https://esm.sh/@neondatabase/serverless@0.10.4" id="neon-module"></script>
 <style>
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -46,7 +49,12 @@
   --font-mono: 'JetBrains Mono', monospace;
 }
 
-html { font-size: 16px; -webkit-tap-highlight-color: transparent; }
+html {
+  font-size: 16px;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior: none;
+}
 
 body {
   background: var(--bg);
@@ -55,6 +63,18 @@ body {
   min-height: 100dvh;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  overscroll-behavior-y: contain;
+  touch-action: manipulation;
+}
+
+.set-input, .setup-input, .exercise-select, .neon-conn-str {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+  touch-action: auto;
 }
 
 body::before {
@@ -64,6 +84,8 @@ body::before {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
   pointer-events: none;
   z-index: 9999;
+  contain: strict;
+  backface-visibility: hidden;
 }
 
 ::-webkit-scrollbar { width: 4px; }
@@ -78,6 +100,9 @@ body::before {
   background: var(--bg);
   border-bottom: 1px solid var(--border);
   padding: 12px 16px;
+  padding-top: calc(12px + env(safe-area-inset-top, 0px));
+  padding-left: calc(16px + env(safe-area-inset-left, 0px));
+  padding-right: calc(16px + env(safe-area-inset-right, 0px));
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -96,8 +121,8 @@ body::before {
 .header-actions { display: flex; gap: 8px; }
 
 .icon-btn {
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -183,6 +208,8 @@ body::before {
   display: flex;
   gap: 2px;
   padding: 8px 16px;
+  padding-left: calc(16px + env(safe-area-inset-left, 0px));
+  padding-right: calc(16px + env(safe-area-inset-right, 0px));
   background: var(--bg);
   border-bottom: 1px solid var(--border);
   overflow-x: auto;
@@ -193,7 +220,8 @@ body::before {
 
 .nav-tab {
   flex: none;
-  padding: 8px 14px;
+  padding: 10px 14px;
+  min-height: 44px;
   font-family: var(--font-body);
   font-weight: 600;
   font-size: 0.82rem;
@@ -207,6 +235,8 @@ body::before {
   white-space: nowrap;
   transition: all 0.15s;
   position: relative;
+  display: flex;
+  align-items: center;
 }
 
 .nav-tab:hover { color: var(--text-dim); }
@@ -256,8 +286,8 @@ body::before {
 }
 
 /* ===== PAGE CONTENT ===== */
-.page { display: none; padding: 16px; padding-bottom: 100px; }
-.page.active { display: block; animation: fadeIn 0.2s ease; }
+.page { display: none; padding: 16px; padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px)); padding-left: calc(16px + env(safe-area-inset-left, 0px)); padding-right: calc(16px + env(safe-area-inset-right, 0px)); content-visibility: auto; }
+.page.active { display: block; animation: fadeIn 0.2s ease; content-visibility: visible; }
 
 @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
@@ -506,7 +536,7 @@ body::before {
 
 .set-row {
   display: grid;
-  grid-template-columns: 36px 1fr 1fr 40px;
+  grid-template-columns: 36px 1fr 1fr 48px;
   gap: 8px;
   align-items: center;
   padding: 6px 0;
@@ -536,13 +566,14 @@ body::before {
 
 .set-input {
   width: 100%;
-  padding: 7px 10px;
+  padding: 10px;
+  min-height: 44px;
   background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   color: var(--text);
   font-family: var(--font-mono);
-  font-size: 0.78rem;
+  font-size: 16px;
   text-align: center;
   outline: none;
   transition: border-color 0.15s;
@@ -552,8 +583,8 @@ body::before {
 .set-input::placeholder { color: var(--text-muted); }
 
 .set-check {
-  width: 28px;
-  height: 28px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -562,7 +593,7 @@ body::before {
   border-radius: var(--radius);
   cursor: pointer;
   color: var(--text-muted);
-  font-size: 0.85rem;
+  font-size: 1rem;
   transition: all 0.15s;
   justify-self: center;
 }
@@ -620,9 +651,9 @@ body::before {
 .rest-timer-bar {
   display: none;
   position: fixed;
-  bottom: 70px;
-  left: 16px;
-  right: 16px;
+  bottom: calc(70px + env(safe-area-inset-bottom, 0px));
+  left: calc(16px + env(safe-area-inset-left, 0px));
+  right: calc(16px + env(safe-area-inset-right, 0px));
   padding: 10px 14px;
   background: var(--surface-2);
   border: 1px solid var(--border-light);
@@ -656,8 +687,8 @@ body::before {
 }
 
 .rest-timer-close {
-  width: 28px;
-  height: 28px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -666,7 +697,7 @@ body::before {
   border-radius: var(--radius);
   color: var(--text-muted);
   cursor: pointer;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
 }
 
 /* ===== INFO PAGES ===== */
@@ -783,8 +814,8 @@ body::before {
 .week-selector-arrows { display: flex; gap: 4px; }
 
 .week-arrow {
-  width: 30px;
-  height: 30px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -793,7 +824,7 @@ body::before {
   border-radius: var(--radius);
   color: var(--text-dim);
   cursor: pointer;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   transition: all 0.15s;
 }
 
@@ -849,6 +880,7 @@ body::before {
 .btn {
   flex: 1;
   padding: 10px 16px;
+  min-height: 44px;
   font-family: var(--font-body);
   font-weight: 600;
   font-size: 0.82rem;
@@ -883,6 +915,9 @@ body::before {
   left: 0;
   right: 0;
   padding: 12px 16px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  padding-left: calc(16px + env(safe-area-inset-left, 0px));
+  padding-right: calc(16px + env(safe-area-inset-right, 0px));
   background: linear-gradient(transparent, var(--bg) 30%);
   z-index: 50;
   display: none;
@@ -910,7 +945,7 @@ body::before {
 /* ===== TOAST ===== */
 .toast {
   position: fixed;
-  bottom: 80px;
+  bottom: calc(80px + env(safe-area-inset-bottom, 0px));
   left: 50%;
   transform: translateX(-50%) translateY(20px);
   padding: 10px 20px;
@@ -998,12 +1033,13 @@ body::before {
   width: 100%;
   max-width: 320px;
   padding: 12px 14px;
+  min-height: 44px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   color: var(--text);
   font-family: var(--font-mono);
-  font-size: 0.78rem;
+  font-size: 16px;
   outline: none;
   margin-bottom: 10px;
   transition: border-color 0.15s;
@@ -1156,12 +1192,13 @@ body::before {
 .exercise-select {
   width: 100%;
   padding: 10px 14px;
+  min-height: 44px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   color: var(--text);
   font-family: var(--font-body);
-  font-size: 0.85rem;
+  font-size: 16px;
   outline: none;
   margin-bottom: 12px;
   cursor: pointer;
@@ -2497,12 +2534,37 @@ renderNav();
 renderPages();
 updateFinishBar();
 
-// Initialize NeonDB if configured
+// Initialize NeonDB if configured (lazy — loads driver on demand)
 initNeon();
 
+// Register service worker
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js').catch(() => {});
 }
+
+// Prevent iOS rubber-band scrolling on fixed elements
+document.addEventListener('touchmove', function(e) {
+  if (e.target.closest('.modal-overlay, .rest-timer-bar')) {
+    e.preventDefault();
+  }
+}, { passive: false });
+
+// Wake lock to keep screen on during workout
+let wakeLock = null;
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => { wakeLock = null; });
+    }
+  } catch {}
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && state.activeTab >= 0 && state.activeTab <= 5) {
+    requestWakeLock();
+  }
+});
+if (state.activeTab >= 0 && state.activeTab <= 5) requestWakeLock();
 </script>
 </body>
 </html>
