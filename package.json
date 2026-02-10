@@ -1,0 +1,23 @@
+{
+  "name": "iron-ppl",
+  "private": true,
+  "version": "2.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "bunx vite",
+    "build": "bunx vite build",
+    "preview": "bunx vite preview"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.18",
+    "@types/bun": "latest",
+    "tailwindcss": "^4.1.18",
+    "vite": "^7.3.1"
+  },
+  "dependencies": {
+    "@fontsource/barlow-condensed": "^5.2.8",
+    "@fontsource/bebas-neue": "^5.2.7",
+    "@fontsource/jetbrains-mono": "^5.2.8",
+    "lucide": "0.460.0"
+  }
+}

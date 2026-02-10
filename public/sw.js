@@ -1,5 +1,6 @@
-const CACHE_NAME = 'ironppl-v2';
+const CACHE_NAME = 'ironppl-v6';
 const ASSETS = [
+  '/',
   '/index.html',
   '/manifest.json',
   '/icon-192.png',
@@ -24,7 +25,7 @@ self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
 
   // Network-only for NeonDB and external API calls
-  if (url.hostname.includes('neon.tech') || url.hostname.includes('esm.sh')) {
+  if (url.hostname.includes('neon.tech') || url.hostname.includes('esm.sh') || url.hostname.includes('inspirobot.me')) {
     e.respondWith(fetch(e.request));
     return;
   }

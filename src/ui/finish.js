@@ -1,0 +1,84 @@
+import { $ } from './helpers.js';
+import { checkForPR } from './helpers.js';
+import { state, saveState, isDayComplete, isDayFinished, finishedKey, historyKey, getLog, getWorkoutTimer, stopWorkoutTimer } from '../state/store.js';
+import { PROGRAM } from '../data/program.js';
+import { showMotivationalModal } from '../render/celebration.js';
+import { showToast } from './toast.js';
+import { clearWorkoutClock } from '../timers/workout-clock.js';
+import { syncToNeon } from '../sync/neon.js';
+import { renderGreeting } from '../render/greeting.js';
+import { renderStats } from '../render/stats-bar.js';
+import { renderNav } from '../render/nav.js';
+import { renderPages } from '../render/workout.js';
+
+export function updateFinishBar() {
+  const bar = $('#finishBar');
+  const btn = $('#finishBtn');
+  const dayIdx = state.activeTab;
+
+  if (dayIdx >= PROGRAM.length || PROGRAM[dayIdx].type === 'rest' || dayIdx === 7 || dayIdx === 8) {
+    bar.classList.remove('visible');
+    return;
+  }
+
+  bar.classList.add('visible');
+
+  if (isDayFinished(dayIdx)) {
+    btn.disabled = true;
+    btn.textContent = 'WORKOUT COMPLETE';
+    return;
+  }
+
+  const complete = isDayComplete(dayIdx);
+  btn.disabled = !complete;
+  btn.textContent = complete ? 'FINISH WORKOUT' : 'COMPLETE ALL SETS';
+}
+
+export async function finishWorkout() {
+  const dayIdx = state.activeTab;
+  if (!isDayComplete(dayIdx) || isDayFinished(dayIdx)) return;
+
+  const day = PROGRAM[dayIdx];
+  let newPRs = 0;
+
+  day.exercises.forEach((ex, exIdx) => {
+    const key = historyKey(dayIdx, exIdx);
+    if (!state.history[key]) state.history[key] = [];
+
+    const sets = [];
+    for (let s = 0; s < ex.sets; s++) {
+      const log = getLog(dayIdx, exIdx, s);
+      sets.push({ weight: parseFloat(log.weight) || 0, reps: parseInt(log.reps) || 0 });
+    }
+
+    if (checkForPR(dayIdx, exIdx)) newPRs++;
+
+    state.history[key].push({ week: state.currentWeek, sets });
+    if (state.history[key].length > 12) state.history[key] = state.history[key].slice(-12);
+  });
+
+  stopWorkoutTimer(dayIdx);
+  clearWorkoutClock();
+  state.finishedDays[finishedKey(dayIdx)] = Date.now();
+  state.totalSessions++;
+  saveState();
+
+  syncToNeon(dayIdx);
+
+  const wTimer = getWorkoutTimer(dayIdx);
+  const duration = wTimer && wTimer.duration ? wTimer.duration : 0;
+
+  if (newPRs > 0) {
+    const flash = $('#prFlash');
+    flash.classList.add('show');
+    setTimeout(() => flash.classList.remove('show'), 1500);
+  }
+
+  showMotivationalModal(day.name, newPRs, duration, state.currentWeek, dayIdx);
+
+  renderGreeting();
+  renderStats();
+  renderNav();
+  renderPages();
+  updateFinishBar();
+}

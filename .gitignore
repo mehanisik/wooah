@@ -1,3 +1,7 @@
 .playwright-mcp/
 *.pdf
 .vercel
+node_modules/
+bun.lock
+dist/
+progress.txt
