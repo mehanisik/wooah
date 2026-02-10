@@ -17,8 +17,10 @@ export function showSwapModal(dayIdx, exIdx) {
   const modal = document.createElement('div');
   modal.className = 'uk-modal';
   modal.id = 'swapModal';
+  modal.setAttribute('data-uk-modal', '');
   modal.setAttribute('role', 'dialog');
   modal.setAttribute('aria-modal', 'true');
+  modal.setAttribute('aria-labelledby', 'swapTitle');
 
   const options = [ex.name, ...ex.alternatives];
   const optionsHtml = options.map(name =>
@@ -27,7 +29,7 @@ export function showSwapModal(dayIdx, exIdx) {
 
   modal.innerHTML = `<div class="uk-modal-dialog" style="max-width:340px;">
     <div class="uk-modal-body">
-      <h3 class="uk-modal-title">SWAP EXERCISE</h3>
+      <h3 class="uk-modal-title" id="swapTitle">SWAP EXERCISE</h3>
       <p style="margin-bottom:12px;">Choose an alternative for this slot. PRs and history stay linked to the slot.</p>
       ${optionsHtml}
     </div>

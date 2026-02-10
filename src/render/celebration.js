@@ -26,8 +26,12 @@ export function showMotivationalModal(dayName, newPRs, duration, week, dayIdx) {
   if (existing) existing.remove();
 
   const modal = document.createElement('div');
-  modal.className = 'celebration-modal';
+  modal.className = 'uk-modal celebration-modal';
   modal.id = 'celebrationModal';
+  modal.setAttribute('data-uk-modal', '');
+  modal.setAttribute('role', 'dialog');
+  modal.setAttribute('aria-modal', 'true');
+  modal.setAttribute('aria-labelledby', 'celebTitle');
 
   const statsHtml = [
     duration ? `<i data-lucide="timer"></i> ${formatDuration(duration)}` : '',
@@ -35,7 +39,7 @@ export function showMotivationalModal(dayName, newPRs, duration, week, dayIdx) {
   ].filter(Boolean).join('');
 
   modal.innerHTML = `<div class="celebration-content">
-    <div class="celebration-header">${dayName} COMPLETE</div>
+    <div class="celebration-header" id="celebTitle">${dayName} COMPLETE</div>
     ${statsHtml ? `<div class="celebration-stats">${statsHtml}</div>` : ''}
     <div class="image-skeleton" id="celebSkeleton"></div>
     <div class="photo-upload-section" id="photoSection">
