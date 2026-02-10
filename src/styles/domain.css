@@ -1,13 +1,28 @@
-/* Push/Pull/Legs workout type colors */
 :root {
-  --push-color: #ff3e00;
+  --push-color: #c43e00;
+  --pull-color: #2563eb;
+  --legs-color: #00a758;
+  --rest-color: #777;
+}
+
+.dark {
+  --push-color: #ff6b35;
   --pull-color: #448aff;
   --legs-color: #00e676;
   --rest-color: #555;
 }
 
+@media (prefers-color-scheme: dark) {
+  :root:not(.light):not(.dark) {
+    --push-color: #ff6b35;
+    --pull-color: #448aff;
+    --legs-color: #00e676;
+    --rest-color: #555;
+  }
+}
+
 /* Workout type tags */
-.workout-tag.push { background: rgba(255,62,0,0.15); color: var(--push-color); }
+.workout-tag.push { background: rgba(255,107,53,0.15); color: var(--push-color); }
 .workout-tag.pull { background: rgba(68,138,255,0.15); color: var(--pull-color); }
 .workout-tag.legs { background: rgba(0,230,118,0.15); color: var(--legs-color); }
 

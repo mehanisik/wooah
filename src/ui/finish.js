@@ -1,10 +1,11 @@
 import { $ } from './helpers.js';
 import { checkForPR } from './helpers.js';
-import { state, saveState, isDayComplete, isDayFinished, finishedKey, historyKey, getLog, getWorkoutTimer, stopWorkoutTimer } from '../state/store.js';
+import { state, saveState, isDayComplete, isDayFinished, finishedKey, historyKey, getLog, getWorkoutTimer, stopWorkoutTimer, getExtraSets } from '../state/store.js';
 import { PROGRAM } from '../data/program.js';
 import { showMotivationalModal } from '../render/celebration.js';
 import { showToast } from './toast.js';
 import { clearWorkoutClock } from '../timers/workout-clock.js';
+import { updateOneRMAfterSet } from './one-rm.js';
 import { syncToNeon } from '../sync/neon.js';
 import { renderGreeting } from '../render/greeting.js';
 import { renderStats } from '../render/stats-bar.js';
@@ -12,26 +13,13 @@ import { renderNav } from '../render/nav.js';
 import { renderPages } from '../render/workout.js';
 
 export function updateFinishBar() {
-  const bar = $('#finishBar');
-  const btn = $('#finishBtn');
   const dayIdx = state.activeTab;
+  if (dayIdx >= PROGRAM.length || PROGRAM[dayIdx].type === 'rest' || dayIdx >= 7) return;
+  if (isDayFinished(dayIdx)) return;
 
-  if (dayIdx >= PROGRAM.length || PROGRAM[dayIdx].type === 'rest' || dayIdx === 7 || dayIdx === 8) {
-    bar.classList.remove('visible');
-    return;
+  if (isDayComplete(dayIdx)) {
+    finishWorkout();
   }
-
-  bar.classList.add('visible');
-
-  if (isDayFinished(dayIdx)) {
-    btn.disabled = true;
-    btn.textContent = 'WORKOUT COMPLETE';
-    return;
-  }
-
-  const complete = isDayComplete(dayIdx);
-  btn.disabled = !complete;
-  btn.textContent = complete ? 'FINISH WORKOUT' : 'COMPLETE ALL SETS';
 }
 
 export async function finishWorkout() {
@@ -46,12 +34,14 @@ export async function finishWorkout() {
     if (!state.history[key]) state.history[key] = [];
 
     const sets = [];
-    for (let s = 0; s < ex.sets; s++) {
+    const totalSets = ex.sets + getExtraSets(dayIdx, exIdx);
+    for (let s = 0; s < totalSets; s++) {
       const log = getLog(dayIdx, exIdx, s);
       sets.push({ weight: parseFloat(log.weight) || 0, reps: parseInt(log.reps) || 0 });
     }
 
     if (checkForPR(dayIdx, exIdx)) newPRs++;
+    updateOneRMAfterSet(dayIdx, exIdx);
 
     state.history[key].push({ week: state.currentWeek, sets });
     if (state.history[key].length > 12) state.history[key] = state.history[key].slice(-12);
@@ -80,5 +70,4 @@ export async function finishWorkout() {
   renderStats();
   renderNav();
   renderPages();
-  updateFinishBar();
 }

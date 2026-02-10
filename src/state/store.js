@@ -11,6 +11,10 @@ export let state = {
   startDate: null,
   workoutTimers: {},
   extraSets: {},
+  exerciseSwaps: {},
+  bodyweight: [],
+  oneRmHistory: {},
+  cardioLogs: {},
 };
 
 export function loadState() {
@@ -23,12 +27,26 @@ export function loadState() {
   } catch(e) {}
   if (!state.startDate) {
     state.startDate = new Date().toISOString().split('T')[0];
-    saveState();
   }
+  const msPerWeek = 7 * 24 * 60 * 60 * 1000;
+  state.currentWeek = Math.max(1, Math.floor((Date.now() - new Date(state.startDate).getTime()) / msPerWeek) + 1);
+  saveState();
 }
 
 export function saveState() {
-  try { localStorage.setItem('ironppl_state_v2', JSON.stringify(state)); } catch(e) {}
+  try {
+    localStorage.setItem('ironppl_state_v2', JSON.stringify(state));
+  } catch(e) {
+    if (e.name === 'QuotaExceededError' || e.code === 22) {
+      import('../ui/toast.js').then(m => m.showToast('Storage full — export data'));
+    }
+  }
+}
+
+let _debounceTimer = null;
+export function debouncedSave() {
+  clearTimeout(_debounceTimer);
+  _debounceTimer = setTimeout(saveState, 400);
 }
 
 export function logKey(dayIdx, exIdx, setIdx) { return `w${state.currentWeek}-d${dayIdx}-e${exIdx}-s${setIdx}`; }
@@ -93,6 +111,24 @@ export function getExtraSets(dayIdx, exIdx) { return state.extraSets[extraSetsKe
 export function addExtraSet(dayIdx, exIdx) {
   const key = extraSetsKey(dayIdx, exIdx);
   state.extraSets[key] = (state.extraSets[key] || 0) + 1;
+  saveState();
+}
+
+export function getExerciseSwap(dayIdx, exIdx) {
+  return state.exerciseSwaps[`d${dayIdx}-e${exIdx}`] || null;
+}
+
+export function setExerciseSwap(dayIdx, exIdx, name) {
+  if (name) state.exerciseSwaps[`d${dayIdx}-e${exIdx}`] = name;
+  else delete state.exerciseSwaps[`d${dayIdx}-e${exIdx}`];
+  saveState();
+}
+
+function cardioKey(dayIdx, itemIdx) { return `w${state.currentWeek}-d${dayIdx}-c${itemIdx}`; }
+export function getCardioLog(dayIdx, itemIdx) { return !!state.cardioLogs[cardioKey(dayIdx, itemIdx)]; }
+export function setCardioLog(dayIdx, itemIdx, done) {
+  if (done) state.cardioLogs[cardioKey(dayIdx, itemIdx)] = true;
+  else delete state.cardioLogs[cardioKey(dayIdx, itemIdx)];
   saveState();
 }
 

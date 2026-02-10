@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -16,15 +16,22 @@
 <link rel="apple-touch-icon" href="/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
+<script>
+  (function() {
+    var t = localStorage.getItem('ironppl_theme');
+    if (t === 'dark') document.documentElement.classList.add('dark');
+    else if (t === 'light') document.documentElement.classList.add('light');
+  })();
+</script>
 </head>
 <body>
 
 <header class="header">
   <div class="logo">IRON<span>PPL</span></div>
   <div class="header-actions">
-    <div class="sync-dot" id="syncDot" title="Offline"></div>
-    <button class="uk-btn uk-btn-default uk-btn-icon header-icon-btn" id="statsBtn" title="Stats"><i data-lucide="bar-chart-2"></i></button>
-    <button class="uk-btn uk-btn-default uk-btn-icon header-icon-btn" id="settingsBtn" title="Settings"><i data-lucide="settings"></i></button>
+    <div class="sync-dot" id="syncDot" title="Offline" aria-label="Sync status"></div>
+    <button class="uk-btn uk-btn-default uk-btn-icon header-icon-btn" id="statsBtn" title="Stats" aria-label="View statistics"><i data-lucide="bar-chart-2"></i></button>
+    <button class="uk-btn uk-btn-default uk-btn-icon header-icon-btn" id="settingsBtn" title="Settings" aria-label="Open settings"><i data-lucide="settings"></i></button>
   </div>
 </header>
 
@@ -34,40 +41,26 @@
 <!-- Personal stats -->
 <div class="stats-bar" id="statsBar"></div>
 
-<!-- Week Selector -->
-<div class="week-selector">
-  <span class="week-selector-label">Week</span>
-  <div class="week-selector-arrows">
-    <button class="uk-btn uk-btn-default uk-btn-icon week-arrow" id="weekPrev"><i data-lucide="chevron-left"></i></button>
-  </div>
-  <span class="week-num" id="weekNum">WEEK 1</span>
-  <div class="week-selector-arrows">
-    <button class="uk-btn uk-btn-default uk-btn-icon week-arrow" id="weekNext"><i data-lucide="chevron-right"></i></button>
-  </div>
-</div>
 
-<nav class="nav" id="nav"></nav>
-<main id="pages"></main>
+<nav class="nav" id="nav" role="tablist" aria-label="Workout days"></nav>
+<main id="pages" role="tabpanel"></main>
 
 <!-- Rest timer -->
 <div class="rest-timer-bar" id="restTimerBar">
-  <div class="rest-timer-display" id="restTimerDisplay">0:00</div>
+  <div class="rest-timer-display" id="restTimerDisplay" aria-live="polite">0:00</div>
   <div class="rest-timer-label" id="restTimerLabel">REST</div>
-  <button class="rest-timer-close" id="restTimerClose"><i data-lucide="x"></i></button>
+  <button class="rest-timer-close" id="restTimerClose" aria-label="Close rest timer"><i data-lucide="x"></i></button>
 </div>
 
-<div class="finish-workout-bar" id="finishBar">
-  <button class="uk-btn uk-btn-primary finish-btn" id="finishBtn">FINISH WORKOUT</button>
-</div>
 
-<div class="toast" id="toast"></div>
-<div class="pr-flash" id="prFlash"></div>
+<div class="toast" id="toast" aria-live="polite" role="status"></div>
+<div class="pr-flash" id="prFlash" aria-live="assertive" role="alert"></div>
 
 <!-- Settings Modal -->
-<div class="uk-modal" id="settingsModal">
+<div class="uk-modal" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
   <div class="uk-modal-dialog" style="max-width:360px;">
     <div class="uk-modal-body">
-      <h3 class="uk-modal-title">SETTINGS</h3>
+      <h3 class="uk-modal-title" id="settingsTitle">SETTINGS</h3>
       <p style="margin-bottom:12px;">Connect NeonDB for cloud sync. Your database is private — only your connection string can access it.</p>
       <div class="setup-step" id="neonStatus">NOT CONNECTED</div>
       <input class="uk-input setup-input" id="neonConnStr" type="password" placeholder="postgresql://user:pass@host.neon.tech/db?sslmode=require" autocomplete="off">
@@ -75,12 +68,20 @@
       <button class="uk-btn uk-btn-default setup-btn" id="neonDisconnect" style="display:none;">DISCONNECT</button>
       <button class="uk-btn uk-btn-default setup-btn" id="neonTest" style="display:none;margin-top:4px;">TEST CONNECTION</button>
       <div style="margin-top:16px;border-top:1px solid var(--edge);padding-top:12px;">
+        <div class="setup-step">THEME</div>
+        <div class="theme-toggle" id="themeToggle" style="display:flex;gap:6px;margin-bottom:12px;">
+          <button class="uk-btn uk-btn-default setup-btn theme-btn" data-theme="light" style="flex:1;">LIGHT</button>
+          <button class="uk-btn uk-btn-default setup-btn theme-btn" data-theme="dark" style="flex:1;">DARK</button>
+          <button class="uk-btn uk-btn-default setup-btn theme-btn" data-theme="system" style="flex:1;">SYSTEM</button>
+        </div>
+      </div>
+      <div style="margin-top:12px;border-top:1px solid var(--edge);padding-top:12px;">
         <button class="uk-btn uk-btn-default setup-btn" id="exportData">EXPORT LOCAL DATA (JSON)</button>
       </div>
       <div class="setup-msg" id="settingsMsg"></div>
     </div>
     <div class="uk-modal-footer">
-      <button class="uk-btn uk-btn-default" id="settingsClose">Close</button>
+      <button class="uk-btn uk-btn-default" id="settingsClose" aria-label="Close settings">Close</button>
     </div>
   </div>
 </div>

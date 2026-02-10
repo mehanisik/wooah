@@ -5,7 +5,7 @@ import { getWorkoutTimer } from '../state/store.js';
 let workoutTimerInterval = null;
 
 export function startWorkoutClock(dayIdx) {
-  clearInterval(workoutTimerInterval);
+  if (workoutTimerInterval) return;
   workoutTimerInterval = setInterval(() => {
     const display = $(`#workoutTimerDisplay-${dayIdx}`);
     if (!display) { clearInterval(workoutTimerInterval); return; }
@@ -18,4 +18,5 @@ export function startWorkoutClock(dayIdx) {
 
 export function clearWorkoutClock() {
   clearInterval(workoutTimerInterval);
+  workoutTimerInterval = null;
 }

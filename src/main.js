@@ -15,7 +15,7 @@ import { renderStats } from './render/stats-bar.js';
 import { renderNav } from './render/nav.js';
 import { renderPages } from './render/workout.js';
 import { updateFinishBar } from './ui/finish.js';
-import { initEvents, updateWeekDisplay } from './ui/events.js';
+import { initEvents } from './ui/events.js';
 import { initRestTimerClose } from './timers/rest-timer.js';
 import { initNeon } from './sync/neon.js';
 import { initWakeLock } from './ui/wake-lock.js';
@@ -23,7 +23,6 @@ import { refreshIcons } from './ui/icons.js';
 
 loadState();
 state.activeTab = getTodayDayIdx();
-updateWeekDisplay();
 renderGreeting();
 renderStats();
 renderNav();

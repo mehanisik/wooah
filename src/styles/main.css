@@ -1,5 +1,4 @@
 @import "./franken-slim.css";
-@import "tailwindcss";
 @import "./theme.css";
 @import "./domain.css";
-@import "./legacy.css";
+@import "./components.css";

@@ -1,6 +1,8 @@
 import { $, getPRCount, formatDuration } from '../ui/helpers.js';
 import { state, historyKey } from '../state/store.js';
 import { PROGRAM } from '../data/program.js';
+import { renderBodyweightSection, attachBodyweightListeners } from './bodyweight.js';
+import { renderOneRMStatsSection } from '../ui/one-rm.js';
 
 export function renderStatsPage() {
   const allExercises = [];
@@ -45,6 +47,9 @@ export function renderStatsPage() {
     })()}</span></div>
     <div class="stat-row"><span class="stat-row-label">Training Since</span><span class="stat-row-value">${state.startDate || '—'}</span></div>
   </div>`;
+
+  h += renderBodyweightSection();
+  h += renderOneRMStatsSection();
 
   h += `<div class="chart-section">
     <div class="chart-title">WEIGHT PROGRESSION</div>
@@ -186,4 +191,7 @@ export function attachStatsListeners() {
     renderVolumeChart();
     sel.addEventListener('change', () => renderProgressionChart(sel.value));
   }
+  attachBodyweightListeners(() => {
+    import('../render/workout.js').then(m => m.renderPages());
+  });
 }

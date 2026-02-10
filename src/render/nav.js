@@ -17,10 +17,12 @@ export function renderNav() {
     if (i === state.activeTab) classes.push('uk-active');
     if (isToday) classes.push('today');
     const doneDot = done ? '<span class="done-dot"></span>' : '';
-    return `<button class="${classes.join(' ')}" data-idx="${i}" data-type="${typeAttr}">${d.day}<span class="nav-date">${dates[i]}</span>${doneDot}</button>`;
+    return `<button class="${classes.join(' ')}" data-idx="${i}" data-type="${typeAttr}" role="tab" aria-selected="${i === state.activeTab}">${d.day}<span class="nav-date">${dates[i]}</span>${doneDot}</button>`;
   });
-  tabs.push(`<button class="nav-tab ${state.activeTab === 7 ? 'uk-active' : ''}" data-idx="7" data-type="info">INFO</button>`);
-  tabs.push(`<button class="nav-tab ${state.activeTab === 8 ? 'uk-active' : ''}" data-idx="8" data-type="info">STATS</button>`);
+  tabs.push(`<button class="nav-tab ${state.activeTab === 7 ? 'uk-active' : ''}" data-idx="7" data-type="info" role="tab" aria-selected="${state.activeTab === 7}">INFO</button>`);
+  tabs.push(`<button class="nav-tab ${state.activeTab === 8 ? 'uk-active' : ''}" data-idx="8" data-type="info" role="tab" aria-selected="${state.activeTab === 8}">STATS</button>`);
+  tabs.push(`<button class="nav-tab ${state.activeTab === 9 ? 'uk-active' : ''}" data-idx="9" data-type="info" role="tab" aria-selected="${state.activeTab === 9}">CALENDAR</button>`);
+  tabs.push(`<button class="nav-tab ${state.activeTab === 10 ? 'uk-active' : ''}" data-idx="10" data-type="info" role="tab" aria-selected="${state.activeTab === 10}">PHOTOS</button>`);
   nav.innerHTML = tabs.join('');
   refreshIcons();
 

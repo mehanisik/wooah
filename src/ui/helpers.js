@@ -1,4 +1,4 @@
-import { state, getLog, getHistory } from '../state/store.js';
+import { state, getLog, getHistory, getExtraSets } from '../state/store.js';
 import { PROGRAM } from '../data/program.js';
 
 export function $(sel) { return document.querySelector(sel); }
@@ -50,15 +50,17 @@ export function checkForPR(dayIdx, exIdx) {
   const ex = PROGRAM[dayIdx].exercises[exIdx];
   if (!ex) return false;
 
+  const totalSets = ex.sets + getExtraSets(dayIdx, exIdx);
   let bestVolume = 0;
-  for (let s = 0; s < ex.sets; s++) {
+  for (let s = 0; s < totalSets; s++) {
     const log = getLog(dayIdx, exIdx, s);
-    const vol = (parseFloat(log.weight) || 0) * (parseInt(log.reps) || 0);
+    const vol = Math.round((parseFloat(log.weight) || 0) * (parseInt(log.reps) || 0) * 100) / 100;
     bestVolume = Math.max(bestVolume, vol);
   }
 
   const prev = state.personalRecords[key];
-  if (bestVolume > 0 && (!prev || bestVolume > prev.volume)) {
+  bestVolume = Math.round(bestVolume * 100) / 100;
+  if (bestVolume > 0 && (!prev || bestVolume > Math.round((prev.volume || 0) * 100) / 100)) {
     state.personalRecords[key] = {
       volume: bestVolume,
       date: new Date().toISOString().split('T')[0]

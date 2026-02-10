@@ -1,44 +1,55 @@
 import { $, $$, formatRest, parseRepRange, formatDuration, formatTimeShort } from '../ui/helpers.js';
-import { state, getLog, setLog, getLastSession, isDayFinished, getWorkoutTimer, startWorkoutTimer, historyKey, getExtraSets, addExtraSet } from '../state/store.js';
+import { state, getLog, setLog, getLastSession, isDayFinished, getWorkoutTimer, startWorkoutTimer, historyKey, getExtraSets, addExtraSet, debouncedSave, getCardioLog, setCardioLog } from '../state/store.js';
 import { PROGRAM } from '../data/program.js';
 import { renderInfoPage } from './info.js';
 import { renderStatsPage, attachStatsListeners } from './stats-page.js';
+import { renderCalendarPage, attachCalendarListeners } from './calendar.js';
+import { renderPhotosPage, attachPhotosListeners } from './photos.js';
 import { renderRestDay } from './rest-day.js';
 import { loadRestDayImage } from './celebration.js';
 import { startRestTimer } from '../timers/rest-timer.js';
 import { startWorkoutClock } from '../timers/workout-clock.js';
 import { updateFinishBar } from '../ui/finish.js';
 import { refreshIcons } from '../ui/icons.js';
+import { captureSnapshot, showUndoToast } from '../ui/undo.js';
+import { getDisplayName, showSwapModal } from '../ui/exercise-swap.js';
+import { renderOneRMDisplay, updateOneRMAfterSet } from '../ui/one-rm.js';
 
 export function renderPages() {
   const pages = $('#pages');
-  let html = '';
+  const tab = state.activeTab;
+  let content = '';
 
-  PROGRAM.forEach((day, dayIdx) => {
-    const isActive = dayIdx === state.activeTab;
+  if (tab >= 0 && tab <= 6) {
+    const day = PROGRAM[tab];
     if (day.type === 'rest') {
-      html += `<div class="page ${isActive ? 'uk-active' : ''}" data-page="${dayIdx}">${renderRestDay()}</div>`;
-      return;
+      content = renderRestDay();
+    } else {
+      content = renderWorkoutPage(day, tab);
     }
-
-    html += `<div class="page ${isActive ? 'uk-active' : ''}" data-page="${dayIdx}">`;
-    html += renderWorkoutPage(day, dayIdx);
-    html += `</div>`;
-  });
-
-  html += `<div class="page ${state.activeTab === 7 ? 'uk-active' : ''}" data-page="7">${renderInfoPage()}</div>`;
-  html += `<div class="page ${state.activeTab === 8 ? 'uk-active' : ''}" data-page="8">${renderStatsPage()}</div>`;
-  pages.innerHTML = html;
-  refreshIcons();
-  attachExerciseListeners();
-  if (state.activeTab === 8) attachStatsListeners();
-
-  if (state.activeTab >= 0 && state.activeTab <= 5) {
-    const timer = getWorkoutTimer(state.activeTab);
-    if (timer && !timer.finishedAt) startWorkoutClock(state.activeTab);
+  } else if (tab === 7) {
+    content = renderInfoPage();
+  } else if (tab === 8) {
+    content = renderStatsPage();
+  } else if (tab === 9) {
+    content = renderCalendarPage();
+  } else if (tab === 10) {
+    content = renderPhotosPage();
   }
 
-  if (state.activeTab === 6) loadRestDayImage();
+  pages.innerHTML = `<div class="page uk-active" data-page="${tab}">${content}</div>`;
+  refreshIcons();
+  attachExerciseListeners();
+  if (tab === 8) attachStatsListeners();
+  if (tab === 9) attachCalendarListeners();
+  if (tab === 10) attachPhotosListeners();
+
+  if (tab >= 0 && tab <= 5) {
+    const timer = getWorkoutTimer(tab);
+    if (timer && !timer.finishedAt) startWorkoutClock(tab);
+  }
+
+  if (tab === 6) loadRestDayImage();
 }
 
 function renderWorkoutPage(day, dayIdx) {
@@ -67,7 +78,7 @@ function renderWorkoutPage(day, dayIdx) {
   }
 
   h += `<div class="warmup-section">
-    <button class="warmup-toggle" data-warmup="${dayIdx}">
+    <button class="warmup-toggle" data-warmup="${dayIdx}" aria-expanded="false" aria-label="Toggle warm-up protocol">
       <span class="arrow"><i data-lucide="chevron-right"></i></span> WARM-UP PROTOCOL
     </button>
     <div class="warmup-content" data-warmup-content="${dayIdx}">
@@ -83,15 +94,22 @@ function renderWorkoutPage(day, dayIdx) {
     h += renderExerciseCard(ex, dayIdx, exIdx);
   });
 
-  if (day.cardio) {
-    h += `<div class="warmup-section">
-      <button class="warmup-toggle" data-cardio="${dayIdx}">
-        <span class="arrow"><i data-lucide="chevron-right"></i></span> <i data-lucide="heart-pulse" style="width:16px;height:16px;display:inline;vertical-align:-2px;"></i> POST-WORKOUT CARDIO
-      </button>
-      <div class="warmup-content" data-cardio-content="${dayIdx}">
-        <p>${day.cardio}</p>
-      </div>
-    </div>`;
+  if (day.cardio && day.cardio.length) {
+    const allCardioDone = day.cardio.every((_, i) => getCardioLog(dayIdx, i));
+    h += `<div class="cardio-section ${allCardioDone ? 'done' : ''}">
+      <div class="cardio-header">
+        <i data-lucide="heart-pulse" style="width:16px;height:16px;"></i> ABS / CARDIO
+        <button class="circuit-start-btn" data-circuit-day="${dayIdx}" ${allCardioDone ? 'disabled' : ''}>${allCardioDone ? 'DONE' : 'START CIRCUIT'}</button>
+      </div>`;
+    day.cardio.forEach((item, i) => {
+      const done = getCardioLog(dayIdx, i);
+      h += `<div class="cardio-row ${done ? 'done' : ''}" data-day="${dayIdx}" data-cardio-idx="${i}">
+        <div class="set-check ${done ? 'done' : ''}" data-action="cardio-toggle"><i data-lucide="check" style="width:14px;height:14px;"></i></div>
+        <span class="cardio-name">${item.name}</span>
+        <span class="cardio-duration">${item.duration}</span>
+      </div>`;
+    });
+    h += `</div>`;
   }
 
   return h;
@@ -104,11 +122,13 @@ function renderExerciseCard(ex, dayIdx, exIdx) {
   const prKey = historyKey(dayIdx, exIdx);
   const hasPR = !!state.personalRecords[prKey];
 
-  h += `<div class="exercise-card ${allDone ? 'done' : ''}" data-day="${dayIdx}" data-ex="${exIdx}">`;
-  h += `<div class="exercise-top">`;
+  h += `<div class="exercise-card ${allDone ? 'done' : ''}" data-day="${dayIdx}" data-ex="${exIdx}" role="region" aria-label="${ex.name}">`;
+  h += `<div class="exercise-top" role="button" tabindex="0" aria-expanded="false" aria-label="Expand ${ex.name}">`;
   h += `<div class="exercise-num ${allDone ? 'done' : ''}">${exIdx + 1}</div>`;
   h += `<div class="exercise-info">`;
-  h += `<div class="exercise-name">${ex.name}</div>`;
+  const displayName = getDisplayName(dayIdx, exIdx);
+  const isSwapped = displayName !== ex.name;
+  h += `<div class="exercise-name">${displayName}${isSwapped ? ' <span class="swap-indicator">swapped</span>' : ''}</div>`;
   h += `<div class="exercise-meta">`;
   h += `<span>${ex.sets} x ${ex.reps}</span>`;
   h += `<span><i data-lucide="timer"></i> ${formatRest(ex.rest)}</span>`;
@@ -119,6 +139,9 @@ function renderExerciseCard(ex, dayIdx, exIdx) {
   if (ex.superset) h += `<span class="uk-badge superset-badge"><i data-lucide="zap"></i> Superset</span>`;
   if (hasPR) h += `<span class="uk-badge pr-badge"><i data-lucide="trophy"></i> PR</span>`;
   h += `</div>`;
+  if (ex.alternatives && ex.alternatives.length > 0) {
+    h += `<button class="swap-btn" data-swap-day="${dayIdx}" data-swap-ex="${exIdx}" aria-label="Swap exercise" title="Swap exercise">&#x21c4;</button>`;
+  }
   h += `<div class="exercise-expand"><i data-lucide="chevron-down"></i></div>`;
   h += `</div>`;
 
@@ -141,14 +164,15 @@ function renderExerciseCard(ex, dayIdx, exIdx) {
 
     h += `<div class="set-row" data-day="${dayIdx}" data-ex="${exIdx}" data-set="${s}" data-rest="${ex.rest}">`;
     h += `<span class="set-label ${isAmrapSet ? 'amrap' : ''}">${isAmrapSet ? 'A' : s + 1}</span>`;
-    h += `<input class="uk-input set-input weight-input" type="number" inputmode="decimal" step="0.5" placeholder="—" value="${log.weight || ''}" data-field="weight">`;
-    h += `<input class="uk-input set-input reps-input" type="number" inputmode="numeric" placeholder="${isAmrapSet ? '5+' : ex.reps}" value="${log.reps || ''}" data-field="reps">`;
-    h += `<div class="set-check ${log.done ? 'done' : ''}" data-action="toggle">${log.done ? '<i data-lucide="check"></i>' : ''}</div>`;
+    h += `<input class="uk-input set-input weight-input" type="number" inputmode="decimal" step="0.5" min="0" max="500" placeholder="—" value="${log.weight || ''}" data-field="weight">`;
+    h += `<input class="uk-input set-input reps-input" type="number" inputmode="numeric" step="1" min="0" max="100" placeholder="${isAmrapSet ? '5+' : ex.reps}" value="${log.reps || ''}" data-field="reps">`;
+    h += `<div class="set-check ${log.done ? 'done' : ''}" data-action="toggle" role="checkbox" aria-checked="${log.done}" aria-label="Mark set ${s + 1} done" tabindex="0">${log.done ? '<i data-lucide="check"></i>' : ''}</div>`;
     h += `</div>`;
   }
 
-  h += `<button class="add-set-btn" data-add-set data-day="${dayIdx}" data-ex="${exIdx}"><i data-lucide="plus"></i> Add Set</button>`;
+  h += `<button class="add-set-btn" data-add-set data-day="${dayIdx}" data-ex="${exIdx}" aria-label="Add extra set for ${ex.name}"><i data-lucide="plus"></i> Add Set</button>`;
   h += renderProgression(ex, dayIdx, exIdx);
+  h += renderOneRMDisplay(dayIdx, exIdx);
   h += `</div>`;
   h += `</div>`;
   return h;
@@ -188,7 +212,11 @@ function renderProgression(ex, dayIdx, exIdx) {
 
 function attachExerciseListeners() {
   $$('.exercise-top').forEach(top => {
-    top.addEventListener('click', () => { top.closest('.exercise-card').classList.toggle('open'); });
+    top.addEventListener('click', () => {
+      const card = top.closest('.exercise-card');
+      card.classList.toggle('open');
+      top.setAttribute('aria-expanded', card.classList.contains('open'));
+    });
   });
 
   $$('.warmup-toggle').forEach(btn => {
@@ -196,24 +224,33 @@ function attachExerciseListeners() {
       const content = $(`[data-warmup-content="${btn.dataset.warmup}"]`);
       btn.classList.toggle('open');
       content.classList.toggle('open');
+      btn.setAttribute('aria-expanded', btn.classList.contains('open'));
     });
   });
 
-  $$('[data-cardio]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const content = $(`[data-cardio-content="${btn.dataset.cardio}"]`);
-      btn.classList.toggle('open');
-      content.classList.toggle('open');
-    });
-  });
 
-  $$('.set-row:not(.header)').forEach(row => attachSetRowListener(row));
-
-  $$('[data-add-set]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
+  const pageContainer = $('#pages');
+  pageContainer.addEventListener('click', (e) => {
+    const swapBtn = e.target.closest('.swap-btn');
+    if (swapBtn) {
       e.stopPropagation();
-      const dayIdx = parseInt(btn.dataset.day);
-      const exIdx = parseInt(btn.dataset.ex);
+      showSwapModal(parseInt(swapBtn.dataset.swapDay), parseInt(swapBtn.dataset.swapEx));
+      return;
+    }
+
+    const circuitBtn = e.target.closest('.circuit-start-btn');
+    if (circuitBtn) {
+      e.stopPropagation();
+      const dayIdx = parseInt(circuitBtn.dataset.circuitDay);
+      import('../timers/circuit-timer.js').then(m => m.startCircuit(dayIdx));
+      return;
+    }
+
+    const addBtn = e.target.closest('[data-add-set]');
+    if (addBtn) {
+      e.stopPropagation();
+      const dayIdx = parseInt(addBtn.dataset.day);
+      const exIdx = parseInt(addBtn.dataset.ex);
       addExtraSet(dayIdx, exIdx);
       const ex = PROGRAM[dayIdx].exercises[exIdx];
       const totalSets = ex.sets + getExtraSets(dayIdx, exIdx);
@@ -227,85 +264,129 @@ function attachExerciseListeners() {
       row.dataset.set = s;
       row.dataset.rest = ex.rest;
       row.innerHTML = `<span class="set-label">${s + 1}</span><input class="uk-input set-input weight-input" type="number" inputmode="decimal" step="0.5" placeholder="—" value="${log.weight || ''}" data-field="weight"><input class="uk-input set-input reps-input" type="number" inputmode="numeric" placeholder="${ex.reps}" value="${log.reps || ''}" data-field="reps"><div class="set-check" data-action="toggle"></div>`;
-      btn.before(row);
-      attachSetRowListener(row);
+      addBtn.before(row);
       refreshIcons();
-    });
+      return;
+    }
+
+    const check = e.target.closest('.set-check');
+    if (check) {
+      e.stopPropagation();
+      const cardioRow = check.closest('.cardio-row');
+      if (cardioRow) {
+        const dayIdx = parseInt(cardioRow.dataset.day);
+        const idx = parseInt(cardioRow.dataset.cardioIdx);
+        const done = !getCardioLog(dayIdx, idx);
+        setCardioLog(dayIdx, idx, done);
+        check.classList.toggle('done', done);
+        cardioRow.classList.toggle('done', done);
+        const section = cardioRow.closest('.cardio-section');
+        const day = PROGRAM[dayIdx];
+        const allDone = day.cardio.every((_, i) => getCardioLog(dayIdx, i));
+        section.classList.toggle('done', allDone);
+        refreshIcons();
+        if (done && !allDone) {
+          startRestTimer(15, day.cardio[idx].name);
+        }
+        return;
+      }
+      const row = check.closest('.set-row');
+      if (!row || row.classList.contains('header')) return;
+      handleSetToggle(row, check);
+      return;
+    }
+  });
+
+  pageContainer.addEventListener('input', (e) => {
+    const input = e.target.closest('.set-input');
+    if (!input) return;
+    const row = input.closest('.set-row');
+    if (!row || row.classList.contains('header')) return;
+
+    let val = parseFloat(input.value);
+    const isReps = input.dataset.field === 'reps';
+    if (isReps) val = Math.floor(val);
+    const min = parseFloat(input.min) || 0;
+    const max = parseFloat(input.max) || (isReps ? 100 : 500);
+
+    if (input.value !== '' && (isNaN(val) || val < min || val > max)) {
+      input.classList.add('invalid');
+      return;
+    }
+    input.classList.remove('invalid');
+
+    if (input.value !== '' && val < min) input.value = min;
+
+    const dayIdx = parseInt(row.dataset.day);
+    const exIdx = parseInt(row.dataset.ex);
+    const setIdx = parseInt(row.dataset.set);
+    const current = getLog(dayIdx, exIdx, setIdx);
+    current[input.dataset.field] = input.value;
+    state.logs[`w${state.currentWeek}-d${dayIdx}-e${exIdx}-s${setIdx}`] = current;
+    debouncedSave();
   });
 }
 
-function attachSetRowListener(row) {
+function handleSetToggle(row, check) {
+  captureSnapshot();
   const dayIdx = parseInt(row.dataset.day);
   const exIdx = parseInt(row.dataset.ex);
   const setIdx = parseInt(row.dataset.set);
   const restSec = parseInt(row.dataset.rest);
+  const current = getLog(dayIdx, exIdx, setIdx);
+  current.done = !current.done;
 
-  row.querySelectorAll('.set-input').forEach(input => {
-    input.addEventListener('input', () => {
-      const current = getLog(dayIdx, exIdx, setIdx);
-      current[input.dataset.field] = input.value;
-      setLog(dayIdx, exIdx, setIdx, current);
-    });
-    input.addEventListener('click', e => e.stopPropagation());
-  });
-
-  const check = row.querySelector('.set-check');
-  if (check) {
-    check.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const current = getLog(dayIdx, exIdx, setIdx);
-      current.done = !current.done;
-
-      if (current.done && !getWorkoutTimer(dayIdx)) {
-        startWorkoutTimer(dayIdx);
-        const timerData = getWorkoutTimer(dayIdx);
-        const page = row.closest('.page');
-        const warmup = page.querySelector('.warmup-section');
-        if (warmup) {
-          const timerEl = document.createElement('div');
-          timerEl.className = 'workout-timer';
-          timerEl.innerHTML = `<span class="workout-timer-icon"><i data-lucide="timer"></i></span><span class="workout-timer-display active" id="workoutTimerDisplay-${dayIdx}">0:00</span><span class="workout-timer-label">ELAPSED</span><span class="workout-timer-start">${formatTimeShort(timerData.startedAt)}</span>`;
-          refreshIcons();
-          warmup.before(timerEl);
-        }
-        startWorkoutClock(dayIdx);
-      }
-
-      if (current.done && !current.weight) {
-        if (setIdx > 0) {
-          const prev = getLog(dayIdx, exIdx, setIdx - 1);
-          if (prev.weight) current.weight = prev.weight;
-        } else {
-          const last = getLastSession(dayIdx, exIdx);
-          if (last && last.sets[0]) current.weight = last.sets[0].weight;
-        }
-      }
-
-      setLog(dayIdx, exIdx, setIdx, current);
-
-      if (current.done) {
-        check.classList.add('done');
-        check.innerHTML = '<i data-lucide="check"></i>';
-        refreshIcons();
-        const ex = PROGRAM[dayIdx].exercises[exIdx];
-        startRestTimer(restSec, ex.name);
-      } else {
-        check.classList.remove('done');
-        check.innerHTML = '';
-      }
-
-      const weightInput = row.querySelector('.weight-input');
-      if (current.weight && !weightInput.value) weightInput.value = current.weight;
-
-      const card = row.closest('.exercise-card');
-      const ex = PROGRAM[dayIdx].exercises[exIdx];
-      const totalSets = ex.sets + getExtraSets(dayIdx, exIdx);
-      const allDone = Array.from({length: totalSets}, (_, i) => getLog(dayIdx, exIdx, i).done).every(Boolean);
-      const numEl = card.querySelector('.exercise-num');
-      if (allDone) { numEl.classList.add('done'); card.classList.add('done'); }
-      else { numEl.classList.remove('done'); card.classList.remove('done'); }
-
-      updateFinishBar();
-    });
+  if (current.done && !getWorkoutTimer(dayIdx)) {
+    startWorkoutTimer(dayIdx);
+    const timerData = getWorkoutTimer(dayIdx);
+    const page = row.closest('.page');
+    const warmup = page.querySelector('.warmup-section');
+    if (warmup) {
+      const timerEl = document.createElement('div');
+      timerEl.className = 'workout-timer';
+      timerEl.innerHTML = `<span class="workout-timer-icon"><i data-lucide="timer"></i></span><span class="workout-timer-display active" id="workoutTimerDisplay-${dayIdx}">0:00</span><span class="workout-timer-label">ELAPSED</span><span class="workout-timer-start">${formatTimeShort(timerData.startedAt)}</span>`;
+      refreshIcons();
+      warmup.before(timerEl);
+    }
+    startWorkoutClock(dayIdx);
   }
+
+  if (current.done && !current.weight) {
+    if (setIdx > 0) {
+      const prev = getLog(dayIdx, exIdx, setIdx - 1);
+      if (prev.weight) current.weight = prev.weight;
+    } else {
+      const last = getLastSession(dayIdx, exIdx);
+      if (last && last.sets[0]) current.weight = last.sets[0].weight;
+    }
+  }
+
+  setLog(dayIdx, exIdx, setIdx, current);
+
+  if (current.done) {
+    check.classList.add('done');
+    check.innerHTML = '<i data-lucide="check"></i>';
+    check.setAttribute('aria-checked', 'true');
+    refreshIcons();
+    const ex = PROGRAM[dayIdx].exercises[exIdx];
+    startRestTimer(restSec, ex.name);
+  } else {
+    check.classList.remove('done');
+    check.innerHTML = '';
+    check.setAttribute('aria-checked', 'false');
+  }
+
+  const weightInput = row.querySelector('.weight-input');
+  if (current.weight && !weightInput.value) weightInput.value = current.weight;
+
+  const card = row.closest('.exercise-card');
+  const ex = PROGRAM[dayIdx].exercises[exIdx];
+  const totalSets = ex.sets + getExtraSets(dayIdx, exIdx);
+  const allDone = Array.from({length: totalSets}, (_, i) => getLog(dayIdx, exIdx, i).done).every(Boolean);
+  const numEl = card.querySelector('.exercise-num');
+  if (allDone) { numEl.classList.add('done'); card.classList.add('done'); }
+  else { numEl.classList.remove('done'); card.classList.remove('done'); }
+
+  updateFinishBar();
+  showUndoToast();
 }

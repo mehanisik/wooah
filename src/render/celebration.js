@@ -3,6 +3,8 @@ import { formatDuration } from '../ui/helpers.js';
 import { MOTIVATIONAL } from '../data/program.js';
 import { refreshIcons } from '../ui/icons.js';
 import { savePhoto } from '../ui/photo-store.js';
+import { closeAllModals } from '../ui/events.js';
+import { trapFocus, releaseFocus } from '../ui/focus-trap.js';
 
 async function fetchMotivationalImage() {
   try {
@@ -19,6 +21,7 @@ async function fetchMotivationalImage() {
 }
 
 export function showMotivationalModal(dayName, newPRs, duration, week, dayIdx) {
+  closeAllModals();
   let existing = $('#celebrationModal');
   if (existing) existing.remove();
 
@@ -43,10 +46,10 @@ export function showMotivationalModal(dayName, newPRs, duration, week, dayIdx) {
   </div>`;
 
   document.body.appendChild(modal);
-  requestAnimationFrame(() => { modal.classList.add('uk-open'); refreshIcons(); });
+  requestAnimationFrame(() => { modal.classList.add('uk-open'); refreshIcons(); trapFocus(modal); });
 
-  let autoDismiss = setTimeout(() => { modal.classList.remove('uk-open'); setTimeout(() => modal.remove(), 300); }, 10000);
-  const dismiss = () => { clearTimeout(autoDismiss); modal.classList.remove('uk-open'); setTimeout(() => modal.remove(), 300); };
+  let autoDismiss = setTimeout(() => { releaseFocus(); modal.classList.remove('uk-open'); setTimeout(() => modal.remove(), 300); }, 10000);
+  const dismiss = () => { clearTimeout(autoDismiss); releaseFocus(); modal.classList.remove('uk-open'); setTimeout(() => modal.remove(), 300); };
   modal.querySelector('#celebDismiss').addEventListener('click', dismiss);
   modal.addEventListener('click', (e) => { if (e.target === modal) dismiss(); });
 

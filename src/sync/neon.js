@@ -2,6 +2,7 @@ import { $ } from '../ui/helpers.js';
 import { state, getLog, getWorkoutTimer, historyKey } from '../state/store.js';
 import { PROGRAM } from '../data/program.js';
 import { showToast } from '../ui/toast.js';
+import { closeAllModals, openModal } from '../ui/events.js';
 
 let neonSQL = null;
 
@@ -122,22 +123,20 @@ export async function syncToNeon(dayIdx) {
     showToast('Synced to cloud');
   } catch (err) {
     updateSyncDot('offline');
-    console.error('Sync error:', err);
+    showToast('Sync failed — data saved locally');
   }
 }
 
 export function initSettingsHandlers() {
   $('#settingsBtn').addEventListener('click', () => {
     updateSettingsUI();
-    $('#settingsModal').classList.add('uk-open');
+    openModal($('#settingsModal'));
   });
 
-  $('#settingsClose').addEventListener('click', () => {
-    $('#settingsModal').classList.remove('uk-open');
-  });
+  $('#settingsClose').addEventListener('click', () => closeAllModals());
 
   $('#settingsModal').addEventListener('click', (e) => {
-    if (e.target === $('#settingsModal')) $('#settingsModal').classList.remove('uk-open');
+    if (e.target === $('#settingsModal')) closeAllModals();
   });
 
   $('#neonConnect').addEventListener('click', async () => {
@@ -208,6 +207,34 @@ export function initSettingsHandlers() {
     $('#neonTest').disabled = false;
     $('#neonTest').textContent = 'TEST CONNECTION';
   });
+
+  function applyTheme(theme) {
+    const html = document.documentElement;
+    html.classList.remove('light', 'dark');
+    if (theme === 'light') html.classList.add('light');
+    else if (theme === 'dark') html.classList.add('dark');
+    localStorage.setItem('ironppl_theme', theme);
+    updateThemeButtons(theme);
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) {
+      const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      meta.content = isDark ? '#0a0a0a' : '#ffffff';
+    }
+  }
+
+  function updateThemeButtons(active) {
+    document.querySelectorAll('.theme-btn').forEach(b => {
+      b.classList.toggle('uk-btn-primary', b.dataset.theme === active);
+      b.classList.toggle('uk-btn-default', b.dataset.theme !== active);
+    });
+  }
+
+  document.querySelectorAll('.theme-btn').forEach(btn => {
+    btn.addEventListener('click', () => applyTheme(btn.dataset.theme));
+  });
+
+  const savedTheme = localStorage.getItem('ironppl_theme') || 'system';
+  updateThemeButtons(savedTheme);
 
   $('#exportData').addEventListener('click', () => {
     const data = JSON.stringify(state, null, 2);
