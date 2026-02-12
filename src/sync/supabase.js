@@ -121,12 +121,18 @@ async function signInWithGoogle() {
     showToast('Google sign-in not loaded');
     return;
   }
+  const rawNonce = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32))));
+  const hashedNonce = btoa(
+    String.fromCharCode(...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(rawNonce)))),
+  );
   google.accounts.id.initialize({
     client_id: GOOGLE_CLIENT_ID,
+    nonce: hashedNonce,
     callback: async (response) => {
       const { error } = await supabase.auth.signInWithIdToken({
         provider: 'google',
         token: response.credential,
+        nonce: rawNonce,
       });
       const msg = $('#authMsg');
       if (error) {
