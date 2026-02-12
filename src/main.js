@@ -44,3 +44,8 @@ const updateSW = registerSW({
     document.getElementById('swReload').addEventListener('click', () => updateSW(true));
   },
 });
+
+setInterval(() => updateSW(), 60 * 60 * 1000);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') updateSW();
+});

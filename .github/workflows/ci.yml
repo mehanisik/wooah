@@ -29,7 +29,9 @@ jobs:
           fetch-depth: 0
       - name: Install Gitleaks
         run: |
-          curl -sSfL https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks_8.24.3_linux_x64.tar.gz | tar xz
+          TAG=$(curl -sSf https://api.github.com/repos/gitleaks/gitleaks/releases/latest | grep '"tag_name"' | cut -d'"' -f4)
+          VERSION=${TAG#v}
+          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/${TAG}/gitleaks_${VERSION}_linux_x64.tar.gz" | tar xz
           sudo mv gitleaks /usr/local/bin/
       - name: Run Gitleaks
         run: gitleaks detect --source . --verbose
@@ -62,9 +64,4 @@ jobs:
           scan-type: fs
           severity: HIGH,CRITICAL
           exit-code: "1"
-          format: sarif
-          output: trivy-results.sarif
-      - uses: github/codeql-action/upload-sarif@v3
-        if: always()
-        with:
-          sarif_file: trivy-results.sarif
+          format: table

@@ -87,14 +87,23 @@ function updateAuthUI() {
     signedOutUI.style.display = 'block';
     signedInUI.style.display = 'none';
   }
+
+  const emailStep = $('#authEmailStep');
+  const otpStep = $('#authOtpStep');
+  if (emailStep && otpStep && currentUser) {
+    emailStep.style.display = 'block';
+    otpStep.style.display = 'none';
+  }
 }
 
-export async function signInWithMagicLink(email) {
+export async function sendOtpCode(email) {
   if (!supabase) return { error: { message: 'Supabase not initialized' } };
-  return supabase.auth.signInWithOtp({
-    email,
-    options: { emailRedirectTo: window.location.origin },
-  });
+  return supabase.auth.signInWithOtp({ email });
+}
+
+export async function verifyOtp(email, token) {
+  if (!supabase) return { error: { message: 'Supabase not initialized' } };
+  return supabase.auth.verifyOtp({ email, token, type: 'email' });
 }
 
 export async function signOut() {
@@ -206,25 +215,60 @@ export function initSettingsHandlers() {
     if (e.target === $('#settingsModal')) closeAllModals();
   });
 
-  $('#authSendLink').addEventListener('click', async () => {
+  let pendingEmail = '';
+
+  $('#authSendCode').addEventListener('click', async () => {
     const email = $('#authEmail').value.trim();
     if (!email || !email.includes('@')) {
       $('#authMsg').textContent = 'Enter a valid email address';
       $('#authMsg').className = 'setup-msg error';
       return;
     }
-    $('#authSendLink').disabled = true;
-    $('#authSendLink').textContent = 'SENDING...';
-    const { error } = await signInWithMagicLink(email);
-    $('#authSendLink').disabled = false;
-    $('#authSendLink').textContent = 'SEND MAGIC LINK';
+    $('#authSendCode').disabled = true;
+    $('#authSendCode').textContent = 'SENDING...';
+    const { error } = await sendOtpCode(email);
+    $('#authSendCode').disabled = false;
+    $('#authSendCode').textContent = 'SEND CODE';
     if (error) {
       $('#authMsg').textContent = error.message;
       $('#authMsg').className = 'setup-msg error';
     } else {
-      $('#authMsg').textContent = 'Check your email for the login link!';
+      pendingEmail = email;
+      $('#authEmailStep').style.display = 'none';
+      $('#authOtpStep').style.display = 'block';
+      $('#authOtpInput').value = '';
+      $('#authOtpInput').focus();
+      $('#authMsg').textContent = 'Check your email for the 6-digit code';
       $('#authMsg').className = 'setup-msg success';
     }
+  });
+
+  $('#authVerifyOtp').addEventListener('click', async () => {
+    const token = $('#authOtpInput').value.trim();
+    if (!token || token.length !== 6) {
+      $('#authMsg').textContent = 'Enter the 6-digit code';
+      $('#authMsg').className = 'setup-msg error';
+      return;
+    }
+    $('#authVerifyOtp').disabled = true;
+    $('#authVerifyOtp').textContent = 'VERIFYING...';
+    const { error } = await verifyOtp(pendingEmail, token);
+    $('#authVerifyOtp').disabled = false;
+    $('#authVerifyOtp').textContent = 'VERIFY';
+    if (error) {
+      $('#authMsg').textContent = error.message;
+      $('#authMsg').className = 'setup-msg error';
+    } else {
+      $('#authMsg').textContent = 'Signed in!';
+      $('#authMsg').className = 'setup-msg success';
+    }
+  });
+
+  $('#authOtpBack').addEventListener('click', () => {
+    $('#authOtpStep').style.display = 'none';
+    $('#authEmailStep').style.display = 'block';
+    $('#authMsg').textContent = '';
+    $('#authMsg').className = 'setup-msg';
   });
 
   $('#authSignOut').addEventListener('click', async () => {

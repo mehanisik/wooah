@@ -63,8 +63,15 @@
       <div class="setup-step">ACCOUNT</div>
       <div id="authStatus" style="margin-bottom:8px;">NOT SIGNED IN</div>
       <div id="authSignedOut">
-        <input class="uk-input setup-input" id="authEmail" type="email" placeholder="you@example.com" autocomplete="email" style="margin-bottom:6px;">
-        <button class="uk-btn uk-btn-primary setup-btn" id="authSendLink">SEND MAGIC LINK</button>
+        <div id="authEmailStep">
+          <input class="uk-input setup-input" id="authEmail" type="email" placeholder="you@example.com" autocomplete="email" style="margin-bottom:6px;">
+          <button class="uk-btn uk-btn-primary setup-btn" id="authSendCode">SEND CODE</button>
+        </div>
+        <div id="authOtpStep" style="display:none;">
+          <input class="uk-input setup-input" id="authOtpInput" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="6" placeholder="6-digit code" style="margin-bottom:6px;letter-spacing:0.3em;text-align:center;">
+          <button class="uk-btn uk-btn-primary setup-btn" id="authVerifyOtp" style="margin-bottom:6px;">VERIFY</button>
+          <button class="uk-btn uk-btn-default setup-btn" id="authOtpBack">BACK</button>
+        </div>
       </div>
       <div id="authSignedIn" style="display:none;">
         <button class="uk-btn uk-btn-default setup-btn" id="authSignOut">SIGN OUT</button>
