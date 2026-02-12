@@ -7,6 +7,7 @@ import { setSupabaseClient } from '../ui/photo-store.js';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_KEY;
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 let supabase = null;
 let currentUser = null;
@@ -114,6 +115,32 @@ export async function signOut() {
   updateAuthUI();
 }
 
+async function signInWithGoogle() {
+  if (!supabase || !GOOGLE_CLIENT_ID) return;
+  if (typeof google === 'undefined') {
+    showToast('Google sign-in not loaded');
+    return;
+  }
+  google.accounts.id.initialize({
+    client_id: GOOGLE_CLIENT_ID,
+    callback: async (response) => {
+      const { error } = await supabase.auth.signInWithIdToken({
+        provider: 'google',
+        token: response.credential,
+      });
+      const msg = $('#authMsg');
+      if (error) {
+        msg.textContent = error.message;
+        msg.className = 'setup-msg error';
+      } else {
+        msg.textContent = 'Signed in with Google!';
+        msg.className = 'setup-msg success';
+      }
+    },
+  });
+  google.accounts.id.prompt();
+}
+
 export async function syncToSupabase(dayIdx) {
   if (!supabase || !currentUser) return;
   updateSyncDot('syncing');
@@ -214,6 +241,8 @@ export function initSettingsHandlers() {
   $('#settingsModal').addEventListener('click', (e) => {
     if (e.target === $('#settingsModal')) closeAllModals();
   });
+
+  $('#authGoogle').addEventListener('click', () => signInWithGoogle());
 
   let pendingEmail = '';
 

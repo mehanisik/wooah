@@ -48,6 +48,7 @@ jobs:
         env:
           VITE_SUPABASE_URL: https://placeholder.supabase.co
           VITE_SUPABASE_KEY: placeholder-key
+          VITE_GOOGLE_CLIENT_ID: placeholder-client-id
       - uses: actions/upload-artifact@v4
         with:
           name: dist
