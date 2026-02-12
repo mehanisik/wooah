@@ -91,7 +91,10 @@ function updateAuthUI() {
 
 export async function signInWithMagicLink(email) {
   if (!supabase) return { error: { message: 'Supabase not initialized' } };
-  return supabase.auth.signInWithOtp({ email });
+  return supabase.auth.signInWithOtp({
+    email,
+    options: { emailRedirectTo: window.location.origin },
+  });
 }
 
 export async function signOut() {
