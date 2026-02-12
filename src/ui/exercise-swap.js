@@ -11,7 +11,7 @@ export function showSwapModal(dayIdx, exIdx) {
   if (!ex || !ex.alternatives || ex.alternatives.length === 0) return;
 
   const current = getExerciseSwap(dayIdx, exIdx) || ex.name;
-  let existing = $('#swapModal');
+  const existing = $('#swapModal');
   if (existing) existing.remove();
 
   const modal = document.createElement('div');
@@ -23,9 +23,12 @@ export function showSwapModal(dayIdx, exIdx) {
   modal.setAttribute('aria-labelledby', 'swapTitle');
 
   const options = [ex.name, ...ex.alternatives];
-  const optionsHtml = options.map(name =>
-    `<button class="uk-btn ${name === current ? 'uk-btn-primary' : 'uk-btn-default'} swap-option" data-swap="${name}" style="width:100%;margin-bottom:6px;font-family:var(--font-body);font-size:0.85rem;letter-spacing:0.5px;">${name}${name === ex.name ? ' (default)' : ''}</button>`
-  ).join('');
+  const optionsHtml = options
+    .map(
+      (name) =>
+        `<button class="uk-btn ${name === current ? 'uk-btn-primary' : 'uk-btn-default'} swap-option" data-swap="${name}" style="width:100%;margin-bottom:6px;font-family:var(--font-body);font-size:0.85rem;letter-spacing:0.5px;">${name}${name === ex.name ? ' (default)' : ''}</button>`,
+    )
+    .join('');
 
   modal.innerHTML = `<div class="uk-modal-dialog" style="max-width:340px;">
     <div class="uk-modal-body">
@@ -42,7 +45,7 @@ export function showSwapModal(dayIdx, exIdx) {
   modal.classList.add('uk-open');
   trapFocus(modal);
 
-  modal.querySelectorAll('.swap-option').forEach(btn => {
+  modal.querySelectorAll('.swap-option').forEach((btn) => {
     btn.addEventListener('click', () => {
       const name = btn.dataset.swap;
       if (name === ex.name) setExerciseSwap(dayIdx, exIdx, null);
@@ -54,9 +57,15 @@ export function showSwapModal(dayIdx, exIdx) {
     });
   });
 
-  const close = () => { releaseFocus(); modal.classList.remove('uk-open'); setTimeout(() => modal.remove(), 300); };
+  const close = () => {
+    releaseFocus();
+    modal.classList.remove('uk-open');
+    setTimeout(() => modal.remove(), 300);
+  };
   modal.querySelector('#swapClose').addEventListener('click', close);
-  modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) close();
+  });
 }
 
 export function getDisplayName(dayIdx, exIdx) {

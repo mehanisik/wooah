@@ -1,6 +1,6 @@
 import { PROGRAM } from '../data/program.js';
 
-export let state = {
+export const state = {
   currentWeek: 1,
   activeTab: -1,
   logs: {},
@@ -24,7 +24,7 @@ export function loadState() {
       const parsed = JSON.parse(saved);
       Object.assign(state, parsed);
     }
-  } catch(e) {}
+  } catch (_e) {}
   if (!state.startDate) {
     state.startDate = new Date().toISOString().split('T')[0];
   }
@@ -36,9 +36,9 @@ export function loadState() {
 export function saveState() {
   try {
     localStorage.setItem('ironppl_state_v2', JSON.stringify(state));
-  } catch(e) {
+  } catch (e) {
     if (e.name === 'QuotaExceededError' || e.code === 22) {
-      import('../ui/toast.js').then(m => m.showToast('Storage full — export data'));
+      import('../ui/toast.js').then((m) => m.showToast('Storage full — export data'));
     }
   }
 }
@@ -49,9 +49,15 @@ export function debouncedSave() {
   _debounceTimer = setTimeout(saveState, 400);
 }
 
-export function logKey(dayIdx, exIdx, setIdx) { return `w${state.currentWeek}-d${dayIdx}-e${exIdx}-s${setIdx}`; }
-export function historyKey(dayIdx, exIdx) { return `d${dayIdx}-e${exIdx}`; }
-export function finishedKey(dayIdx) { return `w${state.currentWeek}-d${dayIdx}`; }
+export function logKey(dayIdx, exIdx, setIdx) {
+  return `w${state.currentWeek}-d${dayIdx}-e${exIdx}-s${setIdx}`;
+}
+export function historyKey(dayIdx, exIdx) {
+  return `d${dayIdx}-e${exIdx}`;
+}
+export function finishedKey(dayIdx) {
+  return `w${state.currentWeek}-d${dayIdx}`;
+}
 
 export function getLog(dayIdx, exIdx, setIdx) {
   return state.logs[logKey(dayIdx, exIdx, setIdx)] || { weight: '', reps: '', done: false };
@@ -62,7 +68,9 @@ export function setLog(dayIdx, exIdx, setIdx, data) {
   saveState();
 }
 
-export function getHistory(dayIdx, exIdx) { return state.history[historyKey(dayIdx, exIdx)] || []; }
+export function getHistory(dayIdx, exIdx) {
+  return state.history[historyKey(dayIdx, exIdx)] || [];
+}
 
 export function getLastSession(dayIdx, exIdx) {
   const h = getHistory(dayIdx, exIdx);
@@ -93,7 +101,9 @@ export function getCompletedThisWeek() {
   return count;
 }
 
-export function timerKey(dayIdx) { return `w${state.currentWeek}-d${dayIdx}`; }
+export function timerKey(dayIdx) {
+  return `w${state.currentWeek}-d${dayIdx}`;
+}
 
 export function getWorkoutTimer(dayIdx) {
   return state.workoutTimers[timerKey(dayIdx)] || null;
@@ -106,8 +116,12 @@ export function startWorkoutTimer(dayIdx) {
   saveState();
 }
 
-function extraSetsKey(dayIdx, exIdx) { return `w${state.currentWeek}-d${dayIdx}-e${exIdx}`; }
-export function getExtraSets(dayIdx, exIdx) { return state.extraSets[extraSetsKey(dayIdx, exIdx)] || 0; }
+function extraSetsKey(dayIdx, exIdx) {
+  return `w${state.currentWeek}-d${dayIdx}-e${exIdx}`;
+}
+export function getExtraSets(dayIdx, exIdx) {
+  return state.extraSets[extraSetsKey(dayIdx, exIdx)] || 0;
+}
 export function addExtraSet(dayIdx, exIdx) {
   const key = extraSetsKey(dayIdx, exIdx);
   state.extraSets[key] = (state.extraSets[key] || 0) + 1;
@@ -124,8 +138,12 @@ export function setExerciseSwap(dayIdx, exIdx, name) {
   saveState();
 }
 
-function cardioKey(dayIdx, itemIdx) { return `w${state.currentWeek}-d${dayIdx}-c${itemIdx}`; }
-export function getCardioLog(dayIdx, itemIdx) { return !!state.cardioLogs[cardioKey(dayIdx, itemIdx)]; }
+function cardioKey(dayIdx, itemIdx) {
+  return `w${state.currentWeek}-d${dayIdx}-c${itemIdx}`;
+}
+export function getCardioLog(dayIdx, itemIdx) {
+  return !!state.cardioLogs[cardioKey(dayIdx, itemIdx)];
+}
 export function setCardioLog(dayIdx, itemIdx, done) {
   if (done) state.cardioLogs[cardioKey(dayIdx, itemIdx)] = true;
   else delete state.cardioLogs[cardioKey(dayIdx, itemIdx)];

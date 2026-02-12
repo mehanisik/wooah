@@ -22,7 +22,7 @@ async function fetchMotivationalImage() {
 
 export function showMotivationalModal(dayName, newPRs, duration, week, dayIdx) {
   closeAllModals();
-  let existing = $('#celebrationModal');
+  const existing = $('#celebrationModal');
   if (existing) existing.remove();
 
   const modal = document.createElement('div');
@@ -35,8 +35,10 @@ export function showMotivationalModal(dayName, newPRs, duration, week, dayIdx) {
 
   const statsHtml = [
     duration ? `<i data-lucide="timer"></i> ${formatDuration(duration)}` : '',
-    newPRs > 0 ? `<span class="pr-count"><i data-lucide="trophy"></i> ${newPRs} PR${newPRs > 1 ? 's' : ''}</span>` : ''
-  ].filter(Boolean).join('');
+    newPRs > 0 ? `<span class="pr-count"><i data-lucide="trophy"></i> ${newPRs} PR${newPRs > 1 ? 's' : ''}</span>` : '',
+  ]
+    .filter(Boolean)
+    .join('');
 
   modal.innerHTML = `<div class="celebration-content">
     <div class="celebration-header" id="celebTitle">${dayName} COMPLETE</div>
@@ -50,12 +52,27 @@ export function showMotivationalModal(dayName, newPRs, duration, week, dayIdx) {
   </div>`;
 
   document.body.appendChild(modal);
-  requestAnimationFrame(() => { modal.classList.add('uk-open'); refreshIcons(); trapFocus(modal); });
+  requestAnimationFrame(() => {
+    modal.classList.add('uk-open');
+    refreshIcons();
+    trapFocus(modal);
+  });
 
-  let autoDismiss = setTimeout(() => { releaseFocus(); modal.classList.remove('uk-open'); setTimeout(() => modal.remove(), 300); }, 10000);
-  const dismiss = () => { clearTimeout(autoDismiss); releaseFocus(); modal.classList.remove('uk-open'); setTimeout(() => modal.remove(), 300); };
+  let autoDismiss = setTimeout(() => {
+    releaseFocus();
+    modal.classList.remove('uk-open');
+    setTimeout(() => modal.remove(), 300);
+  }, 10000);
+  const dismiss = () => {
+    clearTimeout(autoDismiss);
+    releaseFocus();
+    modal.classList.remove('uk-open');
+    setTimeout(() => modal.remove(), 300);
+  };
   modal.querySelector('#celebDismiss').addEventListener('click', dismiss);
-  modal.addEventListener('click', (e) => { if (e.target === modal) dismiss(); });
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) dismiss();
+  });
 
   const photoBtn = modal.querySelector('#photoBtn');
   const photoInput = modal.querySelector('#photoInput');
@@ -76,12 +93,17 @@ export function showMotivationalModal(dayName, newPRs, duration, week, dayIdx) {
 
     try {
       await savePhoto(week, dayIdx, file);
-    } catch { /* IndexedDB save failed silently */ }
+    } catch {
+      /* IndexedDB save failed silently */
+    }
 
-    autoDismiss = setTimeout(() => { modal.classList.remove('uk-open'); setTimeout(() => modal.remove(), 300); }, 8000);
+    autoDismiss = setTimeout(() => {
+      modal.classList.remove('uk-open');
+      setTimeout(() => modal.remove(), 300);
+    }, 8000);
   });
 
-  fetchMotivationalImage().then(result => {
+  fetchMotivationalImage().then((result) => {
     const skeleton = modal.querySelector('#celebSkeleton');
     if (!skeleton) return;
     if (result.success) {
@@ -131,7 +153,7 @@ export function loadRestDayImage() {
       }
     }
 
-    fetchMotivationalImage().then(result => {
+    fetchMotivationalImage().then((result) => {
       const target = wrap.querySelector('.image-skeleton') || wrap.querySelector('.motivation-image');
       if (!target) return;
       if (result.success) {

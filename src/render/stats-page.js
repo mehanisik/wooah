@@ -27,9 +27,11 @@ export function renderStatsPage() {
   const totalPRs = getPRCount();
   const totalWeeks = state.currentWeek;
   let totalVolume = 0;
-  Object.values(state.history).forEach(sessions => {
-    sessions.forEach(sess => {
-      sess.sets.forEach(s => { totalVolume += (s.weight || 0) * (s.reps || 0); });
+  Object.values(state.history).forEach((sessions) => {
+    sessions.forEach((sess) => {
+      sess.sets.forEach((s) => {
+        totalVolume += (s.weight || 0) * (s.reps || 0);
+      });
     });
   });
 
@@ -38,9 +40,11 @@ export function renderStatsPage() {
     <div class="stat-row"><span class="stat-row-label">Total Sessions</span><span class="stat-row-value">${totalSessions}</span></div>
     <div class="stat-row"><span class="stat-row-label">Current Week</span><span class="stat-row-value">${totalWeeks}</span></div>
     <div class="stat-row"><span class="stat-row-label">Personal Records</span><span class="stat-row-value up">${totalPRs}</span></div>
-    <div class="stat-row"><span class="stat-row-label">Total Volume Lifted</span><span class="stat-row-value">${totalVolume >= 1000 ? (totalVolume / 1000).toFixed(1) + ' t' : totalVolume.toFixed(0) + ' kg'}</span></div>
+    <div class="stat-row"><span class="stat-row-label">Total Volume Lifted</span><span class="stat-row-value">${totalVolume >= 1000 ? `${(totalVolume / 1000).toFixed(1)} t` : `${totalVolume.toFixed(0)} kg`}</span></div>
     <div class="stat-row"><span class="stat-row-label">Avg Workout Time</span><span class="stat-row-value">${(() => {
-      const durations = Object.values(state.workoutTimers || {}).filter(t => t.duration > 0).map(t => t.duration);
+      const durations = Object.values(state.workoutTimers || {})
+        .filter((t) => t.duration > 0)
+        .map((t) => t.duration);
       if (durations.length === 0) return '—';
       const avg = Math.round(durations.reduce((a, b) => a + b, 0) / durations.length);
       return formatDuration(avg);
@@ -75,8 +79,8 @@ export function renderStatsPage() {
     prEntries.forEach(([key, pr]) => {
       const parts = key.match(/d(\d+)-e(\d+)/);
       if (!parts) return;
-      const dayIdx = parseInt(parts[1]);
-      const exIdx = parseInt(parts[2]);
+      const dayIdx = parseInt(parts[1], 10);
+      const exIdx = parseInt(parts[2], 10);
       const ex = PROGRAM[dayIdx]?.exercises?.[exIdx];
       if (!ex) return;
       h += `<div class="stat-row">
@@ -99,20 +103,23 @@ export function renderProgressionChart(exerciseKey) {
     return;
   }
 
-  const data = history.map(sess => ({
+  const data = history.map((sess) => ({
     week: sess.week,
-    maxWeight: Math.max(...sess.sets.map(s => s.weight || 0)),
+    maxWeight: Math.max(...sess.sets.map((s) => s.weight || 0)),
     totalVolume: sess.sets.reduce((a, s) => a + (s.weight || 0) * (s.reps || 0), 0),
-    topSet: sess.sets.reduce((best, s) => {
-      const v = (s.weight || 0) * (s.reps || 0);
-      return v > best.vol ? { w: s.weight, r: s.reps, vol: v } : best;
-    }, { w: 0, r: 0, vol: 0 })
+    topSet: sess.sets.reduce(
+      (best, s) => {
+        const v = (s.weight || 0) * (s.reps || 0);
+        return v > best.vol ? { w: s.weight, r: s.reps, vol: v } : best;
+      },
+      { w: 0, r: 0, vol: 0 },
+    ),
   }));
 
-  const maxW = Math.max(...data.map(d => d.maxWeight));
+  const maxW = Math.max(...data.map((d) => d.maxWeight));
 
   let h = '<div class="chart-bars">';
-  data.forEach(d => {
+  data.forEach((d) => {
     const pct = maxW > 0 ? (d.maxWeight / maxW) * 100 : 0;
     h += `<div class="chart-bar-col">
       <div class="chart-bar-value">${d.maxWeight}</div>
@@ -143,30 +150,35 @@ export function renderVolumeChart() {
 
   const weeklyVol = {};
   Object.entries(state.history).forEach(([key, sessions]) => {
-    sessions.forEach(sess => {
+    sessions.forEach((sess) => {
       if (!weeklyVol[sess.week]) weeklyVol[sess.week] = { push: 0, pull: 0, legs: 0 };
       const parts = key.match(/d(\d+)/);
       if (!parts) return;
-      const dayIdx = parseInt(parts[1]);
+      const dayIdx = parseInt(parts[1], 10);
       const type = PROGRAM[dayIdx]?.type || 'push';
-      sess.sets.forEach(s => { weeklyVol[sess.week][type] += (s.weight || 0) * (s.reps || 0); });
+      sess.sets.forEach((s) => {
+        weeklyVol[sess.week][type] += (s.weight || 0) * (s.reps || 0);
+      });
     });
   });
 
-  const weeks = Object.keys(weeklyVol).map(Number).sort((a, b) => a - b).slice(-8);
+  const weeks = Object.keys(weeklyVol)
+    .map(Number)
+    .sort((a, b) => a - b)
+    .slice(-8);
   if (weeks.length === 0) {
     container.innerHTML = '<div class="no-data-msg">Complete workouts to see volume trends.</div>';
     return;
   }
 
-  const maxVol = Math.max(...weeks.map(w => weeklyVol[w].push + weeklyVol[w].pull + weeklyVol[w].legs));
+  const maxVol = Math.max(...weeks.map((w) => weeklyVol[w].push + weeklyVol[w].pull + weeklyVol[w].legs));
 
   let h = '<div class="chart-bars" style="height:140px;">';
-  weeks.forEach(w => {
+  weeks.forEach((w) => {
     const total = weeklyVol[w].push + weeklyVol[w].pull + weeklyVol[w].legs;
     const pct = maxVol > 0 ? (total / maxVol) * 100 : 0;
     h += `<div class="chart-bar-col">
-      <div class="chart-bar-value">${total >= 1000 ? (total / 1000).toFixed(0) + 'k' : total}</div>
+      <div class="chart-bar-value">${total >= 1000 ? `${(total / 1000).toFixed(0)}k` : total}</div>
       <div class="chart-bar green" style="height:${Math.max(pct, 3)}%"></div>
       <div class="chart-bar-label">W${w}</div>
     </div>`;
@@ -192,6 +204,6 @@ export function attachStatsListeners() {
     sel.addEventListener('change', () => renderProgressionChart(sel.value));
   }
   attachBodyweightListeners(() => {
-    import('../render/workout.js').then(m => m.renderPages());
+    import('../render/workout.js').then((m) => m.renderPages());
   });
 }

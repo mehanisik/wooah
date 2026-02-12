@@ -14,7 +14,7 @@ export function updateOneRMAfterSet(dayIdx, exIdx) {
   const amrapSetIdx = ex.sets - 1;
   const log = getLog(dayIdx, exIdx, amrapSetIdx);
   const w = parseFloat(log.weight) || 0;
-  const r = parseInt(log.reps) || 0;
+  const r = parseInt(log.reps, 10) || 0;
   if (w <= 0 || r <= 0 || !log.done) return null;
 
   const oneRM = calcOneRM(w, r);
@@ -22,7 +22,7 @@ export function updateOneRMAfterSet(dayIdx, exIdx) {
   if (!state.oneRmHistory) state.oneRmHistory = {};
   if (!state.oneRmHistory[key]) state.oneRmHistory[key] = [];
   const today = new Date().toISOString().split('T')[0];
-  const existing = state.oneRmHistory[key].findIndex(e => e.date === today);
+  const existing = state.oneRmHistory[key].findIndex((e) => e.date === today);
   if (existing >= 0) state.oneRmHistory[key][existing].value = oneRM;
   else state.oneRmHistory[key].push({ date: today, value: oneRM, week: state.currentWeek });
   if (state.oneRmHistory[key].length > 24) state.oneRmHistory[key] = state.oneRmHistory[key].slice(-24);
@@ -38,7 +38,7 @@ export function renderOneRMDisplay(dayIdx, exIdx) {
   const amrapSetIdx = ex.sets - 1;
   const log = getLog(dayIdx, exIdx, amrapSetIdx);
   const w = parseFloat(log.weight) || 0;
-  const r = parseInt(log.reps) || 0;
+  const r = parseInt(log.reps, 10) || 0;
   if (w <= 0 || r <= 0 || !log.done) return '';
 
   const oneRM = calcOneRM(w, r);
@@ -57,8 +57,8 @@ export function renderOneRMStatsSection() {
   entries.forEach(([key, history]) => {
     const match = key.match(/d(\d+)-e(\d+)/);
     if (!match) return;
-    const dayIdx = parseInt(match[1]);
-    const exIdx = parseInt(match[2]);
+    const dayIdx = parseInt(match[1], 10);
+    const exIdx = parseInt(match[2], 10);
     const ex = PROGRAM[dayIdx]?.exercises?.[exIdx];
     if (!ex) return;
 
@@ -76,27 +76,29 @@ export function renderOneRMStatsSection() {
     h += `<div class="chart-section" style="margin-top:12px;">
       <div class="chart-subtitle">1RM Progression</div>`;
 
-    entries.filter(([_, h]) => h.length >= 3).forEach(([key, history]) => {
-      const match = key.match(/d(\d+)-e(\d+)/);
-      if (!match) return;
-      const ex = PROGRAM[parseInt(match[1])]?.exercises?.[parseInt(match[2])];
-      if (!ex) return;
+    entries
+      .filter(([_, h]) => h.length >= 3)
+      .forEach(([key, history]) => {
+        const match = key.match(/d(\d+)-e(\d+)/);
+        if (!match) return;
+        const ex = PROGRAM[parseInt(match[1], 10)]?.exercises?.[parseInt(match[2], 10)];
+        if (!ex) return;
 
-      const recent = history.slice(-8);
-      const maxVal = Math.max(...recent.map(e => e.value));
+        const recent = history.slice(-8);
+        const maxVal = Math.max(...recent.map((e) => e.value));
 
-      h += `<div style="margin-bottom:8px;"><div class="chart-subtitle">${ex.name}</div>
+        h += `<div style="margin-bottom:8px;"><div class="chart-subtitle">${ex.name}</div>
         <div class="chart-bars" style="height:80px;">`;
-      recent.forEach(e => {
-        const pct = maxVal > 0 ? (e.value / maxVal) * 100 : 0;
-        h += `<div class="chart-bar-col">
+        recent.forEach((e) => {
+          const pct = maxVal > 0 ? (e.value / maxVal) * 100 : 0;
+          h += `<div class="chart-bar-col">
           <div class="chart-bar-value">${e.value}</div>
           <div class="chart-bar accent" style="height:${Math.max(pct, 3)}%"></div>
           <div class="chart-bar-label">W${e.week}</div>
         </div>`;
+        });
+        h += `</div></div>`;
       });
-      h += `</div></div>`;
-    });
 
     h += `</div>`;
   }

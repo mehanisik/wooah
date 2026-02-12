@@ -6,7 +6,9 @@ export async function requestWakeLock() {
   try {
     if ('wakeLock' in navigator) {
       wakeLock = await navigator.wakeLock.request('screen');
-      wakeLock.addEventListener('release', () => { wakeLock = null; });
+      wakeLock.addEventListener('release', () => {
+        wakeLock = null;
+      });
     }
   } catch {}
 }

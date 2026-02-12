@@ -138,7 +138,7 @@ function runPhase() {
     const { remaining, totalTime } = circuitState;
     timeEl.textContent = remaining;
 
-    const progress = 1 - (remaining / totalTime);
+    const progress = 1 - remaining / totalTime;
     ring.style.strokeDashoffset = circumference * progress;
 
     if (remaining <= 3 && remaining > 0 && circuitState.phase !== 'prepare') {
@@ -269,10 +269,13 @@ function stopCircuit() {
 
   if (overlay) {
     overlay.classList.remove('visible');
-    setTimeout(() => { overlay.remove(); overlay = null; }, 300);
+    setTimeout(() => {
+      overlay.remove();
+      overlay = null;
+    }, 300);
   }
 
-  import('../render/workout.js').then(m => m.renderPages());
+  import('../render/workout.js').then((m) => m.renderPages());
 }
 
 function updateCardioUI(dayIdx, itemIdx) {

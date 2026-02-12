@@ -1,12 +1,22 @@
 import { $ } from './helpers.js';
 import { checkForPR } from './helpers.js';
-import { state, saveState, isDayComplete, isDayFinished, finishedKey, historyKey, getLog, getWorkoutTimer, stopWorkoutTimer, getExtraSets } from '../state/store.js';
+import {
+  state,
+  saveState,
+  isDayComplete,
+  isDayFinished,
+  finishedKey,
+  historyKey,
+  getLog,
+  getWorkoutTimer,
+  stopWorkoutTimer,
+  getExtraSets,
+} from '../state/store.js';
 import { PROGRAM } from '../data/program.js';
 import { showMotivationalModal } from '../render/celebration.js';
-import { showToast } from './toast.js';
 import { clearWorkoutClock } from '../timers/workout-clock.js';
 import { updateOneRMAfterSet } from './one-rm.js';
-import { syncToNeon } from '../sync/neon.js';
+import { syncToSupabase } from '../sync/supabase.js';
 import { renderGreeting } from '../render/greeting.js';
 import { renderStats } from '../render/stats-bar.js';
 import { renderNav } from '../render/nav.js';
@@ -37,7 +47,7 @@ export async function finishWorkout() {
     const totalSets = ex.sets + getExtraSets(dayIdx, exIdx);
     for (let s = 0; s < totalSets; s++) {
       const log = getLog(dayIdx, exIdx, s);
-      sets.push({ weight: parseFloat(log.weight) || 0, reps: parseInt(log.reps) || 0 });
+      sets.push({ weight: parseFloat(log.weight) || 0, reps: parseInt(log.reps, 10) || 0 });
     }
 
     if (checkForPR(dayIdx, exIdx)) newPRs++;
@@ -53,10 +63,10 @@ export async function finishWorkout() {
   state.totalSessions++;
   saveState();
 
-  syncToNeon(dayIdx);
+  syncToSupabase(dayIdx);
 
   const wTimer = getWorkoutTimer(dayIdx);
-  const duration = wTimer && wTimer.duration ? wTimer.duration : 0;
+  const duration = wTimer?.duration ? wTimer.duration : 0;
 
   if (newPRs > 0) {
     const flash = $('#prFlash');

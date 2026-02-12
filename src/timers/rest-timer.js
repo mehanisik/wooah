@@ -30,7 +30,9 @@ export function startRestTimer(seconds, exerciseName) {
       clearInterval(restTimerInterval);
 
       if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-      setTimeout(() => { bar.classList.remove('visible'); }, 4000);
+      setTimeout(() => {
+        bar.classList.remove('visible');
+      }, 4000);
       return;
     }
     restTimerRemaining--;

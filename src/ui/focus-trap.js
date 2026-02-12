@@ -1,4 +1,5 @@
-const FOCUSABLE = 'button:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+const FOCUSABLE =
+  'button:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 let _trapElement = null;
 let _previousFocus = null;
@@ -29,6 +30,6 @@ export function trapFocus(element) {
 export function releaseFocus() {
   document.removeEventListener('keydown', handleTrapKeydown);
   _trapElement = null;
-  if (_previousFocus && _previousFocus.focus) _previousFocus.focus();
+  if (_previousFocus?.focus) _previousFocus.focus();
   _previousFocus = null;
 }

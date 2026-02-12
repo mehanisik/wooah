@@ -1,8 +1,12 @@
-import { state, getLog, getHistory, getExtraSets } from '../state/store.js';
+import { state, getLog, getExtraSets } from '../state/store.js';
 import { PROGRAM } from '../data/program.js';
 
-export function $(sel) { return document.querySelector(sel); }
-export function $$(sel) { return document.querySelectorAll(sel); }
+export function $(sel) {
+  return document.querySelector(sel);
+}
+export function $$(sel) {
+  return document.querySelectorAll(sel);
+}
 
 export function parseRepRange(reps) {
   const clean = reps.replace(/[^0-9-]/g, '');
@@ -54,7 +58,7 @@ export function checkForPR(dayIdx, exIdx) {
   let bestVolume = 0;
   for (let s = 0; s < totalSets; s++) {
     const log = getLog(dayIdx, exIdx, s);
-    const vol = Math.round((parseFloat(log.weight) || 0) * (parseInt(log.reps) || 0) * 100) / 100;
+    const vol = Math.round((parseFloat(log.weight) || 0) * (parseInt(log.reps, 10) || 0) * 100) / 100;
     bestVolume = Math.max(bestVolume, vol);
   }
 
@@ -63,7 +67,7 @@ export function checkForPR(dayIdx, exIdx) {
   if (bestVolume > 0 && (!prev || bestVolume > Math.round((prev.volume || 0) * 100) / 100)) {
     state.personalRecords[key] = {
       volume: bestVolume,
-      date: new Date().toISOString().split('T')[0]
+      date: new Date().toISOString().split('T')[0],
     };
     return true;
   }

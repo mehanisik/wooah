@@ -8,6 +8,7 @@ import '@fontsource/barlow-condensed/500.css';
 import '@fontsource/barlow-condensed/600.css';
 import '@fontsource/barlow-condensed/700.css';
 import './styles/main.css';
+import { registerSW } from 'virtual:pwa-register';
 import { state, loadState } from './state/store.js';
 import { getTodayDayIdx } from './ui/helpers.js';
 import { renderGreeting } from './render/greeting.js';
@@ -17,7 +18,7 @@ import { renderPages } from './render/workout.js';
 import { updateFinishBar } from './ui/finish.js';
 import { initEvents } from './ui/events.js';
 import { initRestTimerClose } from './timers/rest-timer.js';
-import { initNeon } from './sync/neon.js';
+import { initSupabase } from './sync/supabase.js';
 import { initWakeLock } from './ui/wake-lock.js';
 import { refreshIcons } from './ui/icons.js';
 
@@ -30,10 +31,16 @@ renderPages();
 updateFinishBar();
 initEvents();
 initRestTimerClose();
-initNeon();
+initSupabase();
 initWakeLock();
 refreshIcons();
 
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').catch(() => {});
-}
+const updateSW = registerSW({
+  onNeedRefresh() {
+    const toast = document.getElementById('toast');
+    toast.innerHTML =
+      'Update available <button id="swReload" style="margin-left:8px;padding:2px 10px;border-radius:4px;background:var(--brand);color:#151716;font-weight:700;border:none;cursor:pointer;">RELOAD</button>';
+    toast.classList.add('show');
+    document.getElementById('swReload').addEventListener('click', () => updateSW(true));
+  },
+});

@@ -8,9 +8,9 @@
   --text: #1a1a1a;
   --text-dim: #555;
   --text-muted: #777;
-  --brand: #9B8AD4;
+  --brand: #9b8ad4;
   --brand-glow: rgba(220, 207, 255, 0.12);
-  --brand-dim: #7B68BF;
+  --brand-dim: #7b68bf;
   --background: 0 0% 100%;
   --foreground: 0 0% 10%;
   --card: 0 0% 96%;
@@ -45,9 +45,9 @@
   --space-xl: 24px;
   --transition-fast: 150ms;
   --transition-normal: 300ms;
-  --font-display: 'Bebas Neue', sans-serif;
-  --font-body: 'Barlow Condensed', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-display: "Bebas Neue", sans-serif;
+  --font-body: "Barlow Condensed", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
 }
 
 .dark {
@@ -57,12 +57,12 @@
   --surface-3: #2b2d2c;
   --edge: #333534;
   --edge-light: #3d3f3e;
-  --text: #FCFDFC;
+  --text: #fcfdfc;
   --text-dim: #b0b1b0;
   --text-muted: #808180;
-  --brand: #DCCFFF;
+  --brand: #dccfff;
   --brand-glow: rgba(220, 207, 255, 0.15);
-  --brand-dim: #C4B3FF;
+  --brand-dim: #c4b3ff;
   --green: #00e676;
   --green-dim: rgba(0, 230, 118, 0.15);
   --yellow: #ffd600;
@@ -99,12 +99,12 @@
     --surface-3: #2b2d2c;
     --edge: #333534;
     --edge-light: #3d3f3e;
-    --text: #FCFDFC;
+    --text: #fcfdfc;
     --text-dim: #b0b1b0;
     --text-muted: #808180;
-    --brand: #DCCFFF;
+    --brand: #dccfff;
     --brand-glow: rgba(220, 207, 255, 0.15);
-    --brand-dim: #C4B3FF;
+    --brand-dim: #c4b3ff;
     --green: #00e676;
     --green-dim: rgba(0, 230, 118, 0.15);
     --yellow: #ffd600;

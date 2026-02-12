@@ -1,6 +1,5 @@
 import { state, historyKey } from '../state/store.js';
 import { PROGRAM } from '../data/program.js';
-import { formatDuration } from '../ui/helpers.js';
 
 export function renderCalendarPage() {
   const workoutDates = buildWorkoutMap();
@@ -36,7 +35,7 @@ function buildWorkoutMap() {
   Object.entries(state.finishedDays).forEach(([key, timestamp]) => {
     const match = key.match(/^w(\d+)-d(\d+)$/);
     if (!match) return;
-    const dayIdx = parseInt(match[2]);
+    const dayIdx = parseInt(match[2], 10);
     const day = PROGRAM[dayIdx];
     if (!day) return;
     const date = new Date(timestamp);
@@ -70,8 +69,12 @@ function getStreaks(workoutDates) {
     const prev = new Date(dates[i - 1]);
     const curr = new Date(dates[i]);
     const diff = (curr - prev) / (1000 * 60 * 60 * 24);
-    if (diff === 1) { currentRun++; longest = Math.max(longest, currentRun); }
-    else { currentRun = 1; }
+    if (diff === 1) {
+      currentRun++;
+      longest = Math.max(longest, currentRun);
+    } else {
+      currentRun = 1;
+    }
   }
 
   const today = new Date().toISOString().split('T')[0];
@@ -82,15 +85,17 @@ function getStreaks(workoutDates) {
     let checkDate = workoutDates[today] ? today : yesterday;
     while (true) {
       const prev = new Date(new Date(checkDate).getTime() - 86400000).toISOString().split('T')[0];
-      if (workoutDates[prev]) { current++; checkDate = prev; }
-      else break;
+      if (workoutDates[prev]) {
+        current++;
+        checkDate = prev;
+      } else break;
     }
   }
 
   return { current, longest: Math.max(longest, current) };
 }
 
-function getMonthsToShow(workoutDates) {
+function getMonthsToShow(_workoutDates) {
   const months = [];
   const now = new Date();
   for (let i = 2; i >= 0; i--) {
@@ -135,7 +140,7 @@ export function renderCalendarDetail(dateStr, workoutDates) {
 
   if (workout.prs > 0) h += `<div class="calendar-detail-prs">${workout.prs} PR${workout.prs > 1 ? 's' : ''}</div>`;
 
-  workout.exercises.forEach(ex => {
+  workout.exercises.forEach((ex) => {
     h += `<div class="stat-row"><span class="stat-row-label">${ex.name}</span><span class="stat-row-value">${ex.sets}s · ${ex.vol.toFixed(0)} vol</span></div>`;
   });
 
@@ -145,7 +150,7 @@ export function renderCalendarDetail(dateStr, workoutDates) {
 
 export function attachCalendarListeners() {
   const workoutDates = buildWorkoutMap();
-  document.querySelectorAll('.calendar-cell:not(.empty)').forEach(cell => {
+  document.querySelectorAll('.calendar-cell:not(.empty)').forEach((cell) => {
     cell.addEventListener('click', () => {
       const detail = document.querySelector('#calendarDetail');
       if (detail) detail.innerHTML = renderCalendarDetail(cell.dataset.date, workoutDates);

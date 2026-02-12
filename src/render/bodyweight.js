@@ -31,7 +31,7 @@ export function renderBodyweightSection() {
 
 function renderWeightChart(entries) {
   const recent = entries.slice(-14);
-  const weights = recent.map(e => e.weight);
+  const weights = recent.map((e) => e.weight);
   const maxW = Math.max(...weights);
   const minW = Math.min(...weights);
   const range = maxW - minW || 1;
@@ -40,7 +40,7 @@ function renderWeightChart(entries) {
     <div class="chart-subtitle">Last ${recent.length} entries</div>
     <div class="chart-bars" style="height:100px;">`;
 
-  recent.forEach(e => {
+  recent.forEach((e) => {
     const pct = ((e.weight - minW) / range) * 80 + 15;
     h += `<div class="chart-bar-col">
       <div class="chart-bar-value">${e.weight}</div>
@@ -52,7 +52,7 @@ function renderWeightChart(entries) {
   h += `</div></div>`;
 
   if (recent.length >= 7) {
-    const last7 = recent.slice(-7).map(e => e.weight);
+    const last7 = recent.slice(-7).map((e) => e.weight);
     const avg = (last7.reduce((a, b) => a + b, 0) / last7.length).toFixed(1);
     h += `<div class="stat-row"><span class="stat-row-label">7-day Moving Avg</span><span class="stat-row-value">${avg} kg</span></div>`;
   }
@@ -67,10 +67,10 @@ export function attachBodyweightListeners(onSave) {
 
   btn.addEventListener('click', () => {
     const val = parseFloat(input.value);
-    if (isNaN(val) || val < 30 || val > 300) return;
+    if (Number.isNaN(val) || val < 30 || val > 300) return;
     const today = new Date().toISOString().split('T')[0];
     if (!state.bodyweight) state.bodyweight = [];
-    const existing = state.bodyweight.findIndex(e => e.date === today);
+    const existing = state.bodyweight.findIndex((e) => e.date === today);
     if (existing >= 0) state.bodyweight[existing].weight = val;
     else state.bodyweight.push({ date: today, weight: val });
     saveState();

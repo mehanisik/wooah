@@ -31,7 +31,7 @@ async function loadGallery() {
   }
 
   const groups = {};
-  photos.forEach(p => {
+  photos.forEach((p) => {
     const gKey = `w${p.week}-d${p.dayIdx}`;
     if (!groups[gKey]) groups[gKey] = { week: p.week, dayIdx: p.dayIdx, photos: [] };
     groups[gKey].photos.push(p);
@@ -43,7 +43,7 @@ async function loadGallery() {
   });
 
   let h = '';
-  sorted.forEach(group => {
+  sorted.forEach((group) => {
     const dayName = DAY_NAMES[group.dayIdx] || '';
     const workout = PROGRAM[group.dayIdx];
     const workoutName = workout ? workout.name : '';
@@ -61,8 +61,8 @@ async function loadGallery() {
       </div>
       <div class="photo-session-strip">`;
 
-    group.photos.forEach(p => {
-      const url = URL.createObjectURL(p.blob);
+    group.photos.forEach((p) => {
+      const url = p.url || URL.createObjectURL(p.blob);
       h += `<div class="photo-thumb" data-photo-key="${p.key}">
         <img src="${url}" alt="W${p.week} ${dayName}" loading="lazy">
         <button class="photo-delete-btn" data-delete-key="${p.key}" aria-label="Delete photo"><i data-lucide="trash-2" style="width:12px;height:12px;"></i></button>
@@ -87,7 +87,7 @@ async function loadGallery() {
 }
 
 function attachGalleryEvents(container) {
-  container.querySelectorAll('.photo-delete-btn').forEach(btn => {
+  container.querySelectorAll('.photo-delete-btn').forEach((btn) => {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
       await deletePhoto(btn.dataset.deleteKey);
@@ -96,7 +96,7 @@ function attachGalleryEvents(container) {
     });
   });
 
-  container.querySelectorAll('.photo-thumb').forEach(thumb => {
+  container.querySelectorAll('.photo-thumb').forEach((thumb) => {
     thumb.addEventListener('click', (e) => {
       if (e.target.closest('.photo-delete-btn')) return;
       const img = thumb.querySelector('img');
@@ -104,12 +104,12 @@ function attachGalleryEvents(container) {
     });
   });
 
-  container.querySelectorAll('.photo-add-thumb input').forEach(input => {
+  container.querySelectorAll('.photo-add-thumb input').forEach((input) => {
     input.addEventListener('change', async () => {
       const file = input.files[0];
       if (!file) return;
-      const week = parseInt(input.dataset.addWeek);
-      const day = parseInt(input.dataset.addDay);
+      const week = parseInt(input.dataset.addWeek, 10);
+      const day = parseInt(input.dataset.addDay, 10);
       await savePhoto(week, day, file);
       showToast('Photo saved');
       await loadGallery();
@@ -153,5 +153,7 @@ function showFullscreen(src, label) {
     setTimeout(() => overlay.remove(), 300);
   };
   overlay.querySelector('.photo-fullscreen-close').addEventListener('click', close);
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) close();
+  });
 }

@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>IRON PPL — Your Hypertrophy Tracker</title>
 <meta name="description" content="Personal 6-Day Push/Pull/Legs hypertrophy workout tracker with progressive overload, AMRAP tracking, and cloud sync.">
-<link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#151716">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -13,9 +12,9 @@
 <meta name="referrer" content="no-referrer">
 <meta name="format-detection" content="telephone=no">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
-<link rel="apple-touch-icon" href="/icon-192.png">
-<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
-<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png">
+<link rel="icon" href="/favicon.ico" sizes="48x48">
+<link rel="icon" href="/icon.svg" sizes="any" type="image/svg+xml">
 <script>
   (function() {
     var t = localStorage.getItem('ironppl_theme');
@@ -61,12 +60,16 @@
   <div class="uk-modal-dialog" style="max-width:360px;">
     <div class="uk-modal-body">
       <h3 class="uk-modal-title" id="settingsTitle">SETTINGS</h3>
-      <p style="margin-bottom:12px;">Connect NeonDB for cloud sync. Your database is private — only your connection string can access it.</p>
-      <div class="setup-step" id="neonStatus">NOT CONNECTED</div>
-      <input class="uk-input setup-input" id="neonConnStr" type="password" placeholder="postgresql://user:pass@host.neon.tech/db?sslmode=require" autocomplete="off">
-      <button class="uk-btn uk-btn-primary setup-btn" id="neonConnect">CONNECT</button>
-      <button class="uk-btn uk-btn-default setup-btn" id="neonDisconnect" style="display:none;">DISCONNECT</button>
-      <button class="uk-btn uk-btn-default setup-btn" id="neonTest" style="display:none;margin-top:4px;">TEST CONNECTION</button>
+      <div class="setup-step">ACCOUNT</div>
+      <div id="authStatus" style="margin-bottom:8px;">NOT SIGNED IN</div>
+      <div id="authSignedOut">
+        <input class="uk-input setup-input" id="authEmail" type="email" placeholder="you@example.com" autocomplete="email" style="margin-bottom:6px;">
+        <button class="uk-btn uk-btn-primary setup-btn" id="authSendLink">SEND MAGIC LINK</button>
+      </div>
+      <div id="authSignedIn" style="display:none;">
+        <button class="uk-btn uk-btn-default setup-btn" id="authSignOut">SIGN OUT</button>
+      </div>
+      <div class="setup-msg" id="authMsg"></div>
       <div style="margin-top:16px;border-top:1px solid var(--edge);padding-top:12px;">
         <div class="setup-step">THEME</div>
         <div class="theme-toggle" id="themeToggle" style="display:flex;gap:6px;margin-bottom:12px;">
@@ -78,7 +81,6 @@
       <div style="margin-top:12px;border-top:1px solid var(--edge);padding-top:12px;">
         <button class="uk-btn uk-btn-default setup-btn" id="exportData">EXPORT LOCAL DATA (JSON)</button>
       </div>
-      <div class="setup-msg" id="settingsMsg"></div>
     </div>
     <div class="uk-modal-footer">
       <button class="uk-btn uk-btn-default" id="settingsClose" aria-label="Close settings">Close</button>

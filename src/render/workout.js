@@ -1,5 +1,19 @@
 import { $, $$, formatRest, parseRepRange, formatDuration, formatTimeShort } from '../ui/helpers.js';
-import { state, getLog, setLog, getLastSession, isDayFinished, getWorkoutTimer, startWorkoutTimer, historyKey, getExtraSets, addExtraSet, debouncedSave, getCardioLog, setCardioLog } from '../state/store.js';
+import {
+  state,
+  getLog,
+  setLog,
+  getLastSession,
+  isDayFinished,
+  getWorkoutTimer,
+  startWorkoutTimer,
+  historyKey,
+  getExtraSets,
+  addExtraSet,
+  debouncedSave,
+  getCardioLog,
+  setCardioLog,
+} from '../state/store.js';
 import { PROGRAM } from '../data/program.js';
 import { renderInfoPage } from './info.js';
 import { renderStatsPage, attachStatsListeners } from './stats-page.js';
@@ -13,7 +27,7 @@ import { updateFinishBar } from '../ui/finish.js';
 import { refreshIcons } from '../ui/icons.js';
 import { captureSnapshot, showUndoToast } from '../ui/undo.js';
 import { getDisplayName, showSwapModal } from '../ui/exercise-swap.js';
-import { renderOneRMDisplay, updateOneRMAfterSet } from '../ui/one-rm.js';
+import { renderOneRMDisplay } from '../ui/one-rm.js';
 
 export function renderPages() {
   const pages = $('#pages');
@@ -66,14 +80,12 @@ function renderWorkoutPage(day, dayIdx) {
   const timer = getWorkoutTimer(dayIdx);
   if (timer) {
     const isRunning = !timer.finishedAt;
-    const elapsed = isRunning
-      ? Math.round((Date.now() - new Date(timer.startedAt).getTime()) / 1000)
-      : timer.duration;
+    const elapsed = isRunning ? Math.round((Date.now() - new Date(timer.startedAt).getTime()) / 1000) : timer.duration;
     h += `<div class="workout-timer">
       <span class="workout-timer-icon">${isRunning ? '<i data-lucide="timer"></i>' : '<i data-lucide="circle-check"></i>'}</span>
       <span class="workout-timer-display ${isRunning ? 'active' : 'finished'}" id="workoutTimerDisplay-${dayIdx}">${formatDuration(elapsed)}</span>
       <span class="workout-timer-label">${isRunning ? 'ELAPSED' : 'TOTAL TIME'}</span>
-      <span class="workout-timer-start">${formatTimeShort(timer.startedAt)}${timer.finishedAt ? ' — ' + formatTimeShort(timer.finishedAt) : ''}</span>
+      <span class="workout-timer-start">${formatTimeShort(timer.startedAt)}${timer.finishedAt ? ` — ${formatTimeShort(timer.finishedAt)}` : ''}</span>
     </div>`;
   }
 
@@ -94,7 +106,7 @@ function renderWorkoutPage(day, dayIdx) {
     h += renderExerciseCard(ex, dayIdx, exIdx);
   });
 
-  if (day.cardio && day.cardio.length) {
+  if (day.cardio?.length) {
     const allCardioDone = day.cardio.every((_, i) => getCardioLog(dayIdx, i));
     h += `<div class="cardio-section ${allCardioDone ? 'done' : ''}">
       <div class="cardio-header">
@@ -118,7 +130,7 @@ function renderWorkoutPage(day, dayIdx) {
 function renderExerciseCard(ex, dayIdx, exIdx) {
   let h = '';
   const totalSets = ex.sets + getExtraSets(dayIdx, exIdx);
-  const allDone = Array.from({length: totalSets}, (_, i) => getLog(dayIdx, exIdx, i).done).every(Boolean);
+  const allDone = Array.from({ length: totalSets }, (_, i) => getLog(dayIdx, exIdx, i).done).every(Boolean);
   const prKey = historyKey(dayIdx, exIdx);
   const hasPR = !!state.personalRecords[prKey];
 
@@ -152,7 +164,9 @@ function renderExerciseCard(ex, dayIdx, exIdx) {
     h += `<div class="prev-performance">`;
     h += `<div class="prev-label">Previous (Week ${lastSession.week})</div>`;
     h += `<div class="prev-sets">`;
-    lastSession.sets.forEach(s => { h += `<span class="prev-set">${s.weight}kg x ${s.reps}</span>`; });
+    lastSession.sets.forEach((s) => {
+      h += `<span class="prev-set">${s.weight}kg x ${s.reps}</span>`;
+    });
     h += `</div></div>`;
   }
 
@@ -184,7 +198,7 @@ function renderProgression(ex, dayIdx, exIdx) {
 
   const currentSets = [];
   for (let s = 0; s < ex.sets; s++) currentSets.push(getLog(dayIdx, exIdx, s));
-  if (!currentSets.every(s => s.done)) return '';
+  if (!currentSets.every((s) => s.done)) return '';
 
   let h = '<div class="progression-bar">';
 
@@ -197,11 +211,11 @@ function renderProgression(ex, dayIdx, exIdx) {
     }
   } else {
     const range = parseRepRange(ex.reps);
-    const allAtTop = currentSets.every(s => parseInt(s.reps) >= range.high);
+    const allAtTop = currentSets.every((s) => parseInt(s.reps, 10) >= range.high);
     if (allAtTop) {
       h += `<div class="progression-msg up"><i data-lucide="arrow-up"></i> Increase weight next session (all sets hit ${range.high} reps)</div>`;
     } else {
-      const avgReps = currentSets.reduce((a, s) => a + (parseInt(s.reps) || 0), 0) / currentSets.length;
+      const avgReps = currentSets.reduce((a, s) => a + (parseInt(s.reps, 10) || 0), 0) / currentSets.length;
       h += `<div class="progression-msg hold"><i data-lucide="minus"></i> Build to ${range.high} reps on all sets (avg: ${avgReps.toFixed(0)})</div>`;
     }
   }
@@ -211,7 +225,7 @@ function renderProgression(ex, dayIdx, exIdx) {
 }
 
 function attachExerciseListeners() {
-  $$('.exercise-top').forEach(top => {
+  $$('.exercise-top').forEach((top) => {
     top.addEventListener('click', () => {
       const card = top.closest('.exercise-card');
       card.classList.toggle('open');
@@ -219,7 +233,7 @@ function attachExerciseListeners() {
     });
   });
 
-  $$('.warmup-toggle').forEach(btn => {
+  $$('.warmup-toggle').forEach((btn) => {
     btn.addEventListener('click', () => {
       const content = $(`[data-warmup-content="${btn.dataset.warmup}"]`);
       btn.classList.toggle('open');
@@ -228,29 +242,28 @@ function attachExerciseListeners() {
     });
   });
 
-
   const pageContainer = $('#pages');
   pageContainer.addEventListener('click', (e) => {
     const swapBtn = e.target.closest('.swap-btn');
     if (swapBtn) {
       e.stopPropagation();
-      showSwapModal(parseInt(swapBtn.dataset.swapDay), parseInt(swapBtn.dataset.swapEx));
+      showSwapModal(parseInt(swapBtn.dataset.swapDay, 10), parseInt(swapBtn.dataset.swapEx, 10));
       return;
     }
 
     const circuitBtn = e.target.closest('.circuit-start-btn');
     if (circuitBtn) {
       e.stopPropagation();
-      const dayIdx = parseInt(circuitBtn.dataset.circuitDay);
-      import('../timers/circuit-timer.js').then(m => m.startCircuit(dayIdx));
+      const dayIdx = parseInt(circuitBtn.dataset.circuitDay, 10);
+      import('../timers/circuit-timer.js').then((m) => m.startCircuit(dayIdx));
       return;
     }
 
     const addBtn = e.target.closest('[data-add-set]');
     if (addBtn) {
       e.stopPropagation();
-      const dayIdx = parseInt(addBtn.dataset.day);
-      const exIdx = parseInt(addBtn.dataset.ex);
+      const dayIdx = parseInt(addBtn.dataset.day, 10);
+      const exIdx = parseInt(addBtn.dataset.ex, 10);
       addExtraSet(dayIdx, exIdx);
       const ex = PROGRAM[dayIdx].exercises[exIdx];
       const totalSets = ex.sets + getExtraSets(dayIdx, exIdx);
@@ -274,8 +287,8 @@ function attachExerciseListeners() {
       e.stopPropagation();
       const cardioRow = check.closest('.cardio-row');
       if (cardioRow) {
-        const dayIdx = parseInt(cardioRow.dataset.day);
-        const idx = parseInt(cardioRow.dataset.cardioIdx);
+        const dayIdx = parseInt(cardioRow.dataset.day, 10);
+        const idx = parseInt(cardioRow.dataset.cardioIdx, 10);
         const done = !getCardioLog(dayIdx, idx);
         setCardioLog(dayIdx, idx, done);
         check.classList.toggle('done', done);
@@ -309,7 +322,7 @@ function attachExerciseListeners() {
     const min = parseFloat(input.min) || 0;
     const max = parseFloat(input.max) || (isReps ? 100 : 500);
 
-    if (input.value !== '' && (isNaN(val) || val < min || val > max)) {
+    if (input.value !== '' && (Number.isNaN(val) || val < min || val > max)) {
       input.classList.add('invalid');
       return;
     }
@@ -317,9 +330,9 @@ function attachExerciseListeners() {
 
     if (input.value !== '' && val < min) input.value = min;
 
-    const dayIdx = parseInt(row.dataset.day);
-    const exIdx = parseInt(row.dataset.ex);
-    const setIdx = parseInt(row.dataset.set);
+    const dayIdx = parseInt(row.dataset.day, 10);
+    const exIdx = parseInt(row.dataset.ex, 10);
+    const setIdx = parseInt(row.dataset.set, 10);
     const current = getLog(dayIdx, exIdx, setIdx);
     current[input.dataset.field] = input.value;
     state.logs[`w${state.currentWeek}-d${dayIdx}-e${exIdx}-s${setIdx}`] = current;
@@ -329,10 +342,10 @@ function attachExerciseListeners() {
 
 function handleSetToggle(row, check) {
   captureSnapshot();
-  const dayIdx = parseInt(row.dataset.day);
-  const exIdx = parseInt(row.dataset.ex);
-  const setIdx = parseInt(row.dataset.set);
-  const restSec = parseInt(row.dataset.rest);
+  const dayIdx = parseInt(row.dataset.day, 10);
+  const exIdx = parseInt(row.dataset.ex, 10);
+  const setIdx = parseInt(row.dataset.set, 10);
+  const restSec = parseInt(row.dataset.rest, 10);
   const current = getLog(dayIdx, exIdx, setIdx);
   current.done = !current.done;
 
@@ -357,7 +370,7 @@ function handleSetToggle(row, check) {
       if (prev.weight) current.weight = prev.weight;
     } else {
       const last = getLastSession(dayIdx, exIdx);
-      if (last && last.sets[0]) current.weight = last.sets[0].weight;
+      if (last?.sets[0]) current.weight = last.sets[0].weight;
     }
   }
 
@@ -382,10 +395,15 @@ function handleSetToggle(row, check) {
   const card = row.closest('.exercise-card');
   const ex = PROGRAM[dayIdx].exercises[exIdx];
   const totalSets = ex.sets + getExtraSets(dayIdx, exIdx);
-  const allDone = Array.from({length: totalSets}, (_, i) => getLog(dayIdx, exIdx, i).done).every(Boolean);
+  const allDone = Array.from({ length: totalSets }, (_, i) => getLog(dayIdx, exIdx, i).done).every(Boolean);
   const numEl = card.querySelector('.exercise-num');
-  if (allDone) { numEl.classList.add('done'); card.classList.add('done'); }
-  else { numEl.classList.remove('done'); card.classList.remove('done'); }
+  if (allDone) {
+    numEl.classList.add('done');
+    card.classList.add('done');
+  } else {
+    numEl.classList.remove('done');
+    card.classList.remove('done');
+  }
 
   updateFinishBar();
   showUndoToast();

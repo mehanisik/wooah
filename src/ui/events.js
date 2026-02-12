@@ -1,16 +1,20 @@
 import { $, $$ } from './helpers.js';
 import { state, saveState } from '../state/store.js';
-import { renderStats } from '../render/stats-bar.js';
 import { renderNav } from '../render/nav.js';
 import { renderPages } from '../render/workout.js';
 import { updateFinishBar } from './finish.js';
-import { initSettingsHandlers } from '../sync/neon.js';
+import { initSettingsHandlers } from '../sync/supabase.js';
 import { trapFocus, releaseFocus } from './focus-trap.js';
 
 export function closeAllModals() {
-  $$('.uk-modal.uk-open').forEach(m => m.classList.remove('uk-open'));
+  $$('.uk-modal.uk-open').forEach((m) => {
+    m.classList.remove('uk-open');
+  });
   const celeb = $('.celebration-modal.uk-open');
-  if (celeb) { celeb.classList.remove('uk-open'); setTimeout(() => celeb.remove(), 300); }
+  if (celeb) {
+    celeb.classList.remove('uk-open');
+    setTimeout(() => celeb.remove(), 300);
+  }
   releaseFocus();
 }
 
@@ -31,11 +35,15 @@ export function initEvents() {
   });
 
   // Prevent iOS rubber-band scrolling on fixed elements
-  document.addEventListener('touchmove', function(e) {
-    if (e.target.closest('.uk-modal, .rest-timer-bar, .celebration-modal')) {
-      e.preventDefault();
-    }
-  }, { passive: false });
+  document.addEventListener(
+    'touchmove',
+    (e) => {
+      if (e.target.closest('.uk-modal, .rest-timer-bar, .celebration-modal')) {
+        e.preventDefault();
+      }
+    },
+    { passive: false },
+  );
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeAllModals();
@@ -61,4 +69,3 @@ export function initEvents() {
 
   initSettingsHandlers();
 }
-
