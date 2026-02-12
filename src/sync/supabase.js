@@ -1,3 +1,4 @@
+import { createClient } from '@supabase/supabase-js';
 import { $ } from '../ui/helpers.js';
 import { state, getLog, getWorkoutTimer, historyKey } from '../state/store.js';
 import { PROGRAM } from '../data/program.js';
@@ -8,6 +9,7 @@ import { setSupabaseClient } from '../ui/photo-store.js';
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_KEY;
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
 
 let supabase = null;
 let currentUser = null;
@@ -25,9 +27,9 @@ export async function initSupabase() {
   localStorage.removeItem('ironppl_supabase_url');
   localStorage.removeItem('ironppl_supabase_key');
 
+  loadGoogleScript();
   if (!SUPABASE_URL || !SUPABASE_KEY) return false;
   try {
-    const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
     supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
     setSupabaseClient(supabase, getAuthUser);
 
@@ -115,10 +117,22 @@ export async function signOut() {
   updateAuthUI();
 }
 
+function loadGoogleScript() {
+  if (typeof google !== 'undefined' || isStandalone) return;
+  const s = document.createElement('script');
+  s.src = 'https://accounts.google.com/gsi/client';
+  s.async = true;
+  document.head.appendChild(s);
+}
+
 async function signInWithGoogle() {
-  if (!supabase || !GOOGLE_CLIENT_ID) return;
+  if (!supabase || !GOOGLE_CLIENT_ID) {
+    showToast('Sign-in unavailable');
+    return;
+  }
   if (typeof google === 'undefined') {
-    showToast('Google sign-in not loaded');
+    showToast('Google sign-in loading — try again');
+    loadGoogleScript();
     return;
   }
   const rawNonce = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32))));
@@ -248,7 +262,13 @@ export function initSettingsHandlers() {
     if (e.target === $('#settingsModal')) closeAllModals();
   });
 
-  $('#authGoogle').addEventListener('click', () => signInWithGoogle());
+  if (isStandalone) {
+    $('#authGoogle').style.display = 'none';
+    const divider = $('#authOrDivider');
+    if (divider) divider.style.display = 'none';
+  } else {
+    $('#authGoogle').addEventListener('click', () => signInWithGoogle());
+  }
 
   let pendingEmail = '';
 

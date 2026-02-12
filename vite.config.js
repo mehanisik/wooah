@@ -19,7 +19,7 @@ export default defineConfig({
             handler: 'NetworkOnly',
           },
           {
-            urlPattern: /^https:\/\/esm\.sh\/.*/i,
+            urlPattern: /^https:\/\/accounts\.google\.com\/.*/i,
             handler: 'NetworkOnly',
           },
           {
