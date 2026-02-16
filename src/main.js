@@ -18,20 +18,25 @@ import { renderPages } from './render/workout.js';
 import { updateFinishBar } from './ui/finish.js';
 import { initEvents } from './ui/events.js';
 import { initRestTimerClose } from './timers/rest-timer.js';
-import { initSupabase } from './sync/supabase.js';
+import { initSupabase, initLoginHandlers } from './sync/supabase.js';
 import { initWakeLock } from './ui/wake-lock.js';
 import { refreshIcons } from './ui/icons.js';
 
-loadState();
-state.activeTab = getTodayDayIdx();
-renderGreeting();
-renderStats();
-renderNav();
-renderPages();
-updateFinishBar();
-initEvents();
-initRestTimerClose();
-initSupabase();
+try {
+  loadState();
+  state.activeTab = getTodayDayIdx();
+  renderGreeting();
+  renderStats();
+  renderNav();
+  renderPages();
+  updateFinishBar();
+  initEvents();
+  initRestTimerClose();
+} catch (err) {
+  console.error('[IRON PPL] Pre-auth init failed:', err);
+}
+initLoginHandlers();
+await initSupabase();
 initWakeLock();
 refreshIcons();
 

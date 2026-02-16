@@ -22,13 +22,28 @@ export function getAuthUser() {
   return currentUser;
 }
 
+function showLogin() {
+  document.getElementById('splash').style.display = 'none';
+  document.getElementById('login').style.display = '';
+  document.getElementById('app').style.display = 'none';
+}
+
+function showApp() {
+  document.getElementById('splash').style.display = 'none';
+  document.getElementById('login').style.display = 'none';
+  document.getElementById('app').style.display = 'contents';
+}
+
 export async function initSupabase() {
   localStorage.removeItem('ironppl_neon');
   localStorage.removeItem('ironppl_supabase_url');
   localStorage.removeItem('ironppl_supabase_key');
 
   loadGoogleScript();
-  if (!SUPABASE_URL || !SUPABASE_KEY) return false;
+  if (!SUPABASE_URL || !SUPABASE_KEY) {
+    showLogin();
+    return false;
+  }
   try {
     supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
     setSupabaseClient(supabase, getAuthUser);
@@ -38,20 +53,33 @@ export async function initSupabase() {
       updateSyncDot(currentUser ? 'online' : 'offline');
       updateAuthUI();
 
-      if (event === 'SIGNED_IN' && currentUser) {
+      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && currentUser) {
+        showApp();
         await migrateExistingData(currentUser.id);
+      } else if (event === 'SIGNED_OUT' || (event === 'INITIAL_SESSION' && !currentUser)) {
+        showLogin();
       }
     });
 
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    const { data: { session } } = await Promise.race([
+      supabase.auth.getSession(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('getSession timeout')), 5000)),
+    ]);
     currentUser = session?.user ?? null;
     updateSyncDot(currentUser ? 'online' : 'offline');
+
+    if (currentUser) {
+      showApp();
+    } else {
+      showLogin();
+    }
+
     return true;
-  } catch {
+  } catch (err) {
+    console.error('[IRON PPL] initSupabase failed:', err);
     supabase = null;
     setSupabaseClient(null, null);
+    showLogin();
     return false;
   }
 }
@@ -69,33 +97,21 @@ async function migrateExistingData(userId) {
 
 function updateSyncDot(status) {
   const dot = $('#syncDot');
+  if (!dot) return;
   dot.className = `sync-dot ${status}`;
   dot.title = status === 'online' ? 'Cloud synced' : status === 'syncing' ? 'Syncing...' : 'Offline (local only)';
 }
 
 function updateAuthUI() {
   const status = $('#authStatus');
-  const signedOutUI = $('#authSignedOut');
-  const signedInUI = $('#authSignedIn');
   if (!status) return;
 
   if (currentUser) {
     status.textContent = currentUser.email;
     status.style.color = 'var(--green)';
-    signedOutUI.style.display = 'none';
-    signedInUI.style.display = 'block';
   } else {
-    status.textContent = 'NOT SIGNED IN';
+    status.textContent = '';
     status.style.color = '';
-    signedOutUI.style.display = 'block';
-    signedInUI.style.display = 'none';
-  }
-
-  const emailStep = $('#authEmailStep');
-  const otpStep = $('#authOtpStep');
-  if (emailStep && otpStep && currentUser) {
-    emailStep.style.display = 'block';
-    otpStep.style.display = 'none';
   }
 }
 
@@ -148,13 +164,12 @@ async function signInWithGoogle() {
         token: response.credential,
         nonce: rawNonce,
       });
-      const msg = $('#authMsg');
       if (error) {
-        msg.textContent = error.message;
-        msg.className = 'setup-msg error';
-      } else {
-        msg.textContent = 'Signed in with Google!';
-        msg.className = 'setup-msg success';
+        const msg = document.getElementById('loginMsg');
+        if (msg) {
+          msg.textContent = error.message;
+          msg.className = 'setup-msg error';
+        }
       }
     },
   });
@@ -250,6 +265,75 @@ export async function syncToSupabase(dayIdx) {
   }
 }
 
+export function initLoginHandlers() {
+  if (isStandalone) {
+    const googleBtn = document.getElementById('loginGoogle');
+    const orDivider = document.getElementById('loginOrDivider');
+    if (googleBtn) googleBtn.style.display = 'none';
+    if (orDivider) orDivider.style.display = 'none';
+  } else {
+    document.getElementById('loginGoogle').addEventListener('click', () => signInWithGoogle());
+  }
+
+  let pendingEmail = '';
+
+  document.getElementById('loginSendCode').addEventListener('click', async () => {
+    const email = document.getElementById('loginEmail').value.trim();
+    const msg = document.getElementById('loginMsg');
+    if (!email || !email.includes('@')) {
+      msg.textContent = 'Enter a valid email address';
+      msg.className = 'setup-msg error';
+      return;
+    }
+    const btn = document.getElementById('loginSendCode');
+    btn.disabled = true;
+    btn.textContent = 'SENDING...';
+    const { error } = await sendOtpCode(email);
+    btn.disabled = false;
+    btn.textContent = 'SEND CODE';
+    if (error) {
+      msg.textContent = error.message;
+      msg.className = 'setup-msg error';
+    } else {
+      pendingEmail = email;
+      document.getElementById('loginEmailStep').style.display = 'none';
+      document.getElementById('loginOtpStep').style.display = 'block';
+      document.getElementById('loginOtpInput').value = '';
+      document.getElementById('loginOtpInput').focus();
+      msg.textContent = 'Check your email for the 6-digit code';
+      msg.className = 'setup-msg success';
+    }
+  });
+
+  document.getElementById('loginVerifyOtp').addEventListener('click', async () => {
+    const token = document.getElementById('loginOtpInput').value.trim();
+    const msg = document.getElementById('loginMsg');
+    if (!token || token.length !== 6) {
+      msg.textContent = 'Enter the 6-digit code';
+      msg.className = 'setup-msg error';
+      return;
+    }
+    const btn = document.getElementById('loginVerifyOtp');
+    btn.disabled = true;
+    btn.textContent = 'VERIFYING...';
+    const { error } = await verifyOtp(pendingEmail, token);
+    btn.disabled = false;
+    btn.textContent = 'VERIFY';
+    if (error) {
+      msg.textContent = error.message;
+      msg.className = 'setup-msg error';
+    }
+  });
+
+  document.getElementById('loginOtpBack').addEventListener('click', () => {
+    document.getElementById('loginOtpStep').style.display = 'none';
+    document.getElementById('loginEmailStep').style.display = 'block';
+    const msg = document.getElementById('loginMsg');
+    msg.textContent = '';
+    msg.className = 'setup-msg';
+  });
+}
+
 export function initSettingsHandlers() {
   $('#settingsBtn').addEventListener('click', () => {
     updateAuthUI();
@@ -262,74 +346,9 @@ export function initSettingsHandlers() {
     if (e.target === $('#settingsModal')) closeAllModals();
   });
 
-  if (isStandalone) {
-    $('#authGoogle').style.display = 'none';
-    const divider = $('#authOrDivider');
-    if (divider) divider.style.display = 'none';
-  } else {
-    $('#authGoogle').addEventListener('click', () => signInWithGoogle());
-  }
-
-  let pendingEmail = '';
-
-  $('#authSendCode').addEventListener('click', async () => {
-    const email = $('#authEmail').value.trim();
-    if (!email || !email.includes('@')) {
-      $('#authMsg').textContent = 'Enter a valid email address';
-      $('#authMsg').className = 'setup-msg error';
-      return;
-    }
-    $('#authSendCode').disabled = true;
-    $('#authSendCode').textContent = 'SENDING...';
-    const { error } = await sendOtpCode(email);
-    $('#authSendCode').disabled = false;
-    $('#authSendCode').textContent = 'SEND CODE';
-    if (error) {
-      $('#authMsg').textContent = error.message;
-      $('#authMsg').className = 'setup-msg error';
-    } else {
-      pendingEmail = email;
-      $('#authEmailStep').style.display = 'none';
-      $('#authOtpStep').style.display = 'block';
-      $('#authOtpInput').value = '';
-      $('#authOtpInput').focus();
-      $('#authMsg').textContent = 'Check your email for the 6-digit code';
-      $('#authMsg').className = 'setup-msg success';
-    }
-  });
-
-  $('#authVerifyOtp').addEventListener('click', async () => {
-    const token = $('#authOtpInput').value.trim();
-    if (!token || token.length !== 6) {
-      $('#authMsg').textContent = 'Enter the 6-digit code';
-      $('#authMsg').className = 'setup-msg error';
-      return;
-    }
-    $('#authVerifyOtp').disabled = true;
-    $('#authVerifyOtp').textContent = 'VERIFYING...';
-    const { error } = await verifyOtp(pendingEmail, token);
-    $('#authVerifyOtp').disabled = false;
-    $('#authVerifyOtp').textContent = 'VERIFY';
-    if (error) {
-      $('#authMsg').textContent = error.message;
-      $('#authMsg').className = 'setup-msg error';
-    } else {
-      $('#authMsg').textContent = 'Signed in!';
-      $('#authMsg').className = 'setup-msg success';
-    }
-  });
-
-  $('#authOtpBack').addEventListener('click', () => {
-    $('#authOtpStep').style.display = 'none';
-    $('#authEmailStep').style.display = 'block';
-    $('#authMsg').textContent = '';
-    $('#authMsg').className = 'setup-msg';
-  });
-
   $('#authSignOut').addEventListener('click', async () => {
+    closeAllModals();
     await signOut();
-    $('#authMsg').textContent = 'Signed out.';
-    $('#authMsg').className = 'setup-msg';
   });
 
   function applyTheme(theme) {
