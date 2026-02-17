@@ -37,6 +37,7 @@ export function renderStatsPage() {
 
   h += `<div class="info-section">
     <div class="info-title">YOUR JOURNEY</div>
+    ${navigator.share ? '<button class="uk-btn uk-btn-default" id="shareStats" style="width:100%;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:6px;"><i data-lucide="share-2" style="width:16px;height:16px;"></i> SHARE PROGRESS</button>' : ''}
     <div class="stat-row"><span class="stat-row-label">Total Sessions</span><span class="stat-row-value">${totalSessions}</span></div>
     <div class="stat-row"><span class="stat-row-label">Current Week</span><span class="stat-row-value">${totalWeeks}</span></div>
     <div class="stat-row"><span class="stat-row-label">Personal Records</span><span class="stat-row-value up">${totalPRs}</span></div>
@@ -206,4 +207,14 @@ export function attachStatsListeners() {
   attachBodyweightListeners(() => {
     import('../render/workout.js').then((m) => m.renderPages());
   });
+
+  const shareBtn = $('#shareStats');
+  if (shareBtn) {
+    shareBtn.addEventListener('click', () => {
+      const sessions = state.totalSessions || 0;
+      const prs = Object.keys(state.personalRecords).length;
+      const text = `IRON PPL — Week ${state.currentWeek} · ${sessions} sessions · ${prs} PRs`;
+      navigator.share({ title: 'IRON PPL', text, url: location.href }).catch(() => {});
+    });
+  }
 }

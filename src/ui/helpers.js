@@ -92,3 +92,15 @@ export function formatTimeShort(iso) {
   const d = new Date(iso);
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
+
+export function haptic(ms = 10) {
+  navigator.vibrate?.(ms);
+}
+
+export function viewTransition(callback) {
+  if (document.startViewTransition && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    document.startViewTransition(callback);
+  } else {
+    callback();
+  }
+}

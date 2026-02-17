@@ -9,7 +9,6 @@ import { setSupabaseClient } from '../ui/photo-store.js';
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_KEY;
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
 
 let supabase = null;
 let currentUser = null;
@@ -39,7 +38,6 @@ export async function initSupabase() {
   localStorage.removeItem('ironppl_supabase_url');
   localStorage.removeItem('ironppl_supabase_key');
 
-  loadGoogleScript();
   if (!SUPABASE_URL || !SUPABASE_KEY) {
     showLogin();
     return false;
@@ -61,7 +59,9 @@ export async function initSupabase() {
       }
     });
 
-    const { data: { session } } = await Promise.race([
+    const {
+      data: { session },
+    } = await Promise.race([
       supabase.auth.getSession(),
       new Promise((_, reject) => setTimeout(() => reject(new Error('getSession timeout')), 5000)),
     ]);
@@ -133,12 +133,14 @@ export async function signOut() {
   updateAuthUI();
 }
 
-function loadGoogleScript() {
-  if (typeof google !== 'undefined' || isStandalone) return;
-  const s = document.createElement('script');
-  s.src = 'https://accounts.google.com/gsi/client';
-  s.async = true;
-  document.head.appendChild(s);
+async function generateNonce() {
+  const raw = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32))));
+  const encoded = new TextEncoder().encode(raw);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', encoded);
+  const hashed = Array.from(new Uint8Array(hashBuffer))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+  return { raw, hashed };
 }
 
 async function signInWithGoogle() {
@@ -146,34 +148,58 @@ async function signInWithGoogle() {
     showToast('Sign-in unavailable');
     return;
   }
-  if (typeof google === 'undefined') {
-    showToast('Google sign-in loading — try again');
-    loadGoogleScript();
+
+  if (typeof google === 'undefined' || !google.accounts) {
+    showToast('Google sign-in loading, try again');
     return;
   }
-  const rawNonce = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32))));
-  const hashedNonce = btoa(
-    String.fromCharCode(...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(rawNonce)))),
-  );
-  google.accounts.id.initialize({
-    client_id: GOOGLE_CLIENT_ID,
-    nonce: hashedNonce,
-    callback: async (response) => {
-      const { error } = await supabase.auth.signInWithIdToken({
-        provider: 'google',
-        token: response.credential,
-        nonce: rawNonce,
-      });
-      if (error) {
-        const msg = document.getElementById('loginMsg');
-        if (msg) {
+
+  const msg = document.getElementById('loginMsg');
+
+  try {
+    const { raw, hashed } = await generateNonce();
+
+    google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      nonce: hashed,
+      callback: async (response) => {
+        const { error } = await supabase.auth.signInWithIdToken({
+          provider: 'google',
+          token: response.credential,
+          nonce: raw,
+        });
+        if (error && msg) {
           msg.textContent = error.message;
           msg.className = 'setup-msg error';
         }
+      },
+      use_fedcm_for_prompt: true,
+    });
+
+    google.accounts.id.prompt((notification) => {
+      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+        renderGoogleButton();
       }
-    },
+    });
+  } catch {
+    if (msg) {
+      msg.textContent = 'Google sign-in failed. Use email instead.';
+      msg.className = 'setup-msg error';
+    }
+  }
+}
+
+function renderGoogleButton() {
+  const container = document.getElementById('googleOneTapContainer');
+  if (!container || typeof google === 'undefined') return;
+  container.innerHTML = '';
+  google.accounts.id.renderButton(container, {
+    type: 'standard',
+    theme: document.documentElement.classList.contains('dark') ? 'filled_black' : 'outline',
+    size: 'large',
+    width: 320,
+    text: 'signin_with',
   });
-  google.accounts.id.prompt();
 }
 
 export async function syncToSupabase(dayIdx) {
@@ -266,14 +292,7 @@ export async function syncToSupabase(dayIdx) {
 }
 
 export function initLoginHandlers() {
-  if (isStandalone) {
-    const googleBtn = document.getElementById('loginGoogle');
-    const orDivider = document.getElementById('loginOrDivider');
-    if (googleBtn) googleBtn.style.display = 'none';
-    if (orDivider) orDivider.style.display = 'none';
-  } else {
-    document.getElementById('loginGoogle').addEventListener('click', () => signInWithGoogle());
-  }
+  document.getElementById('loginGoogle').addEventListener('click', () => signInWithGoogle());
 
   let pendingEmail = '';
 

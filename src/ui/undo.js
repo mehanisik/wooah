@@ -1,5 +1,5 @@
 import { state, saveState } from '../state/store.js';
-import { $ } from './helpers.js';
+import { $, haptic } from './helpers.js';
 import { renderPages } from '../render/workout.js';
 import { updateFinishBar } from './finish.js';
 
@@ -20,6 +20,7 @@ export function showUndoToast() {
     toast.innerHTML = '<span>Change made</span><button class="undo-btn">UNDO</button>';
     document.body.appendChild(toast);
     toast.querySelector('.undo-btn').addEventListener('click', () => {
+      haptic(20);
       if (_snapshot) {
         state.logs = _snapshot;
         saveState();

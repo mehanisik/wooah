@@ -1,4 +1,4 @@
-import { $, $$ } from './helpers.js';
+import { $, $$, viewTransition } from './helpers.js';
 import { state, saveState } from '../state/store.js';
 import { renderNav } from '../render/nav.js';
 import { renderPages } from '../render/workout.js';
@@ -25,13 +25,14 @@ export function openModal(el) {
 }
 
 export function initEvents() {
-  // Stats button
   $('#statsBtn').addEventListener('click', () => {
     state.activeTab = 8;
     saveState();
-    renderNav();
-    renderPages();
-    updateFinishBar();
+    viewTransition(() => {
+      renderNav();
+      renderPages();
+      updateFinishBar();
+    });
   });
 
   // Prevent iOS rubber-band scrolling on fixed elements

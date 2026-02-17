@@ -8,3 +8,5 @@ progress.txt
 .env.local
 .env.*.local
 dist/stats.html
+test-results/
+playwright-report/

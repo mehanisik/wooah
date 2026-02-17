@@ -1,5 +1,4 @@
-import { $ } from '../ui/helpers.js';
-import { formatDuration } from '../ui/helpers.js';
+import { $, formatDuration, haptic } from '../ui/helpers.js';
 import { MOTIVATIONAL } from '../data/program.js';
 import { refreshIcons } from '../ui/icons.js';
 import { savePhoto } from '../ui/photo-store.js';
@@ -56,6 +55,7 @@ export function showMotivationalModal(dayName, newPRs, duration, week, dayIdx) {
     modal.classList.add('uk-open');
     refreshIcons();
     trapFocus(modal);
+    haptic(30);
   });
 
   let autoDismiss = setTimeout(() => {

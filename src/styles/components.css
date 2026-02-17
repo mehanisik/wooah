@@ -273,11 +273,29 @@ body::before {
   padding-left: calc(16px + env(safe-area-inset-left, 0px));
   padding-right: calc(16px + env(safe-area-inset-right, 0px));
   content-visibility: auto;
+  view-transition-name: page-content;
 }
 .page.uk-active {
   display: block;
   animation: fadeIn 0.2s ease;
   content-visibility: visible;
+}
+
+::view-transition-old(page-content) {
+  animation: 150ms ease-out both fade-out;
+}
+::view-transition-new(page-content) {
+  animation: 150ms ease-in both fade-in;
+}
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
 }
 
 @keyframes fadeIn {
@@ -627,6 +645,7 @@ body::before {
 }
 .exercise-card.open .exercise-log {
   display: block;
+  will-change: max-height;
 }
 
 .set-row {
@@ -825,6 +844,7 @@ body::before {
 }
 .circuit-overlay.visible {
   opacity: 1;
+  will-change: opacity;
 }
 .circuit-phase {
   font-family: var(--font-display);
@@ -1183,6 +1203,7 @@ body::before {
   display: flex;
   align-items: center;
   justify-content: center;
+  will-change: opacity;
 }
 .uk-modal-dialog {
   max-width: 340px;
@@ -1253,6 +1274,7 @@ body::before {
 .toast.show {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
+  will-change: transform, opacity;
 }
 .undo-toast {
   display: flex;
@@ -1613,6 +1635,7 @@ body::before {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  scroll-snap-type: x mandatory;
 }
 .photo-session-strip::-webkit-scrollbar {
   display: none;
@@ -1625,6 +1648,7 @@ body::before {
   border-radius: var(--radius);
   overflow: hidden;
   cursor: pointer;
+  scroll-snap-align: center;
 }
 .photo-thumb img {
   width: 100%;

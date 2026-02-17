@@ -1,4 +1,4 @@
-import { $, $$, formatRest, parseRepRange, formatDuration, formatTimeShort } from '../ui/helpers.js';
+import { $, $$, formatRest, parseRepRange, formatDuration, formatTimeShort, haptic } from '../ui/helpers.js';
 import {
   state,
   getLog,
@@ -342,6 +342,7 @@ function attachExerciseListeners() {
 
 function handleSetToggle(row, check) {
   captureSnapshot();
+  haptic();
   const dayIdx = parseInt(row.dataset.day, 10);
   const exIdx = parseInt(row.dataset.ex, 10);
   const setIdx = parseInt(row.dataset.set, 10);

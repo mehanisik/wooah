@@ -23,6 +23,10 @@ export default defineConfig({
             handler: 'NetworkOnly',
           },
           {
+            urlPattern: /^https:\/\/.*\.googleapis\.com\/.*/i,
+            handler: 'NetworkOnly',
+          },
+          {
             urlPattern: /^https:\/\/.*\.inspirobot\.me\/.*/i,
             handler: 'NetworkOnly',
           },
@@ -35,10 +39,19 @@ export default defineConfig({
         start_url: '/index.html',
         scope: '/',
         display: 'standalone',
+        display_override: ['standalone', 'minimal-ui'],
         background_color: '#151716',
         theme_color: '#151716',
         orientation: 'portrait',
         categories: ['fitness', 'health'],
+        shortcuts: [
+          {
+            name: 'Start Workout',
+            short_name: 'Workout',
+            url: '/index.html',
+            icons: [{ src: 'pwa-192x192.png', sizes: '192x192' }],
+          },
+        ],
         icons: [
           {
             src: 'pwa-64x64.png',

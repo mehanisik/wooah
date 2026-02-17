@@ -1,5 +1,4 @@
-import { $ } from './helpers.js';
-import { checkForPR } from './helpers.js';
+import { $, checkForPR, haptic } from './helpers.js';
 import {
   state,
   saveState,
@@ -57,6 +56,7 @@ export async function finishWorkout() {
     if (state.history[key].length > 12) state.history[key] = state.history[key].slice(-12);
   });
 
+  haptic(50);
   stopWorkoutTimer(dayIdx);
   clearWorkoutClock();
   state.finishedDays[finishedKey(dayIdx)] = Date.now();

@@ -1,4 +1,4 @@
-import { $, getTodayDayIdx, getWeekDates } from '../ui/helpers.js';
+import { $, getTodayDayIdx, getWeekDates, viewTransition } from '../ui/helpers.js';
 import { state, saveState, isDayFinished } from '../state/store.js';
 import { PROGRAM } from '../data/program.js';
 import { renderPages } from './workout.js';
@@ -36,11 +36,15 @@ export function renderNav() {
 
   nav.querySelectorAll('.nav-tab').forEach((tab) => {
     tab.addEventListener('click', () => {
-      state.activeTab = parseInt(tab.dataset.idx, 10);
+      const idx = parseInt(tab.dataset.idx, 10);
+      if (idx === state.activeTab) return;
+      state.activeTab = idx;
       saveState();
-      renderNav();
-      renderPages();
-      updateFinishBar();
+      viewTransition(() => {
+        renderNav();
+        renderPages();
+        updateFinishBar();
+      });
     });
   });
 }
