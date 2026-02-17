@@ -1,12 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="64" fill="#151716"/>
+  <rect width="512" height="512" rx="112" fill="#151716"/>
   <g transform="translate(256,256)" fill="#DCCFFF">
-    <!-- Dumbbell icon -->
-    <rect x="-120" y="-16" width="240" height="32" rx="8"/>
-    <rect x="-160" y="-56" width="48" height="112" rx="10"/>
-    <rect x="112" y="-56" width="48" height="112" rx="10"/>
-    <rect x="-180" y="-40" width="28" height="80" rx="8"/>
-    <rect x="152" y="-40" width="28" height="80" rx="8"/>
+    <rect x="-90" y="-7" width="180" height="14" rx="7"/>
+    <rect x="-128" y="-62" width="38" height="124" rx="10"/>
+    <rect x="90" y="-62" width="38" height="124" rx="10"/>
+    <rect x="-166" y="-84" width="30" height="168" rx="12"/>
+    <rect x="136" y="-84" width="30" height="168" rx="12"/>
   </g>
-  <text x="256" y="420" text-anchor="middle" font-family="sans-serif" font-weight="900" font-size="80" fill="#DCCFFF" letter-spacing="6">IRON</text>
 </svg>

@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { $ } from '../ui/helpers.js';
-import { state, getLog, getWorkoutTimer, historyKey } from '../state/store.js';
+import { state, getLog, getWorkoutTimer, historyKey, saveState } from '../state/store.js';
 import { PROGRAM } from '../data/program.js';
 import { showToast } from '../ui/toast.js';
 import { closeAllModals, openModal } from '../ui/events.js';
@@ -54,6 +54,7 @@ export async function initSupabase() {
       if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && currentUser) {
         showApp();
         await migrateExistingData(currentUser.id);
+        await pullFromSupabase(currentUser.id);
       } else if (event === 'SIGNED_OUT' || (event === 'INITIAL_SESSION' && !currentUser)) {
         showLogin();
       }
@@ -70,6 +71,7 @@ export async function initSupabase() {
 
     if (currentUser) {
       showApp();
+      await pullFromSupabase(currentUser.id);
     } else {
       showLogin();
     }
@@ -92,6 +94,123 @@ async function migrateExistingData(userId) {
     localStorage.setItem(flag, '1');
   } catch {
     // migration failed — will retry next sign-in
+  }
+}
+
+async function pullFromSupabase(userId) {
+  if (!supabase) return;
+  updateSyncDot('syncing');
+
+  try {
+    const [sessionsRes, setsRes, prsRes] = await Promise.all([
+      supabase.from('sessions').select('*').eq('user_id', userId).order('started_at', { ascending: true }),
+      supabase.from('sets').select('*').eq('user_id', userId),
+      supabase.from('personal_records').select('*').eq('user_id', userId),
+    ]);
+
+    if (sessionsRes.error || setsRes.error || prsRes.error) {
+      console.error('[IRON PPL] Pull queries failed:', sessionsRes.error, setsRes.error, prsRes.error);
+      updateSyncDot('offline');
+      showToast('Cloud sync failed');
+      return;
+    }
+
+    const sessions = sessionsRes.data || [];
+    const sets = setsRes.data || [];
+    const prs = prsRes.data || [];
+
+    if (!sessions.length && !sets.length && !prs.length) {
+      updateSyncDot('online');
+      return;
+    }
+
+    const setsBySession = {};
+    for (const s of sets) {
+      (setsBySession[s.session_id] ||= []).push(s);
+    }
+
+    const cloudHistory = {};
+    const cloudFinishedDays = {};
+    const cloudWorkoutTimers = {};
+
+    for (const session of sessions) {
+      const dayKey = `w${session.week}-d${session.day_index}`;
+      cloudFinishedDays[dayKey] = new Date(session.finished_at).getTime();
+      cloudWorkoutTimers[dayKey] = {
+        startedAt: session.started_at,
+        finishedAt: session.finished_at,
+        duration: session.duration_sec,
+      };
+
+      const sessionSets = setsBySession[session.id] || [];
+      const byExercise = {};
+      for (const s of sessionSets) {
+        (byExercise[s.exercise_index] ||= []).push(s);
+      }
+
+      for (const [exIdx, exSets] of Object.entries(byExercise)) {
+        const hKey = `d${session.day_index}-e${exIdx}`;
+        if (!cloudHistory[hKey]) cloudHistory[hKey] = [];
+        exSets.sort((a, b) => a.set_index - b.set_index);
+        cloudHistory[hKey].push({
+          week: session.week,
+          sets: exSets.map((s) => ({ weight: s.weight, reps: s.reps })),
+        });
+      }
+    }
+
+    for (const key of Object.keys(cloudHistory)) {
+      if (cloudHistory[key].length > 12) {
+        cloudHistory[key] = cloudHistory[key].slice(-12);
+      }
+    }
+
+    const cloudPersonalRecords = {};
+    for (const pr of prs) {
+      cloudPersonalRecords[`d${pr.day_index}-e${pr.exercise_index}`] = {
+        volume: pr.best_volume,
+        date: pr.achieved_at,
+      };
+    }
+
+    for (const [key, cloudEntries] of Object.entries(cloudHistory)) {
+      const local = state.history[key] || [];
+      const byWeek = {};
+      for (const entry of local) byWeek[entry.week] = entry;
+      for (const entry of cloudEntries) byWeek[entry.week] = entry;
+      state.history[key] = Object.values(byWeek)
+        .sort((a, b) => a.week - b.week)
+        .slice(-12);
+    }
+
+    Object.assign(state.finishedDays, cloudFinishedDays);
+    Object.assign(state.workoutTimers, cloudWorkoutTimers);
+    state.totalSessions = Math.max(state.totalSessions, sessions.length);
+
+    if (sessions.length) {
+      const cloudStart = sessions[0].started_at.split('T')[0];
+      if (!state.startDate || cloudStart < state.startDate) {
+        state.startDate = cloudStart;
+      }
+    }
+
+    for (const [key, cloudPR] of Object.entries(cloudPersonalRecords)) {
+      const local = state.personalRecords[key];
+      if (!local || cloudPR.volume >= local.volume) {
+        state.personalRecords[key] = cloudPR;
+      }
+    }
+
+    const msPerWeek = 7 * 24 * 60 * 60 * 1000;
+    state.currentWeek = Math.max(1, Math.floor((Date.now() - new Date(state.startDate).getTime()) / msPerWeek) + 1);
+
+    saveState();
+    window.dispatchEvent(new Event('ironppl:synced'));
+    updateSyncDot('online');
+  } catch (err) {
+    console.error('[IRON PPL] pullFromSupabase failed:', err);
+    updateSyncDot('offline');
+    showToast('Cloud sync failed');
   }
 }
 

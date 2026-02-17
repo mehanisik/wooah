@@ -36,6 +36,14 @@ try {
   console.error('[IRON PPL] Pre-auth init failed:', err);
 }
 initLoginHandlers();
+window.addEventListener('ironppl:synced', () => {
+  renderGreeting();
+  renderStats();
+  renderNav();
+  renderPages();
+  updateFinishBar();
+  refreshIcons();
+});
 await initSupabase();
 initWakeLock();
 refreshIcons();
