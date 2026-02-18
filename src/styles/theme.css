@@ -1,3 +1,7 @@
+@font-face { font-family: "Barlow Condensed"; font-display: swap; }
+@font-face { font-family: "JetBrains Mono"; font-display: swap; }
+@font-face { font-family: "Bebas Neue"; font-display: swap; }
+
 :root {
   --bg: #ffffff;
   --surface: #f5f5f5;

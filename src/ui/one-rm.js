@@ -1,4 +1,4 @@
-import { state, saveState, getLog, historyKey } from '../state/store.js';
+import { state, saveState, getLog, historyKey, getEffectiveProgram } from '../state/store.js';
 import { PROGRAM } from '../data/program.js';
 
 export function calcOneRM(weight, reps) {
@@ -8,7 +8,7 @@ export function calcOneRM(weight, reps) {
 }
 
 export function updateOneRMAfterSet(dayIdx, exIdx) {
-  const ex = PROGRAM[dayIdx].exercises[exIdx];
+  const ex = getEffectiveProgram(dayIdx).exercises[exIdx];
   if (!ex || !ex.compound || !ex.amrap) return null;
 
   const amrapSetIdx = ex.sets - 1;
@@ -32,7 +32,7 @@ export function updateOneRMAfterSet(dayIdx, exIdx) {
 }
 
 export function renderOneRMDisplay(dayIdx, exIdx) {
-  const ex = PROGRAM[dayIdx].exercises[exIdx];
+  const ex = getEffectiveProgram(dayIdx).exercises[exIdx];
   if (!ex || !ex.compound || !ex.amrap) return '';
 
   const amrapSetIdx = ex.sets - 1;
@@ -59,7 +59,7 @@ export function renderOneRMStatsSection() {
     if (!match) return;
     const dayIdx = parseInt(match[1], 10);
     const exIdx = parseInt(match[2], 10);
-    const ex = PROGRAM[dayIdx]?.exercises?.[exIdx];
+    const ex = getEffectiveProgram(dayIdx)?.exercises?.[exIdx];
     if (!ex) return;
 
     const latest = history[history.length - 1];
@@ -81,7 +81,7 @@ export function renderOneRMStatsSection() {
       .forEach(([key, history]) => {
         const match = key.match(/d(\d+)-e(\d+)/);
         if (!match) return;
-        const ex = PROGRAM[parseInt(match[1], 10)]?.exercises?.[parseInt(match[2], 10)];
+        const ex = getEffectiveProgram(parseInt(match[1], 10))?.exercises?.[parseInt(match[2], 10)];
         if (!ex) return;
 
         const recent = history.slice(-8);

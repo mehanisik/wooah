@@ -13,12 +13,10 @@ import {
   debouncedSave,
   getCardioLog,
   setCardioLog,
+  getEffectiveProgram,
 } from '../state/store.js';
 import { PROGRAM } from '../data/program.js';
 import { renderInfoPage } from './info.js';
-import { renderStatsPage, attachStatsListeners } from './stats-page.js';
-import { renderCalendarPage, attachCalendarListeners } from './calendar.js';
-import { renderPhotosPage, attachPhotosListeners } from './photos.js';
 import { renderRestDay } from './rest-day.js';
 import { loadRestDayImage } from './celebration.js';
 import { startRestTimer } from '../timers/rest-timer.js';
@@ -26,16 +24,25 @@ import { startWorkoutClock } from '../timers/workout-clock.js';
 import { updateFinishBar } from '../ui/finish.js';
 import { refreshIcons } from '../ui/icons.js';
 import { captureSnapshot, showUndoToast } from '../ui/undo.js';
-import { getDisplayName, showSwapModal } from '../ui/exercise-swap.js';
+import { getDisplayName, showSwapModal, isGymBusy, toggleGymBusy } from '../ui/exercise-swap.js';
 import { renderOneRMDisplay } from '../ui/one-rm.js';
+import { renderSessionStrip, attachSessionListeners, getPinnedNote } from '../ui/session-notes.js';
+import { renderPlateBreakdown } from '../ui/plate-calc.js';
+import { isSupersetExercise, handleSupersetToggle } from '../timers/superset-timer.js';
+import { renderDynamicWarmup } from '../ui/warmup-calc.js';
+import { renderMesoBanner, renderMesoSetup, attachMesoListeners } from '../ui/mesocycle.js';
+import { renderDeloadBanner, attachDeloadListeners } from '../ui/deload-detect.js';
+import { renderReadinessBadge } from '../ui/readiness.js';
+import { renderEditToggle, attachEditListeners, isEditMode } from '../ui/program-builder.js';
 
-export function renderPages() {
+export async function renderPages() {
   const pages = $('#pages');
   const tab = state.activeTab;
   let content = '';
+  let attachFn = null;
 
   if (tab >= 0 && tab <= 6) {
-    const day = PROGRAM[tab];
+    const day = getEffectiveProgram(tab);
     if (day.type === 'rest') {
       content = renderRestDay();
     } else {
@@ -44,19 +51,23 @@ export function renderPages() {
   } else if (tab === 7) {
     content = renderInfoPage();
   } else if (tab === 8) {
-    content = renderStatsPage();
+    const m = await import('./stats-page.js');
+    content = m.renderStatsPage();
+    attachFn = m.attachStatsListeners;
   } else if (tab === 9) {
-    content = renderCalendarPage();
+    const m = await import('./calendar.js');
+    content = m.renderCalendarPage();
+    attachFn = m.attachCalendarListeners;
   } else if (tab === 10) {
-    content = renderPhotosPage();
+    const m = await import('./photos.js');
+    content = m.renderPhotosPage();
+    attachFn = m.attachPhotosListeners;
   }
 
   pages.innerHTML = `<div class="page uk-active" data-page="${tab}">${content}</div>`;
   refreshIcons();
   attachExerciseListeners();
-  if (tab === 8) attachStatsListeners();
-  if (tab === 9) attachCalendarListeners();
-  if (tab === 10) attachPhotosListeners();
+  if (attachFn) attachFn();
 
   if (tab >= 0 && tab <= 5) {
     const timer = getWorkoutTimer(tab);
@@ -71,11 +82,20 @@ function renderWorkoutPage(day, dayIdx) {
   const finished = isDayFinished(dayIdx);
 
   h += `<div class="workout-header">
-    <span class="workout-tag ${day.type}">${day.type}</span>
-    ${finished ? '<span class="workout-tag" style="background:var(--green-dim);color:var(--green);margin-left:6px;">DONE</span>' : ''}
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+      <span class="workout-tag ${day.type}">${day.type}</span>
+      ${finished ? '<span class="workout-tag" style="background:var(--green-dim);color:var(--green);">DONE</span>' : ''}
+      ${renderReadinessBadge(dayIdx)}
+      <button class="gym-busy-btn ${isGymBusy() ? 'active' : ''}" id="gymBusyToggle"><i data-lucide="users"></i> GYM BUSY</button>
+      ${renderEditToggle()}
+    </div>
     <div class="workout-title">${day.name}</div>
     <div class="workout-focus">${day.focus}</div>
   </div>`;
+
+  h += renderDeloadBanner();
+  h += renderMesoBanner();
+  h += renderMesoSetup();
 
   const timer = getWorkoutTimer(dayIdx);
   if (timer) {
@@ -89,6 +109,13 @@ function renderWorkoutPage(day, dayIdx) {
     </div>`;
   }
 
+  h += renderSessionStrip(dayIdx);
+
+  const firstCompound = day.exercises.findIndex(e => e.compound);
+  const warmupCalcHtml = firstCompound >= 0
+    ? renderDynamicWarmup(dayIdx, firstCompound, getDisplayName(dayIdx, firstCompound))
+    : '';
+
   h += `<div class="warmup-section">
     <button class="warmup-toggle" data-warmup="${dayIdx}" aria-expanded="false" aria-label="Toggle warm-up protocol">
       <span class="arrow"><i data-lucide="chevron-right"></i></span> WARM-UP PROTOCOL
@@ -99,11 +126,28 @@ function renderWorkoutPage(day, dayIdx) {
         <li>Dynamic stretches: arm circles, leg swings, hip circles, band pull-aparts (2 min)</li>
         <li>Specific: ${day.warmup}</li>
       </ul>
+      ${warmupCalcHtml}
     </div>
   </div>`;
 
+  const rendered = new Set();
   day.exercises.forEach((ex, exIdx) => {
+    if (rendered.has(exIdx)) return;
+    if (ex.superset != null) {
+      const partnerIdx = ex.superset - 1;
+      if (!rendered.has(partnerIdx) && partnerIdx !== exIdx) {
+        h += `<div class="superset-group">`;
+        h += `<div class="superset-group-label"><i data-lucide="zap"></i> SUPERSET</div>`;
+        h += renderExerciseCard(ex, dayIdx, exIdx);
+        rendered.add(exIdx);
+        h += renderExerciseCard(day.exercises[partnerIdx], dayIdx, partnerIdx);
+        rendered.add(partnerIdx);
+        h += `</div>`;
+        return;
+      }
+    }
     h += renderExerciseCard(ex, dayIdx, exIdx);
+    rendered.add(exIdx);
   });
 
   if (day.cardio?.length) {
@@ -151,11 +195,17 @@ function renderExerciseCard(ex, dayIdx, exIdx) {
   if (ex.superset) h += `<span class="uk-badge superset-badge"><i data-lucide="zap"></i> Superset</span>`;
   if (hasPR) h += `<span class="uk-badge pr-badge"><i data-lucide="trophy"></i> PR</span>`;
   h += `</div>`;
+  h += `<button class="exercise-note-btn" data-note-day="${dayIdx}" data-note-ex="${exIdx}" aria-label="Add note" title="Exercise note"><i data-lucide="pencil"></i></button>`;
   if (ex.alternatives && ex.alternatives.length > 0) {
     h += `<button class="swap-btn" data-swap-day="${dayIdx}" data-swap-ex="${exIdx}" aria-label="Swap exercise" title="Swap exercise">&#x21c4;</button>`;
   }
   h += `<div class="exercise-expand"><i data-lucide="chevron-down"></i></div>`;
   h += `</div>`;
+
+  const pinned = getPinnedNote(dayIdx, exIdx);
+  if (pinned) {
+    h += `<div class="pinned-note"><i data-lucide="pin"></i> ${pinned}</div>`;
+  }
 
   h += `<div class="exercise-log">`;
 
@@ -183,6 +233,9 @@ function renderExerciseCard(ex, dayIdx, exIdx) {
     h += `<div class="set-check ${log.done ? 'done' : ''}" data-action="toggle" role="checkbox" aria-checked="${log.done}" aria-label="Mark set ${s + 1} done" tabindex="0">${log.done ? '<i data-lucide="check"></i>' : ''}</div>`;
     h += `</div>`;
   }
+
+  const plateWeight = getLog(dayIdx, exIdx, 0).weight;
+  if (plateWeight) h += renderPlateBreakdown(plateWeight, displayName);
 
   h += `<button class="add-set-btn" data-add-set data-day="${dayIdx}" data-ex="${exIdx}" aria-label="Add extra set for ${ex.name}"><i data-lucide="plus"></i> Add Set</button>`;
   h += renderProgression(ex, dayIdx, exIdx);
@@ -225,6 +278,11 @@ function renderProgression(ex, dayIdx, exIdx) {
 }
 
 function attachExerciseListeners() {
+  attachSessionListeners($('#pages'));
+  attachMesoListeners();
+  attachDeloadListeners();
+  attachEditListeners();
+
   $$('.exercise-top').forEach((top) => {
     top.addEventListener('click', () => {
       const card = top.closest('.exercise-card');
@@ -241,6 +299,14 @@ function attachExerciseListeners() {
       btn.setAttribute('aria-expanded', btn.classList.contains('open'));
     });
   });
+
+  const busyBtn = $('#gymBusyToggle');
+  if (busyBtn) {
+    busyBtn.addEventListener('click', () => {
+      toggleGymBusy();
+      busyBtn.classList.toggle('active', isGymBusy());
+    });
+  }
 
   const pageContainer = $('#pages');
   pageContainer.addEventListener('click', (e) => {
@@ -265,7 +331,7 @@ function attachExerciseListeners() {
       const dayIdx = parseInt(addBtn.dataset.day, 10);
       const exIdx = parseInt(addBtn.dataset.ex, 10);
       addExtraSet(dayIdx, exIdx);
-      const ex = PROGRAM[dayIdx].exercises[exIdx];
+      const ex = getEffectiveProgram(dayIdx).exercises[exIdx];
       const totalSets = ex.sets + getExtraSets(dayIdx, exIdx);
       const s = totalSets - 1;
       const log = getLog(dayIdx, exIdx, s);
@@ -294,7 +360,7 @@ function attachExerciseListeners() {
         check.classList.toggle('done', done);
         cardioRow.classList.toggle('done', done);
         const section = cardioRow.closest('.cardio-section');
-        const day = PROGRAM[dayIdx];
+        const day = getEffectiveProgram(dayIdx);
         const allDone = day.cardio.every((_, i) => getCardioLog(dayIdx, i));
         section.classList.toggle('done', allDone);
         refreshIcons();
@@ -382,8 +448,12 @@ function handleSetToggle(row, check) {
     check.innerHTML = '<i data-lucide="check"></i>';
     check.setAttribute('aria-checked', 'true');
     refreshIcons();
-    const ex = PROGRAM[dayIdx].exercises[exIdx];
-    startRestTimer(restSec, ex.name);
+    if (isSupersetExercise(dayIdx, exIdx)) {
+      handleSupersetToggle(dayIdx, exIdx);
+    } else {
+      const ex = getEffectiveProgram(dayIdx).exercises[exIdx];
+      startRestTimer(restSec, ex.name);
+    }
   } else {
     check.classList.remove('done');
     check.innerHTML = '';
@@ -394,7 +464,7 @@ function handleSetToggle(row, check) {
   if (current.weight && !weightInput.value) weightInput.value = current.weight;
 
   const card = row.closest('.exercise-card');
-  const ex = PROGRAM[dayIdx].exercises[exIdx];
+  const ex = getEffectiveProgram(dayIdx).exercises[exIdx];
   const totalSets = ex.sets + getExtraSets(dayIdx, exIdx);
   const allDone = Array.from({ length: totalSets }, (_, i) => getLog(dayIdx, exIdx, i).done).every(Boolean);
   const numEl = card.querySelector('.exercise-num');

@@ -10,6 +10,7 @@ import {
   getWorkoutTimer,
   stopWorkoutTimer,
   getExtraSets,
+  getEffectiveProgram,
 } from '../state/store.js';
 import { PROGRAM } from '../data/program.js';
 import { showMotivationalModal } from '../render/celebration.js';
@@ -35,7 +36,7 @@ export async function finishWorkout() {
   const dayIdx = state.activeTab;
   if (!isDayComplete(dayIdx) || isDayFinished(dayIdx)) return;
 
-  const day = PROGRAM[dayIdx];
+  const day = getEffectiveProgram(dayIdx);
   let newPRs = 0;
 
   day.exercises.forEach((ex, exIdx) => {

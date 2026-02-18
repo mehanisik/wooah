@@ -3,15 +3,32 @@ import { VitePWA } from 'vite-plugin-pwa';
 import { compression } from 'vite-plugin-compression2';
 import { visualizer } from 'rollup-plugin-visualizer';
 
+function supabasePreconnect() {
+  return {
+    name: 'supabase-preconnect',
+    transformIndexHtml(html) {
+      const url = process.env.VITE_SUPABASE_URL;
+      if (url) {
+        return html.replace(
+          '<link id="supabasePreconnect" rel="preconnect" crossorigin>',
+          `<link rel="preconnect" href="${url}" crossorigin>`,
+        );
+      }
+      return html.replace('<link id="supabasePreconnect" rel="preconnect" crossorigin>\n', '');
+    },
+  };
+}
+
 export default defineConfig({
   build: {
     outDir: 'dist',
   },
   plugins: [
+    supabasePreconnect(),
     VitePWA({
       registerType: 'prompt',
       workbox: {
-        globPatterns: ['**/*.{js,css,html,woff,woff2,png,ico,svg}'],
+        globPatterns: ['**/*.{js,css,html,woff2,png,ico,svg}'],
         navigateFallback: '/index.html',
         runtimeCaching: [
           {

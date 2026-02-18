@@ -65,7 +65,7 @@ export function getLog(dayIdx, exIdx, setIdx) {
 
 export function setLog(dayIdx, exIdx, setIdx, data) {
   state.logs[logKey(dayIdx, exIdx, setIdx)] = data;
-  saveState();
+  debouncedSave();
 }
 
 export function getHistory(dayIdx, exIdx) {
@@ -78,7 +78,7 @@ export function getLastSession(dayIdx, exIdx) {
 }
 
 export function isDayComplete(dayIdx) {
-  const day = PROGRAM[dayIdx];
+  const day = getEffectiveProgram(dayIdx);
   if (!day.exercises.length) return false;
   for (let e = 0; e < day.exercises.length; e++) {
     const totalSets = day.exercises[e].sets + getExtraSets(dayIdx, e);
@@ -147,7 +147,92 @@ export function getCardioLog(dayIdx, itemIdx) {
 export function setCardioLog(dayIdx, itemIdx, done) {
   if (done) state.cardioLogs[cardioKey(dayIdx, itemIdx)] = true;
   else delete state.cardioLogs[cardioKey(dayIdx, itemIdx)];
+  debouncedSave();
+}
+
+export function mergeState(imported) {
+  if (imported.history) {
+    Object.entries(imported.history).forEach(([key, sessions]) => {
+      if (!state.history[key]) state.history[key] = [];
+      const existing = new Set(state.history[key].map(s => `${s.week}`));
+      sessions.forEach(s => {
+        if (!existing.has(`${s.week}`)) state.history[key].push(s);
+      });
+      state.history[key].sort((a, b) => a.week - b.week);
+      if (state.history[key].length > 24) state.history[key] = state.history[key].slice(-24);
+    });
+  }
+  if (imported.personalRecords) {
+    Object.entries(imported.personalRecords).forEach(([key, pr]) => {
+      if (!state.personalRecords[key] || pr.volume > state.personalRecords[key].volume) {
+        state.personalRecords[key] = pr;
+      }
+    });
+  }
+  if (imported.bodyweight) {
+    const existingDates = new Set(state.bodyweight.map(e => e.date));
+    imported.bodyweight.forEach(e => {
+      if (!existingDates.has(e.date)) state.bodyweight.push(e);
+    });
+    state.bodyweight.sort((a, b) => a.date.localeCompare(b.date));
+  }
+  if (imported.oneRmHistory) {
+    Object.entries(imported.oneRmHistory).forEach(([key, entries]) => {
+      if (!state.oneRmHistory[key]) state.oneRmHistory[key] = [];
+      const existing = new Set(state.oneRmHistory[key].map(e => e.date));
+      entries.forEach(e => {
+        if (!existing.has(e.date)) state.oneRmHistory[key].push(e);
+      });
+      state.oneRmHistory[key].sort((a, b) => a.date.localeCompare(b.date));
+    });
+  }
+  ['logs', 'finishedDays', 'workoutTimers', 'extraSets', 'exerciseSwaps', 'cardioLogs',
+   'sessionNotes', 'exerciseNotes', 'pinnedNotes'].forEach(field => {
+    if (imported[field]) Object.assign(state[field] || (state[field] = {}), imported[field]);
+  });
+  if (imported.totalSessions > (state.totalSessions || 0)) state.totalSessions = imported.totalSessions;
+  if (imported.startDate && (!state.startDate || imported.startDate < state.startDate)) state.startDate = imported.startDate;
   saveState();
+}
+
+export function overwriteState(imported) {
+  Object.keys(state).forEach(k => delete state[k]);
+  Object.assign(state, imported);
+  saveState();
+}
+
+export function getEffectiveProgram(dayIdx) {
+  if (!state.programOverrides?.[dayIdx]) return PROGRAM[dayIdx];
+
+  const base = PROGRAM[dayIdx];
+  const list = state.programOverrides[dayIdx];
+  const exercises = list.map(entry => {
+    if (entry.custom) {
+      return {
+        name: entry.name,
+        equipment: entry.equipment || 'dumbbell',
+        sets: entry.sets || 3,
+        reps: entry.reps || '10-12',
+        rest: entry.rest || 90,
+        rir: entry.rir || '1-2',
+        compound: entry.compound || false,
+        amrap: entry.amrap || false,
+        notes: entry.notes || '',
+        alternatives: entry.alternatives || [],
+      };
+    }
+    const orig = base.exercises[entry.originalIdx];
+    if (!orig) return null;
+    return {
+      ...orig,
+      ...(entry.sets != null && { sets: entry.sets }),
+      ...(entry.reps != null && { reps: entry.reps }),
+      ...(entry.rest != null && { rest: entry.rest }),
+      ...(entry.rir != null && { rir: entry.rir }),
+    };
+  }).filter(Boolean);
+
+  return { ...base, exercises };
 }
 
 export function stopWorkoutTimer(dayIdx) {

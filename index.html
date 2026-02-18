@@ -12,6 +12,8 @@
 <meta name="referrer" content="no-referrer">
 <meta name="format-detection" content="telephone=no">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
+<link rel="preconnect" href="https://accounts.google.com" crossorigin>
+<link id="supabasePreconnect" rel="preconnect" crossorigin>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png">
 <link rel="icon" href="/favicon.ico" sizes="48x48">
@@ -110,7 +112,16 @@
         </div>
       </div>
       <div style="margin-top:12px;border-top:1px solid var(--edge);padding-top:12px;">
+        <div class="setup-step">BAR WEIGHT</div>
+        <div id="barWeightToggle" style="display:flex;gap:6px;margin-bottom:12px;">
+          <button class="uk-btn uk-btn-default setup-btn bar-weight-btn" data-bar="10" style="flex:1;">10 KG (EZ)</button>
+          <button class="uk-btn uk-btn-default setup-btn bar-weight-btn" data-bar="20" style="flex:1;">20 KG</button>
+        </div>
+      </div>
+      <div style="margin-top:12px;border-top:1px solid var(--edge);padding-top:12px;">
         <button class="uk-btn uk-btn-default setup-btn" id="exportData">EXPORT LOCAL DATA (JSON)</button>
+        <input type="file" accept=".json" id="importFileInput" hidden>
+        <button class="uk-btn uk-btn-default setup-btn" id="importData" style="margin-top:6px;">IMPORT DATA (JSON)</button>
       </div>
     </div>
     <div class="uk-modal-footer">

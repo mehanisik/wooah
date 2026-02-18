@@ -1,4 +1,4 @@
-import { state, historyKey } from '../state/store.js';
+import { state, historyKey, getEffectiveProgram } from '../state/store.js';
 import { PROGRAM } from '../data/program.js';
 
 export function renderCalendarPage() {
@@ -36,7 +36,7 @@ function buildWorkoutMap() {
     const match = key.match(/^w(\d+)-d(\d+)$/);
     if (!match) return;
     const dayIdx = parseInt(match[2], 10);
-    const day = PROGRAM[dayIdx];
+    const day = getEffectiveProgram(dayIdx);
     if (!day) return;
     const date = new Date(timestamp);
     const dateKey = date.toISOString().split('T')[0];
@@ -50,7 +50,7 @@ function buildWorkoutMap() {
         exData.push({ name: ex.name, vol, sets: latest.sets.length });
       }
     });
-    const pr = PROGRAM[dayIdx].exercises.reduce((count, _, exIdx) => {
+    const pr = day.exercises.reduce((count, _, exIdx) => {
       const prKey = `d${dayIdx}-e${exIdx}`;
       return count + (state.personalRecords[prKey] ? 1 : 0);
     }, 0);

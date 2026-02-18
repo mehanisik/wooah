@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { $ } from '../ui/helpers.js';
-import { state, getLog, getWorkoutTimer, historyKey, saveState } from '../state/store.js';
+import { state, getLog, getWorkoutTimer, historyKey, saveState, mergeState, overwriteState, loadState, getEffectiveProgram } from '../state/store.js';
 import { PROGRAM } from '../data/program.js';
 import { showToast } from '../ui/toast.js';
 import { closeAllModals, openModal } from '../ui/events.js';
@@ -326,7 +326,7 @@ export async function syncToSupabase(dayIdx) {
   updateSyncDot('syncing');
 
   try {
-    const day = PROGRAM[dayIdx];
+    const day = getEffectiveProgram(dayIdx);
     const wTimer = getWorkoutTimer(dayIdx);
     const startedAt = wTimer ? wTimer.startedAt : new Date().toISOString();
     const duration = wTimer ? wTimer.duration : 0;
@@ -518,6 +518,25 @@ export function initSettingsHandlers() {
   const savedTheme = localStorage.getItem('ironppl_theme') || 'system';
   updateThemeButtons(savedTheme);
 
+  const barBtns = document.querySelectorAll('.bar-weight-btn');
+  function updateBarButtons() {
+    const current = state.plateSettings?.barWeight || 20;
+    barBtns.forEach(b => {
+      const val = parseInt(b.dataset.bar, 10);
+      b.classList.toggle('uk-btn-primary', val === current);
+      b.classList.toggle('uk-btn-default', val !== current);
+    });
+  }
+  barBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      import('../ui/plate-calc.js').then(m => {
+        m.setBarWeight(parseInt(btn.dataset.bar, 10));
+        updateBarButtons();
+      });
+    });
+  });
+  updateBarButtons();
+
   $('#exportData').addEventListener('click', () => {
     const data = JSON.stringify(state, null, 2);
     const blob = new Blob([data], { type: 'application/json' });
@@ -529,4 +548,39 @@ export function initSettingsHandlers() {
     URL.revokeObjectURL(url);
     showToast('Data exported');
   });
+
+  const importBtn = $('#importData');
+  const importInput = $('#importFileInput');
+  if (importBtn && importInput) {
+    importBtn.addEventListener('click', () => importInput.click());
+    importInput.addEventListener('change', () => {
+      const file = importInput.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const imported = JSON.parse(reader.result);
+          if (!imported || typeof imported !== 'object') throw new Error('Invalid');
+          const hasData = imported.logs || imported.history || imported.finishedDays;
+          if (!hasData) {
+            showToast('Invalid backup file');
+            return;
+          }
+          const doMerge = confirm('Merge with existing data?\n\nOK = Merge (keeps both)\nCancel = Overwrite (replaces all)');
+          if (doMerge) {
+            mergeState(imported);
+          } else {
+            overwriteState(imported);
+            loadState();
+          }
+          showToast('Data imported');
+          window.dispatchEvent(new Event('ironppl:synced'));
+        } catch {
+          showToast('Import failed — invalid JSON');
+        }
+        importInput.value = '';
+      };
+      reader.readAsText(file);
+    });
+  }
 }

@@ -1,5 +1,5 @@
 import { PROGRAM } from '../data/program.js';
-import { setCardioLog, getCardioLog } from '../state/store.js';
+import { setCardioLog, getCardioLog, getEffectiveProgram } from '../state/store.js';
 import { refreshIcons } from '../ui/icons.js';
 
 const WORK_TIME = 45;
@@ -28,7 +28,7 @@ function vibrate(pattern) {
 }
 
 export function startCircuit(dayIdx) {
-  const day = PROGRAM[dayIdx];
+  const day = getEffectiveProgram(dayIdx);
   if (!day || !day.cardio || !day.cardio.length) return;
 
   const items = day.cardio.filter((_, i) => !getCardioLog(dayIdx, i));
@@ -286,7 +286,7 @@ function updateCardioUI(dayIdx, itemIdx) {
   if (check) check.classList.add('done');
   const section = row.closest('.cardio-section');
   if (section) {
-    const day = PROGRAM[dayIdx];
+    const day = getEffectiveProgram(dayIdx);
     const allDone = day.cardio.every((_, i) => getCardioLog(dayIdx, i));
     section.classList.toggle('done', allDone);
   }

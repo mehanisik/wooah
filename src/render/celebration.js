@@ -4,6 +4,7 @@ import { refreshIcons } from '../ui/icons.js';
 import { savePhoto } from '../ui/photo-store.js';
 import { closeAllModals } from '../ui/events.js';
 import { trapFocus, releaseFocus } from '../ui/focus-trap.js';
+import { renderRatingStars, setSessionNote } from '../ui/session-notes.js';
 
 async function fetchMotivationalImage() {
   try {
@@ -43,6 +44,7 @@ export function showMotivationalModal(dayName, newPRs, duration, week, dayIdx) {
     <div class="celebration-header" id="celebTitle">${dayName} COMPLETE</div>
     ${statsHtml ? `<div class="celebration-stats">${statsHtml}</div>` : ''}
     <div class="image-skeleton" id="celebSkeleton"></div>
+    ${renderRatingStars(dayIdx)}
     <div class="photo-upload-section" id="photoSection">
       <input type="file" accept="image/*" capture="environment" id="photoInput" hidden>
       <button class="uk-btn uk-btn-default photo-upload-btn" id="photoBtn"><i data-lucide="camera"></i> PROGRESS PHOTO</button>
@@ -72,6 +74,15 @@ export function showMotivationalModal(dayName, newPRs, duration, week, dayIdx) {
   modal.querySelector('#celebDismiss').addEventListener('click', dismiss);
   modal.addEventListener('click', (e) => {
     if (e.target === modal) dismiss();
+    const star = e.target.closest('.star-btn');
+    if (star) {
+      const val = parseInt(star.dataset.star, 10);
+      const day = parseInt(star.dataset.starDay, 10);
+      setSessionNote(day, 'rating', val);
+      star.closest('.star-row').querySelectorAll('.star-btn').forEach((b, i) => {
+        b.classList.toggle('active', i < val);
+      });
+    }
   });
 
   const photoBtn = modal.querySelector('#photoBtn');

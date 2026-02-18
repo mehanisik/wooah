@@ -1,4 +1,4 @@
-import { state, getLog, getExtraSets } from '../state/store.js';
+import { state, getLog, getExtraSets, getEffectiveProgram } from '../state/store.js';
 import { PROGRAM } from '../data/program.js';
 
 export function $(sel) {
@@ -51,7 +51,7 @@ export function getPRCount() {
 
 export function checkForPR(dayIdx, exIdx) {
   const key = `d${dayIdx}-e${exIdx}`;
-  const ex = PROGRAM[dayIdx].exercises[exIdx];
+  const ex = getEffectiveProgram(dayIdx).exercises[exIdx];
   if (!ex) return false;
 
   const totalSets = ex.sets + getExtraSets(dayIdx, exIdx);
