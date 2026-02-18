@@ -23,7 +23,7 @@ import { startWorkoutClock } from '../timers/workout-clock.js';
 import { updateFinishBar } from '../ui/finish.js';
 import { refreshIcons } from '../ui/icons.js';
 import { captureSnapshot, showUndoToast } from '../ui/undo.js';
-import { getDisplayName, showSwapModal, isGymBusy, toggleGymBusy } from '../ui/exercise-swap.js';
+import { getDisplayName, showSwapModal } from '../ui/exercise-swap.js';
 import { renderOneRMDisplay } from '../ui/one-rm.js';
 import { renderSessionStrip, attachSessionListeners, getPinnedNote } from '../ui/session-notes.js';
 import { renderPlateBreakdown } from '../ui/plate-calc.js';
@@ -32,7 +32,6 @@ import { renderDynamicWarmup } from '../ui/warmup-calc.js';
 import { renderMesoBanner, renderMesoSetup, attachMesoListeners } from '../ui/mesocycle.js';
 import { renderDeloadBanner, attachDeloadListeners } from '../ui/deload-detect.js';
 import { renderReadinessBadge } from '../ui/readiness.js';
-import { renderEditToggle, attachEditListeners } from '../ui/program-builder.js';
 import { savePhoto } from '../ui/photo-store.js';
 import { showToast } from '../ui/toast.js';
 
@@ -86,10 +85,8 @@ function renderWorkoutPage(day, dayIdx) {
     <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
       <span class="workout-tag ${day.type}">${day.type}</span>
       ${finished ? '<span class="workout-tag" style="background:var(--green-dim);color:var(--green);">DONE</span>' : ''}
-      ${finished ? `<button class="gym-busy-btn" id="postPhotoBtn"><i data-lucide="camera"></i> PHOTO</button><input type="file" accept="image/*" capture="environment" id="postPhotoInput" hidden>` : ''}
+      ${finished ? `<button class="post-photo-btn" id="postPhotoBtn"><i data-lucide="camera"></i> PHOTO</button><input type="file" accept="image/*" capture="environment" id="postPhotoInput" hidden>` : ''}
       ${renderReadinessBadge(dayIdx)}
-      <button class="gym-busy-btn ${isGymBusy() ? 'active' : ''}" id="gymBusyToggle"><i data-lucide="users"></i> GYM BUSY</button>
-      ${renderEditToggle()}
     </div>
     <div class="workout-title">${day.name}</div>
     <div class="workout-focus">${day.focus}</div>
@@ -197,9 +194,7 @@ function renderExerciseCard(ex, dayIdx, exIdx) {
   if (hasPR) h += `<span class="uk-badge pr-badge"><i data-lucide="trophy"></i> PR</span>`;
   h += `</div>`;
   h += `<button class="exercise-note-btn" data-note-day="${dayIdx}" data-note-ex="${exIdx}" aria-label="Add note" title="Exercise note"><i data-lucide="pencil"></i></button>`;
-  if (ex.alternatives && ex.alternatives.length > 0) {
-    h += `<button class="swap-btn" data-swap-day="${dayIdx}" data-swap-ex="${exIdx}" aria-label="Swap exercise" title="Swap exercise">&#x21c4;</button>`;
-  }
+  h += `<button class="swap-btn" data-swap-day="${dayIdx}" data-swap-ex="${exIdx}" aria-label="Swap exercise" title="Swap exercise">&#x21c4;</button>`;
   h += `<div class="exercise-expand"><i data-lucide="chevron-down"></i></div>`;
   h += `</div>`;
 
@@ -282,8 +277,6 @@ function attachExerciseListeners() {
   attachSessionListeners($('#pages'));
   attachMesoListeners();
   attachDeloadListeners();
-  attachEditListeners();
-
   $$('.exercise-top').forEach((top) => {
     top.addEventListener('click', () => {
       const card = top.closest('.exercise-card');
@@ -304,14 +297,6 @@ function attachExerciseListeners() {
       btn.setAttribute('aria-expanded', btn.classList.contains('open'));
     });
   });
-
-  const busyBtn = $('#gymBusyToggle');
-  if (busyBtn) {
-    busyBtn.addEventListener('click', () => {
-      toggleGymBusy();
-      busyBtn.classList.toggle('active', isGymBusy());
-    });
-  }
 
   const postPhotoBtn = $('#postPhotoBtn');
   const postPhotoInput = $('#postPhotoInput');

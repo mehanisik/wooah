@@ -28,8 +28,18 @@ export function loadState() {
   if (!state.startDate) {
     state.startDate = new Date().toISOString().split('T')[0];
   }
+  function getMonday(d) {
+    const m = new Date(d);
+    m.setHours(0, 0, 0, 0);
+    const day = m.getDay();
+    m.setDate(m.getDate() - (day === 0 ? 6 : day - 1));
+    return m;
+  }
   const msPerWeek = 7 * 24 * 60 * 60 * 1000;
-  state.currentWeek = Math.max(1, Math.floor((Date.now() - new Date(state.startDate).getTime()) / msPerWeek) + 1);
+  state.currentWeek = Math.max(
+    1,
+    Math.floor((getMonday(new Date()) - getMonday(new Date(state.startDate))) / msPerWeek) + 1,
+  );
   saveState();
 }
 

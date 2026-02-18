@@ -20,7 +20,7 @@ test.describe('Exercise Swap', () => {
     await expect(page.locator('#swapTitle')).toContainText('SWAP');
   });
 
-  test('filter chips filter the options list', async ({ page }) => {
+  test('search input filters the options list', async ({ page }) => {
     const card = page.locator('.exercise-card').first();
     await card.locator('.exercise-top').click();
     await card.locator('.swap-btn').click();
@@ -30,9 +30,10 @@ test.describe('Exercise Swap', () => {
     const initialCount = await allOptions.count();
     expect(initialCount).toBeGreaterThan(0);
 
-    const machineChip = page.locator('.swap-filter-chip[data-filter="machine"]');
-    await machineChip.click();
-    await expect(machineChip).toHaveClass(/active/);
+    await page.locator('.swap-search').fill('bench');
+    const filteredCount = await allOptions.count();
+    expect(filteredCount).toBeLessThan(initialCount);
+    expect(filteredCount).toBeGreaterThan(0);
   });
 
   test('selecting alternative changes exercise name', async ({ page }) => {

@@ -92,7 +92,6 @@ body::before {
 .photo-add-thumb:active,
 .celebration-btn:active,
 .finish-btn:active,
-.gym-busy-btn:active,
 .exercise-note-btn:active {
   transform: scale(0.97);
   transition: transform 60ms ease;
@@ -1909,55 +1908,8 @@ body::before {
   margin-left: auto;
 }
 
-/* ===== EQUIPMENT / SWAP ===== */
-.swap-filter-row {
-  display: flex;
-  gap: 4px;
-  flex-wrap: wrap;
-  margin-bottom: 10px;
-}
-.swap-filter-chip {
-  padding: 4px 10px;
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
-  font-weight: 700;
-  letter-spacing: 1px;
-  background: var(--surface-2);
-  border: 1px solid var(--edge);
-  border-radius: var(--radius);
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.swap-filter-chip.active {
-  background: var(--brand-glow);
-  border-color: var(--brand);
-  color: var(--brand);
-}
-.equip-badge {
-  font-family: var(--font-mono);
-  font-size: 0.5rem;
-  font-weight: 700;
-  letter-spacing: 1px;
-  padding: 2px 5px;
-  background: var(--surface-2);
-  border-radius: 2px;
-  color: var(--text-muted);
-}
-.gym-busy-badge {
-  font-family: var(--font-mono);
-  font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 1.5px;
-  text-align: center;
-  padding: 4px 8px;
-  margin-bottom: 8px;
-  background: var(--yellow-dim);
-  border: 1px solid var(--yellow);
-  border-radius: var(--radius);
-  color: var(--yellow);
-}
-.gym-busy-btn {
+/* ===== POST-PHOTO BUTTON ===== */
+.post-photo-btn {
   font-family: var(--font-mono);
   font-size: 0.6rem;
   font-weight: 700;
@@ -1970,12 +1922,15 @@ body::before {
   cursor: pointer;
   transition: all 0.15s;
 }
-.gym-busy-btn.active {
-  background: var(--yellow-dim);
-  border-color: var(--yellow);
-  color: var(--yellow);
+.post-photo-btn:active {
+  transform: scale(0.97);
+  transition: transform 60ms ease;
 }
 
+/* ===== EXERCISE SWAP ===== */
+.swap-search {
+  margin-bottom: 10px;
+}
 /* ===== PLATE CALCULATOR ===== */
 .plate-breakdown {
   display: flex;
