@@ -1,5 +1,4 @@
 import { state, historyKey, getEffectiveProgram } from '../state/store.js';
-import { PROGRAM } from '../data/program.js';
 
 export function renderCalendarPage() {
   const workoutDates = buildWorkoutMap();

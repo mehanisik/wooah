@@ -1,5 +1,4 @@
-import { state, getLog, getExtraSets, getEffectiveProgram } from '../state/store.js';
-import { PROGRAM } from '../data/program.js';
+import { state, getExtraSets, getEffectiveProgram } from '../state/store.js';
 import { getSessionNotes } from './session-notes.js';
 
 const ENERGY_SCORES = { Low: 25, Normal: 50, High: 75, Peak: 100 };
@@ -16,7 +15,7 @@ function getSubjectiveScore(dayIdx) {
   const mood = MOOD_SCORES[notes.mood] ?? 50;
   const soreness = SORENESS_SCORES[notes.soreness] ?? 50;
 
-  return energy * 0.25 + sleep * 0.25 + mood * 0.20 + soreness * 0.20;
+  return energy * 0.25 + sleep * 0.25 + mood * 0.2 + soreness * 0.2;
 }
 
 function calcVolumeLoad(week, dayIdx) {

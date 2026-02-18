@@ -1,4 +1,3 @@
-import { PROGRAM } from '../data/program.js';
 import { setCardioLog, getCardioLog, getEffectiveProgram } from '../state/store.js';
 import { refreshIcons } from '../ui/icons.js';
 

@@ -1,5 +1,4 @@
 import { state, saveState, getLog, historyKey, getEffectiveProgram } from '../state/store.js';
-import { PROGRAM } from '../data/program.js';
 
 export function calcOneRM(weight, reps) {
   if (reps <= 0 || weight <= 0) return 0;

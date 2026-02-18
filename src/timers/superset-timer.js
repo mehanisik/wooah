@@ -1,7 +1,5 @@
 import { startRestTimer } from './rest-timer.js';
-import { PROGRAM } from '../data/program.js';
 import { getEffectiveProgram } from '../state/store.js';
-import { $ } from '../ui/helpers.js';
 
 const TRANSITION_SEC = 15;
 const REST_SEC = 90;
@@ -44,11 +42,14 @@ export function handleSupersetToggle(dayIdx, exIdx) {
   const partnerName = getEffectiveProgram(dayIdx).exercises[partnerIdx].name;
   startRestTimer(TRANSITION_SEC, `→ ${partnerName}`);
 
-  setTimeout(() => {
-    partnerCard.classList.remove('superset-highlight');
-    const b = partnerCard.querySelector('.superset-turn-badge');
-    if (b) b.remove();
-  }, TRANSITION_SEC * 1000 + 2000);
+  setTimeout(
+    () => {
+      partnerCard.classList.remove('superset-highlight');
+      const b = partnerCard.querySelector('.superset-turn-badge');
+      if (b) b.remove();
+    },
+    TRANSITION_SEC * 1000 + 2000,
+  );
 
   return true;
 }

@@ -609,8 +609,13 @@ export function getAltEquipment(alt) {
 }
 
 const EQUIP_LABELS = {
-  barbell: 'BB', dumbbell: 'DB', machine: 'MACH', cable: 'CABLE',
-  bodyweight: 'BW', ez_bar: 'EZ', smith: 'SMITH',
+  barbell: 'BB',
+  dumbbell: 'DB',
+  machine: 'MACH',
+  cable: 'CABLE',
+  bodyweight: 'BW',
+  ez_bar: 'EZ',
+  smith: 'SMITH',
 };
 
 export function getEquipLabel(eq) {

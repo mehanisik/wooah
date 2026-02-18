@@ -1,6 +1,15 @@
-@font-face { font-family: "Barlow Condensed"; font-display: swap; }
-@font-face { font-family: "JetBrains Mono"; font-display: swap; }
-@font-face { font-family: "Bebas Neue"; font-display: swap; }
+@font-face {
+  font-family: "Barlow Condensed";
+  font-display: swap;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  font-display: swap;
+}
+@font-face {
+  font-family: "Bebas Neue";
+  font-display: swap;
+}
 
 :root {
   --bg: #ffffff;
@@ -99,10 +108,10 @@
   *,
   *::before,
   *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+    transition-duration: 0.01ms;
+    scroll-behavior: auto;
   }
 }
 

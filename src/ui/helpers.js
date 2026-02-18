@@ -1,5 +1,4 @@
 import { state, getLog, getExtraSets, getEffectiveProgram } from '../state/store.js';
-import { PROGRAM } from '../data/program.js';
 
 export function $(sel) {
   return document.querySelector(sel);

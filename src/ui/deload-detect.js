@@ -1,15 +1,13 @@
-import { state, historyKey, saveState } from '../state/store.js';
-import { PROGRAM } from '../data/program.js';
+import { state, saveState } from '../state/store.js';
 import { getMesoConfig, getMesoWeek, isDeloadWeek } from './mesocycle.js';
-import { getSessionNotes } from './session-notes.js';
 
 function getRecentOneRMDrops() {
   if (!state.oneRmHistory) return 0;
   let drops = 0;
-  Object.values(state.oneRmHistory).forEach(entries => {
+  Object.values(state.oneRmHistory).forEach((entries) => {
     if (entries.length < 3) return;
     const recent = entries.slice(-3);
-    const peak = Math.max(...recent.map(e => e.value));
+    const peak = Math.max(...recent.map((e) => e.value));
     const latest = recent[recent.length - 1].value;
     if (latest < peak * 0.95) drops++;
   });
@@ -83,7 +81,7 @@ export function attachDeloadListeners() {
       const cfg = getMesoConfig();
       cfg.startWeek = state.currentWeek - cfg.length;
       saveState();
-      import('../render/workout.js').then(m => m.renderPages());
+      import('../render/workout.js').then((m) => m.renderPages());
     });
   }
   const dismissBtn = document.getElementById('deloadDismiss');

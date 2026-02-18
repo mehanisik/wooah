@@ -33,14 +33,14 @@ export function generateWarmupSets(workingWeight, exerciseName) {
     }
   }
 
-  return sets.filter(s => s.weight >= bar);
+  return sets.filter((s) => s.weight >= bar);
 }
 
 export function renderDynamicWarmup(dayIdx, exIdx, exerciseName) {
   const last = getLastSession(dayIdx, exIdx);
   if (!last || !last.sets.length) return '';
 
-  const workingWeight = Math.max(...last.sets.map(s => s.weight || 0));
+  const workingWeight = Math.max(...last.sets.map((s) => s.weight || 0));
   if (workingWeight <= 0) return '';
 
   const warmupSets = generateWarmupSets(workingWeight, exerciseName);
@@ -54,14 +54,12 @@ export function renderDynamicWarmup(dayIdx, exIdx, exerciseName) {
 
   warmupSets.forEach((s, i) => {
     const plates = calcPlates(s.weight, exerciseName);
-    const plateStr = plates?.plates.length
-      ? plates.plates.map(p => p).join('+')
-      : 'bar only';
+    const plateStr = plates?.plates.length ? plates.plates.map((p) => p).join('+') : 'bar only';
     h += `<tr>
       <td>${i + 1}</td>
       <td>${s.weight}kg</td>
       <td>×${s.reps}</td>
-      <td>${s.pct ? s.pct + '%' : 'Bar'}</td>
+      <td>${s.pct ? `${s.pct}%` : 'Bar'}</td>
       <td class="warmup-plates">${plateStr}</td>
     </tr>`;
   });

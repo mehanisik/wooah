@@ -79,9 +79,12 @@ export function showMotivationalModal(dayName, newPRs, duration, week, dayIdx) {
       const val = parseInt(star.dataset.star, 10);
       const day = parseInt(star.dataset.starDay, 10);
       setSessionNote(day, 'rating', val);
-      star.closest('.star-row').querySelectorAll('.star-btn').forEach((b, i) => {
-        b.classList.toggle('active', i < val);
-      });
+      star
+        .closest('.star-row')
+        .querySelectorAll('.star-btn')
+        .forEach((b, i) => {
+          b.classList.toggle('active', i < val);
+        });
     }
   });
 

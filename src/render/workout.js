@@ -15,7 +15,6 @@ import {
   setCardioLog,
   getEffectiveProgram,
 } from '../state/store.js';
-import { PROGRAM } from '../data/program.js';
 import { renderInfoPage } from './info.js';
 import { renderRestDay } from './rest-day.js';
 import { loadRestDayImage } from './celebration.js';
@@ -33,7 +32,7 @@ import { renderDynamicWarmup } from '../ui/warmup-calc.js';
 import { renderMesoBanner, renderMesoSetup, attachMesoListeners } from '../ui/mesocycle.js';
 import { renderDeloadBanner, attachDeloadListeners } from '../ui/deload-detect.js';
 import { renderReadinessBadge } from '../ui/readiness.js';
-import { renderEditToggle, attachEditListeners, isEditMode } from '../ui/program-builder.js';
+import { renderEditToggle, attachEditListeners } from '../ui/program-builder.js';
 
 export async function renderPages() {
   const pages = $('#pages');
@@ -111,10 +110,9 @@ function renderWorkoutPage(day, dayIdx) {
 
   h += renderSessionStrip(dayIdx);
 
-  const firstCompound = day.exercises.findIndex(e => e.compound);
-  const warmupCalcHtml = firstCompound >= 0
-    ? renderDynamicWarmup(dayIdx, firstCompound, getDisplayName(dayIdx, firstCompound))
-    : '';
+  const firstCompound = day.exercises.findIndex((e) => e.compound);
+  const warmupCalcHtml =
+    firstCompound >= 0 ? renderDynamicWarmup(dayIdx, firstCompound, getDisplayName(dayIdx, firstCompound)) : '';
 
   h += `<div class="warmup-section">
     <button class="warmup-toggle" data-warmup="${dayIdx}" aria-expanded="false" aria-label="Toggle warm-up protocol">

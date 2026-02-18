@@ -111,27 +111,69 @@
 }
 
 /* Volume zone colors */
-.volume-bar-fill.under { background: var(--brand); }
-.volume-bar-fill.maintenance { background: var(--yellow); }
-.volume-bar-fill.optimal { background: var(--green); }
-.volume-bar-fill.pushing { background: var(--yellow); }
-.volume-bar-fill.over { background: var(--brand); }
-.volume-count.under { color: var(--brand); }
-.volume-count.maintenance { color: var(--yellow); }
-.volume-count.optimal { color: var(--green); }
-.volume-count.pushing { color: var(--yellow); }
-.volume-count.over { color: var(--brand); }
-.volume-dot.under { background: var(--brand); }
-.volume-dot.maintenance { background: var(--yellow); }
-.volume-dot.optimal { background: var(--green); }
-.volume-dot.pushing { background: var(--yellow); }
-.volume-dot.over { background: var(--brand); }
+.volume-bar-fill.under {
+  background: var(--brand);
+}
+.volume-bar-fill.maintenance {
+  background: var(--yellow);
+}
+.volume-bar-fill.optimal {
+  background: var(--green);
+}
+.volume-bar-fill.pushing {
+  background: var(--yellow);
+}
+.volume-bar-fill.over {
+  background: var(--brand);
+}
+.volume-count.under {
+  color: var(--brand);
+}
+.volume-count.maintenance {
+  color: var(--yellow);
+}
+.volume-count.optimal {
+  color: var(--green);
+}
+.volume-count.pushing {
+  color: var(--yellow);
+}
+.volume-count.over {
+  color: var(--brand);
+}
+.volume-dot.under {
+  background: var(--brand);
+}
+.volume-dot.maintenance {
+  background: var(--yellow);
+}
+.volume-dot.optimal {
+  background: var(--green);
+}
+.volume-dot.pushing {
+  background: var(--yellow);
+}
+.volume-dot.over {
+  background: var(--brand);
+}
 
 /* Readiness badge zones */
-.readiness-badge.rest { background: rgba(255, 59, 48, 0.15); color: #ff3b30; }
-.readiness-badge.light { background: var(--yellow-dim); color: var(--yellow); }
-.readiness-badge.normal { background: var(--green-dim); color: var(--green); }
-.readiness-badge.push { background: rgba(0, 122, 255, 0.15); color: #007aff; }
+.readiness-badge.rest {
+  background: rgba(255, 59, 48, 0.15);
+  color: #ff3b30;
+}
+.readiness-badge.light {
+  background: var(--yellow-dim);
+  color: var(--yellow);
+}
+.readiness-badge.normal {
+  background: var(--green-dim);
+  color: var(--green);
+}
+.readiness-badge.push {
+  background: rgba(0, 122, 255, 0.15);
+  color: #007aff;
+}
 
 /* Stat value colors */
 .stat-value.fire {

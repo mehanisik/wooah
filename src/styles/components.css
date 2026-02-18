@@ -1579,7 +1579,9 @@ body::before {
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
 }
-.heatmap-scroll::-webkit-scrollbar { display: none; }
+.heatmap-scroll::-webkit-scrollbar {
+  display: none;
+}
 .heatmap-table {
   width: 100%;
   min-width: 420px;
@@ -1617,11 +1619,21 @@ body::before {
 .heatmap-total {
   font-weight: 700;
 }
-.heatmap-total.under { color: var(--brand); }
-.heatmap-total.maintenance { color: var(--yellow); }
-.heatmap-total.optimal { color: var(--green); }
-.heatmap-total.pushing { color: var(--yellow); }
-.heatmap-total.over { color: var(--brand); }
+.heatmap-total.under {
+  color: var(--brand);
+}
+.heatmap-total.maintenance {
+  color: var(--yellow);
+}
+.heatmap-total.optimal {
+  color: var(--green);
+}
+.heatmap-total.pushing {
+  color: var(--yellow);
+}
+.heatmap-total.over {
+  color: var(--brand);
+}
 
 /* ===== DELOAD BANNER ===== */
 .deload-banner {
@@ -1817,12 +1829,17 @@ body::before {
   height: 12px;
 }
 .superset-highlight {
-  border-color: var(--yellow) !important;
+  border-color: var(--yellow);
   animation: supersetPulse 1s ease-in-out infinite;
 }
 @keyframes supersetPulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 214, 0, 0.3); }
-  50% { box-shadow: 0 0 0 4px rgba(255, 214, 0, 0.1); }
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 214, 0, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(255, 214, 0, 0.1);
+  }
 }
 .superset-turn-badge {
   font-family: var(--font-mono);
@@ -2683,7 +2700,10 @@ body::before {
   cursor: pointer;
   transition: all 0.15s;
 }
-.edit-mode-btn svg { width: 12px; height: 12px; }
+.edit-mode-btn svg {
+  width: 12px;
+  height: 12px;
+}
 .edit-mode-btn.active {
   background: var(--brand-dim);
   border-color: var(--brand);
@@ -2700,8 +2720,13 @@ body::before {
   flex-shrink: 0;
   touch-action: none;
 }
-.edit-drag-handle:active { cursor: grabbing; }
-.edit-drag-handle svg { width: 16px; height: 16px; }
+.edit-drag-handle:active {
+  cursor: grabbing;
+}
+.edit-drag-handle svg {
+  width: 16px;
+  height: 16px;
+}
 .edit-mode .exercise-card {
   display: flex;
   flex-wrap: wrap;
@@ -2746,13 +2771,17 @@ body::before {
   justify-content: center;
   flex-shrink: 0;
 }
-.edit-remove-btn svg { width: 14px; height: 14px; }
+.edit-remove-btn svg {
+  width: 14px;
+  height: 14px;
+}
 .edit-action-buttons {
   display: flex;
   gap: 8px;
   padding: 12px 0;
 }
-.edit-add-btn, .edit-reset-btn {
+.edit-add-btn,
+.edit-reset-btn {
   flex: 1;
   display: flex;
   align-items: center;
@@ -2763,7 +2792,11 @@ body::before {
   font-size: 0.65rem;
   letter-spacing: 1px;
 }
-.edit-add-btn svg, .edit-reset-btn svg { width: 14px; height: 14px; }
+.edit-add-btn svg,
+.edit-reset-btn svg {
+  width: 14px;
+  height: 14px;
+}
 .sortable-ghost {
   opacity: 0.4;
   background: var(--brand-dim);

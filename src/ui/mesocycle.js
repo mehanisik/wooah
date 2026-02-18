@@ -1,4 +1,4 @@
-import { state, saveState, debouncedSave } from '../state/store.js';
+import { state, saveState } from '../state/store.js';
 
 const DEFAULT_CONFIG = { length: 4, deloadLength: 1, startWeek: null, rampRate: 2 };
 
@@ -93,7 +93,7 @@ export function attachMesoListeners() {
   if (btn) {
     btn.addEventListener('click', () => {
       startMesocycle();
-      import('../render/workout.js').then(m => m.renderPages());
+      import('../render/workout.js').then((m) => m.renderPages());
     });
   }
 }
