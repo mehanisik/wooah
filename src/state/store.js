@@ -154,8 +154,8 @@ export function mergeState(imported) {
   if (imported.history) {
     Object.entries(imported.history).forEach(([key, sessions]) => {
       if (!state.history[key]) state.history[key] = [];
-      const existing = new Set(state.history[key].map(s => `${s.week}`));
-      sessions.forEach(s => {
+      const existing = new Set(state.history[key].map((s) => `${s.week}`));
+      sessions.forEach((s) => {
         if (!existing.has(`${s.week}`)) state.history[key].push(s);
       });
       state.history[key].sort((a, b) => a.week - b.week);
@@ -170,8 +170,8 @@ export function mergeState(imported) {
     });
   }
   if (imported.bodyweight) {
-    const existingDates = new Set(state.bodyweight.map(e => e.date));
-    imported.bodyweight.forEach(e => {
+    const existingDates = new Set(state.bodyweight.map((e) => e.date));
+    imported.bodyweight.forEach((e) => {
       if (!existingDates.has(e.date)) state.bodyweight.push(e);
     });
     state.bodyweight.sort((a, b) => a.date.localeCompare(b.date));
@@ -179,24 +179,37 @@ export function mergeState(imported) {
   if (imported.oneRmHistory) {
     Object.entries(imported.oneRmHistory).forEach(([key, entries]) => {
       if (!state.oneRmHistory[key]) state.oneRmHistory[key] = [];
-      const existing = new Set(state.oneRmHistory[key].map(e => e.date));
-      entries.forEach(e => {
+      const existing = new Set(state.oneRmHistory[key].map((e) => e.date));
+      entries.forEach((e) => {
         if (!existing.has(e.date)) state.oneRmHistory[key].push(e);
       });
       state.oneRmHistory[key].sort((a, b) => a.date.localeCompare(b.date));
     });
   }
-  ['logs', 'finishedDays', 'workoutTimers', 'extraSets', 'exerciseSwaps', 'cardioLogs',
-   'sessionNotes', 'exerciseNotes', 'pinnedNotes'].forEach(field => {
-    if (imported[field]) Object.assign(state[field] || (state[field] = {}), imported[field]);
+  [
+    'logs',
+    'finishedDays',
+    'workoutTimers',
+    'extraSets',
+    'exerciseSwaps',
+    'cardioLogs',
+    'sessionNotes',
+    'exerciseNotes',
+    'pinnedNotes',
+  ].forEach((field) => {
+    if (imported[field]) {
+      if (!state[field]) state[field] = {};
+      Object.assign(state[field], imported[field]);
+    }
   });
   if (imported.totalSessions > (state.totalSessions || 0)) state.totalSessions = imported.totalSessions;
-  if (imported.startDate && (!state.startDate || imported.startDate < state.startDate)) state.startDate = imported.startDate;
+  if (imported.startDate && (!state.startDate || imported.startDate < state.startDate))
+    state.startDate = imported.startDate;
   saveState();
 }
 
 export function overwriteState(imported) {
-  Object.keys(state).forEach(k => delete state[k]);
+  for (const k of Object.keys(state)) delete state[k];
   Object.assign(state, imported);
   saveState();
 }
@@ -206,31 +219,33 @@ export function getEffectiveProgram(dayIdx) {
 
   const base = PROGRAM[dayIdx];
   const list = state.programOverrides[dayIdx];
-  const exercises = list.map(entry => {
-    if (entry.custom) {
+  const exercises = list
+    .map((entry) => {
+      if (entry.custom) {
+        return {
+          name: entry.name,
+          equipment: entry.equipment || 'dumbbell',
+          sets: entry.sets || 3,
+          reps: entry.reps || '10-12',
+          rest: entry.rest || 90,
+          rir: entry.rir || '1-2',
+          compound: entry.compound || false,
+          amrap: entry.amrap || false,
+          notes: entry.notes || '',
+          alternatives: entry.alternatives || [],
+        };
+      }
+      const orig = base.exercises[entry.originalIdx];
+      if (!orig) return null;
       return {
-        name: entry.name,
-        equipment: entry.equipment || 'dumbbell',
-        sets: entry.sets || 3,
-        reps: entry.reps || '10-12',
-        rest: entry.rest || 90,
-        rir: entry.rir || '1-2',
-        compound: entry.compound || false,
-        amrap: entry.amrap || false,
-        notes: entry.notes || '',
-        alternatives: entry.alternatives || [],
+        ...orig,
+        ...(entry.sets != null && { sets: entry.sets }),
+        ...(entry.reps != null && { reps: entry.reps }),
+        ...(entry.rest != null && { rest: entry.rest }),
+        ...(entry.rir != null && { rir: entry.rir }),
       };
-    }
-    const orig = base.exercises[entry.originalIdx];
-    if (!orig) return null;
-    return {
-      ...orig,
-      ...(entry.sets != null && { sets: entry.sets }),
-      ...(entry.reps != null && { reps: entry.reps }),
-      ...(entry.rest != null && { rest: entry.rest }),
-      ...(entry.rir != null && { rir: entry.rir }),
-    };
-  }).filter(Boolean);
+    })
+    .filter(Boolean);
 
   return { ...base, exercises };
 }

@@ -2,7 +2,7 @@ import Sortable from 'sortablejs';
 import { state, saveState, getEffectiveProgram } from '../state/store.js';
 import { PROGRAM } from '../data/program.js';
 import { MUSCLE_MAP, MUSCLE_GROUPS } from '../data/muscles.js';
-import { $, $$ } from './helpers.js';
+import { $ } from './helpers.js';
 import { closeAllModals } from './events.js';
 import { trapFocus, releaseFocus } from './focus-trap.js';
 import { refreshIcons } from './icons.js';
@@ -10,7 +10,9 @@ import { refreshIcons } from './icons.js';
 let editMode = false;
 let sortableInstance = null;
 
-export function isEditMode() { return editMode; }
+export function isEditMode() {
+  return editMode;
+}
 
 export function toggleEditMode(dayIdx) {
   editMode = !editMode;
@@ -34,7 +36,7 @@ function enterEditMode(dayIdx) {
   if (editBtn) editBtn.classList.add('active');
 
   const cards = container.querySelectorAll('.exercise-card');
-  cards.forEach(card => {
+  cards.forEach((card) => {
     const exIdx = parseInt(card.dataset.ex, 10);
     const day = getEffectiveProgram(dayIdx);
     const ex = day.exercises[exIdx];
@@ -85,11 +87,13 @@ function enterEditMode(dayIdx) {
 
   const cardioSection = container.querySelector('.cardio-section');
   if (cardioSection) cardioSection.before(wrapper);
-  else container.querySelector('.page.uk-active, .warmup-section')?.parentNode?.appendChild(wrapper) || container.appendChild(wrapper);
+  else
+    container.querySelector('.page.uk-active, .warmup-section')?.parentNode?.appendChild(wrapper) ||
+      container.appendChild(wrapper);
 
   refreshIcons();
 
-  const exerciseList = container;
+  const _exerciseList = container;
   const cardElements = [...container.querySelectorAll('.exercise-card')];
   if (cardElements.length > 1) {
     const parent = cardElements[0].parentNode;
@@ -105,7 +109,7 @@ function enterEditMode(dayIdx) {
   }
 }
 
-function exitEditMode(dayIdx) {
+function exitEditMode(_dayIdx) {
   editMode = false;
   const container = $('.page.uk-active');
   if (!container) return;
@@ -114,14 +118,16 @@ function exitEditMode(dayIdx) {
   const editBtn = $('#editModeToggle');
   if (editBtn) editBtn.classList.remove('active');
 
-  container.querySelectorAll('.edit-drag-handle, .edit-controls, .edit-action-buttons').forEach(el => el.remove());
+  container.querySelectorAll('.edit-drag-handle, .edit-controls, .edit-action-buttons').forEach((el) => {
+    el.remove();
+  });
 
   if (sortableInstance) {
     sortableInstance.destroy();
     sortableInstance = null;
   }
 
-  import('../render/workout.js').then(m => m.renderPages());
+  import('../render/workout.js').then((m) => m.renderPages());
 }
 
 function handleReorder(dayIdx, evt) {
@@ -152,7 +158,7 @@ function handleRemove(dayIdx, exIdx) {
   if (!state.programOverrides) state.programOverrides = {};
   state.programOverrides[dayIdx] = override;
   saveState();
-  import('../render/workout.js').then(m => m.renderPages());
+  import('../render/workout.js').then((m) => m.renderPages());
 }
 
 function handleReset(dayIdx) {
@@ -161,7 +167,7 @@ function handleReset(dayIdx) {
   if (Object.keys(state.programOverrides).length === 0) delete state.programOverrides;
   saveState();
   editMode = false;
-  import('../render/workout.js').then(m => m.renderPages());
+  import('../render/workout.js').then((m) => m.renderPages());
 }
 
 function getAllExercises() {
@@ -179,10 +185,12 @@ function showExercisePicker(dayIdx) {
 
   const allExercises = getAllExercises();
   const grouped = {};
-  MUSCLE_GROUPS.forEach(g => { grouped[g] = []; });
+  MUSCLE_GROUPS.forEach((g) => {
+    grouped[g] = [];
+  });
 
-  allExercises.forEach(ex => {
-    ex.primary.forEach(g => {
+  allExercises.forEach((ex) => {
+    ex.primary.forEach((g) => {
       if (grouped[g]) grouped[g].push(ex.name);
     });
   });
@@ -199,11 +207,11 @@ function showExercisePicker(dayIdx) {
       <input class="uk-input" type="text" id="exercisePickerSearch" placeholder="Search exercises...">
       <div class="exercise-picker-list" id="exercisePickerList">`;
 
-  MUSCLE_GROUPS.forEach(group => {
+  MUSCLE_GROUPS.forEach((group) => {
     const items = grouped[group];
     if (!items || items.length === 0) return;
     content += `<div class="picker-group-label">${group}</div>`;
-    items.forEach(name => {
+    items.forEach((name) => {
       content += `<button class="uk-btn uk-btn-default picker-item" data-pick-name="${name}" data-pick-day="${dayIdx}">${name}</button>`;
     });
   });
@@ -224,10 +232,10 @@ function showExercisePicker(dayIdx) {
   const searchInput = $('#exercisePickerSearch');
   searchInput?.addEventListener('input', () => {
     const q = searchInput.value.toLowerCase();
-    modal.querySelectorAll('.picker-item').forEach(btn => {
+    modal.querySelectorAll('.picker-item').forEach((btn) => {
       btn.style.display = btn.dataset.pickName.toLowerCase().includes(q) ? '' : 'none';
     });
-    modal.querySelectorAll('.picker-group-label').forEach(label => {
+    modal.querySelectorAll('.picker-group-label').forEach((label) => {
       let next = label.nextElementSibling;
       let hasVisible = false;
       while (next && !next.classList.contains('picker-group-label')) {
@@ -279,7 +287,7 @@ function addCustomExercise(dayIdx, name) {
   state.programOverrides[dayIdx] = override;
   saveState();
   editMode = true;
-  import('../render/workout.js').then(m => m.renderPages());
+  import('../render/workout.js').then((m) => m.renderPages());
 }
 
 export function renderEditToggle() {

@@ -1,13 +1,17 @@
 import { $ } from './helpers.js';
 import { state, getExerciseSwap, setExerciseSwap, debouncedSave, getEffectiveProgram } from '../state/store.js';
-import { PROGRAM, getAltName, getAltEquipment, getEquipLabel } from '../data/program.js';
+import { getAltName, getAltEquipment, getEquipLabel } from '../data/program.js';
 import { renderPages } from '../render/workout.js';
 import { closeAllModals } from './events.js';
 import { trapFocus, releaseFocus } from './focus-trap.js';
 
 let gymBusy = false;
-export function isGymBusy() { return gymBusy; }
-export function toggleGymBusy() { gymBusy = !gymBusy; }
+export function isGymBusy() {
+  return gymBusy;
+}
+export function toggleGymBusy() {
+  gymBusy = !gymBusy;
+}
 
 function getSwapFreq(dayIdx, exIdx, name) {
   if (!state.swapFrequency) return 0;
@@ -49,7 +53,7 @@ export function showSwapModal(dayIdx, exIdx) {
 
   const options = [
     { name: ex.name, equipment: ex.equipment },
-    ...ex.alternatives.map(a => ({ name: getAltName(a), equipment: getAltEquipment(a) })),
+    ...ex.alternatives.map((a) => ({ name: getAltName(a), equipment: getAltEquipment(a) })),
   ];
 
   options.sort((a, b) => {
@@ -60,25 +64,28 @@ export function showSwapModal(dayIdx, exIdx) {
 
   const mainEquipment = ex.equipment;
 
-  const chipsHtml = FILTER_CHIPS.map(c =>
-    `<button class="swap-filter-chip ${c.key === 'all' ? 'active' : ''}" data-filter="${c.key}">${c.label}</button>`
+  const chipsHtml = FILTER_CHIPS.map(
+    (c) =>
+      `<button class="swap-filter-chip ${c.key === 'all' ? 'active' : ''}" data-filter="${c.key}">${c.label}</button>`,
   ).join('');
 
   function buildOptions(filter) {
     let filtered = options;
     if (gymBusy && filter === 'all') {
-      filtered = options.filter(o => o.name === ex.name || o.equipment !== mainEquipment);
+      filtered = options.filter((o) => o.name === ex.name || o.equipment !== mainEquipment);
     } else if (filter !== 'all') {
-      filtered = options.filter(o => o.equipment === filter || o.name === ex.name);
+      filtered = options.filter((o) => o.equipment === filter || o.name === ex.name);
     }
 
-    return filtered.map(o => {
-      const eqLabel = o.equipment ? getEquipLabel(o.equipment) : '';
-      return `<button class="uk-btn ${o.name === current ? 'uk-btn-primary' : 'uk-btn-default'} swap-option" data-swap="${o.name}" style="width:100%;margin-bottom:6px;font-family:var(--font-body);font-size:0.85rem;letter-spacing:0.5px;display:flex;justify-content:space-between;align-items:center;">
+    return filtered
+      .map((o) => {
+        const eqLabel = o.equipment ? getEquipLabel(o.equipment) : '';
+        return `<button class="uk-btn ${o.name === current ? 'uk-btn-primary' : 'uk-btn-default'} swap-option" data-swap="${o.name}" style="width:100%;margin-bottom:6px;font-family:var(--font-body);font-size:0.85rem;letter-spacing:0.5px;display:flex;justify-content:space-between;align-items:center;">
         <span>${o.name}${o.name === ex.name ? ' (default)' : ''}</span>
         ${eqLabel ? `<span class="equip-badge">${eqLabel}</span>` : ''}
       </button>`;
-    }).join('');
+      })
+      .join('');
   }
 
   modal.innerHTML = `<div class="uk-modal-dialog" style="max-width:340px;">
@@ -98,9 +105,11 @@ export function showSwapModal(dayIdx, exIdx) {
   modal.classList.add('uk-open');
   trapFocus(modal);
 
-  modal.querySelectorAll('.swap-filter-chip').forEach(chip => {
+  modal.querySelectorAll('.swap-filter-chip').forEach((chip) => {
     chip.addEventListener('click', () => {
-      modal.querySelectorAll('.swap-filter-chip').forEach(c => c.classList.remove('active'));
+      modal.querySelectorAll('.swap-filter-chip').forEach((c) => {
+        c.classList.remove('active');
+      });
       chip.classList.add('active');
       modal.querySelector('.swap-options-list').innerHTML = buildOptions(chip.dataset.filter);
       attachOptionListeners();

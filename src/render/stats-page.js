@@ -105,17 +105,19 @@ function renderFrequencyHeatmap() {
   const days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
   const dayVols = days.map((_, i) => calcDayVolume(i));
   const weeklyVol = calcWeeklyVolume(state.currentWeek);
-  const hasData = Object.values(weeklyVol).some(v => v > 0);
+  const _hasData = Object.values(weeklyVol).some((v) => v > 0);
 
   let h = `<div class="info-section">
     <div class="info-title">TRAINING FREQUENCY</div>
     <div class="chart-subtitle">Sets per muscle per day</div>
     <div class="heatmap-scroll"><table class="heatmap-table">
       <thead><tr><th></th>`;
-  days.forEach(d => { h += `<th>${d}</th>`; });
+  days.forEach((d) => {
+    h += `<th>${d}</th>`;
+  });
   h += `<th>TOTAL</th></tr></thead><tbody>`;
 
-  MUSCLE_GROUPS.forEach(group => {
+  MUSCLE_GROUPS.forEach((group) => {
     const lm = VOLUME_LANDMARKS[group];
     if (!lm) return;
     h += `<tr><td class="heatmap-label">${group}</td>`;
@@ -136,7 +138,7 @@ function renderFrequencyHeatmap() {
 
 function renderMuscleVolumeSection() {
   const vol = calcWeeklyVolume(state.currentWeek);
-  const hasData = Object.values(vol).some(v => v > 0);
+  const hasData = Object.values(vol).some((v) => v > 0);
   if (!hasData) return '';
 
   let h = `<div class="info-section">
@@ -144,7 +146,7 @@ function renderMuscleVolumeSection() {
     <div class="chart-subtitle">Sets per muscle group (Week ${state.currentWeek})</div>
     <div class="volume-grid">`;
 
-  MUSCLE_GROUPS.forEach(group => {
+  MUSCLE_GROUPS.forEach((group) => {
     const sets = vol[group] || 0;
     const lm = VOLUME_LANDMARKS[group];
     if (!lm) return;
@@ -176,15 +178,13 @@ function renderMuscleVolumeSection() {
 }
 
 function renderExerciseComparison(allExercises) {
-  const withOneRM = allExercises.filter(ex => {
+  const withOneRM = allExercises.filter((ex) => {
     const h = state.oneRmHistory?.[ex.key];
     return h && h.length >= 2;
   });
   if (withOneRM.length < 2) return '';
 
-  const opts = withOneRM.map(ex =>
-    `<option value="${ex.key}">${ex.name}</option>`
-  ).join('');
+  const opts = withOneRM.map((ex) => `<option value="${ex.key}">${ex.name}</option>`).join('');
 
   return `<div class="chart-section">
     <div class="chart-title">EXERCISE COMPARISON</div>
@@ -226,19 +226,19 @@ export function renderCompareChart() {
     const cutoff = new Date();
     cutoff.setMonth(cutoff.getMonth() - months);
     const cutoffStr = cutoff.toISOString().split('T')[0];
-    return entries.filter(e => e.date >= cutoffStr);
+    return entries.filter((e) => e.date >= cutoffStr);
   };
 
   const a = filterByRange(histA);
   const b = filterByRange(histB);
-  const allWeeks = [...new Set([...a.map(e => e.week), ...b.map(e => e.week)])].sort((x, y) => x - y);
-  const maxVal = Math.max(...a.map(e => e.value), ...b.map(e => e.value), 1);
+  const allWeeks = [...new Set([...a.map((e) => e.week), ...b.map((e) => e.week)])].sort((x, y) => x - y);
+  const maxVal = Math.max(...a.map((e) => e.value), ...b.map((e) => e.value), 1);
 
-  const aMap = Object.fromEntries(a.map(e => [e.week, e.value]));
-  const bMap = Object.fromEntries(b.map(e => [e.week, e.value]));
+  const aMap = Object.fromEntries(a.map((e) => [e.week, e.value]));
+  const bMap = Object.fromEntries(b.map((e) => [e.week, e.value]));
 
   let h = '<div class="chart-bars compare-bars" style="height:100px;">';
-  allWeeks.forEach(w => {
+  allWeeks.forEach((w) => {
     const va = aMap[w] || 0;
     const vb = bMap[w] || 0;
     const pctA = (va / maxVal) * 100;
@@ -377,9 +377,11 @@ export function attachStatsListeners() {
     renderCompareChart();
     compareA.addEventListener('change', () => renderCompareChart());
     compareB.addEventListener('change', () => renderCompareChart());
-    document.querySelectorAll('.compare-range-btn').forEach(btn => {
+    document.querySelectorAll('.compare-range-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
-        document.querySelectorAll('.compare-range-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.compare-range-btn').forEach((b) => {
+          b.classList.remove('active');
+        });
         btn.classList.add('active');
         renderCompareChart();
       });

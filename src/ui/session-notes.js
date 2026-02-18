@@ -58,9 +58,9 @@ export function clearPinnedNote(dayIdx, exIdx) {
 }
 
 const PILL_OPTIONS = {
-  energy:   ['Low', 'Normal', 'High', 'Peak'],
-  sleep:    ['<5h', '5-6h', '7-8h', '8+h'],
-  mood:     ['Rough', 'Meh', 'Good', 'Great'],
+  energy: ['Low', 'Normal', 'High', 'Peak'],
+  sleep: ['<5h', '5-6h', '7-8h', '8+h'],
+  mood: ['Rough', 'Meh', 'Good', 'Great'],
   soreness: ['None', 'Mild', 'Moderate', 'Very Sore'],
 };
 
@@ -81,7 +81,7 @@ export function renderSessionStrip(dayIdx) {
     h += `<div class="pill-group">
       <span class="pill-group-label">${field}</span>
       <div class="pill-row">`;
-    options.forEach(opt => {
+    options.forEach((opt) => {
       h += `<button class="pill-btn ${selected === opt ? 'active' : ''}" data-pill-field="${field}" data-pill-value="${opt}" data-pill-day="${dayIdx}">${opt}</button>`;
     });
     h += `</div></div>`;
@@ -131,7 +131,12 @@ export function attachSessionListeners(container) {
         pill.classList.remove('active');
       } else {
         setSessionNote(dayIdx, field, value);
-        pill.closest('.pill-row').querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
+        pill
+          .closest('.pill-row')
+          .querySelectorAll('.pill-btn')
+          .forEach((b) => {
+            b.classList.remove('active');
+          });
         pill.classList.add('active');
       }
       return;
@@ -171,7 +176,7 @@ export function attachSessionListeners(container) {
       </div>`;
       const top = card.querySelector('.exercise-top');
       top.insertAdjacentElement('afterend', area);
-      import('./icons.js').then(m => m.refreshIcons());
+      import('./icons.js').then((m) => m.refreshIcons());
       area.querySelector('.ex-note-input').focus();
       return;
     }
@@ -198,9 +203,12 @@ export function attachSessionListeners(container) {
       const val = parseInt(star.dataset.star, 10);
       const dayIdx = parseInt(star.dataset.starDay, 10);
       setSessionNote(dayIdx, 'rating', val);
-      star.closest('.star-row').querySelectorAll('.star-btn').forEach((b, i) => {
-        b.classList.toggle('active', i < val);
-      });
+      star
+        .closest('.star-row')
+        .querySelectorAll('.star-btn')
+        .forEach((b, i) => {
+          b.classList.toggle('active', i < val);
+        });
       return;
     }
   });
@@ -217,7 +225,7 @@ export function attachSessionListeners(container) {
       setExerciseNote(
         parseInt(exNote.dataset.exNoteDay, 10),
         parseInt(exNote.dataset.exNoteEx, 10),
-        exNote.value.trim()
+        exNote.value.trim(),
       );
     }
   });

@@ -1,7 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
 import { $ } from '../ui/helpers.js';
-import { state, getLog, getWorkoutTimer, historyKey, saveState, mergeState, overwriteState, loadState, getEffectiveProgram } from '../state/store.js';
-import { PROGRAM } from '../data/program.js';
+import {
+  state,
+  getLog,
+  getWorkoutTimer,
+  historyKey,
+  saveState,
+  mergeState,
+  overwriteState,
+  loadState,
+  getEffectiveProgram,
+} from '../state/store.js';
 import { showToast } from '../ui/toast.js';
 import { closeAllModals, openModal } from '../ui/events.js';
 import { setSupabaseClient } from '../ui/photo-store.js';
@@ -126,7 +135,8 @@ async function pullFromSupabase(userId) {
 
     const setsBySession = {};
     for (const s of sets) {
-      (setsBySession[s.session_id] ||= []).push(s);
+      if (!setsBySession[s.session_id]) setsBySession[s.session_id] = [];
+      setsBySession[s.session_id].push(s);
     }
 
     const cloudHistory = {};
@@ -145,7 +155,8 @@ async function pullFromSupabase(userId) {
       const sessionSets = setsBySession[session.id] || [];
       const byExercise = {};
       for (const s of sessionSets) {
-        (byExercise[s.exercise_index] ||= []).push(s);
+        if (!byExercise[s.exercise_index]) byExercise[s.exercise_index] = [];
+        byExercise[s.exercise_index].push(s);
       }
 
       for (const [exIdx, exSets] of Object.entries(byExercise)) {
@@ -521,15 +532,15 @@ export function initSettingsHandlers() {
   const barBtns = document.querySelectorAll('.bar-weight-btn');
   function updateBarButtons() {
     const current = state.plateSettings?.barWeight || 20;
-    barBtns.forEach(b => {
+    barBtns.forEach((b) => {
       const val = parseInt(b.dataset.bar, 10);
       b.classList.toggle('uk-btn-primary', val === current);
       b.classList.toggle('uk-btn-default', val !== current);
     });
   }
-  barBtns.forEach(btn => {
+  barBtns.forEach((btn) => {
     btn.addEventListener('click', () => {
-      import('../ui/plate-calc.js').then(m => {
+      import('../ui/plate-calc.js').then((m) => {
         m.setBarWeight(parseInt(btn.dataset.bar, 10));
         updateBarButtons();
       });
@@ -566,7 +577,9 @@ export function initSettingsHandlers() {
             showToast('Invalid backup file');
             return;
           }
-          const doMerge = confirm('Merge with existing data?\n\nOK = Merge (keeps both)\nCancel = Overwrite (replaces all)');
+          const doMerge = confirm(
+            'Merge with existing data?\n\nOK = Merge (keeps both)\nCancel = Overwrite (replaces all)',
+          );
           if (doMerge) {
             mergeState(imported);
           } else {
