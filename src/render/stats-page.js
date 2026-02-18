@@ -4,6 +4,7 @@ import { PROGRAM } from '../data/program.js';
 import { renderBodyweightSection, attachBodyweightListeners } from './bodyweight.js';
 import { renderOneRMStatsSection } from '../ui/one-rm.js';
 import { MUSCLE_GROUPS, VOLUME_LANDMARKS, calcWeeklyVolume, calcDayVolume, getVolumeZone } from '../data/muscles.js';
+import { emptyStats, emptyExercise, emptyVolume, emptyCompare } from './empty-states.js';
 
 export function renderStatsPage() {
   const allExercises = [];
@@ -20,7 +21,7 @@ export function renderStatsPage() {
   });
 
   if (allExercises.length === 0) {
-    return `<div class="no-data-msg"><strong>NO DATA YET</strong>Finish your first workout to see stats here.<br>Every session you complete builds your progress history.</div>`;
+    return emptyStats();
   }
 
   let h = '';
@@ -215,7 +216,7 @@ export function renderCompareChart() {
   const histA = state.oneRmHistory?.[keyA] || [];
   const histB = state.oneRmHistory?.[keyB] || [];
   if (histA.length === 0 && histB.length === 0) {
-    container.innerHTML = '<div class="no-data-msg">Select exercises with 1RM history.</div>';
+    container.innerHTML = emptyCompare();
     return;
   }
 
@@ -265,7 +266,7 @@ export function renderProgressionChart(exerciseKey) {
   if (!container) return;
   const history = state.history[exerciseKey];
   if (!history || history.length === 0) {
-    container.innerHTML = '<div class="no-data-msg">No history for this exercise yet.</div>';
+    container.innerHTML = emptyExercise();
     return;
   }
 
@@ -333,7 +334,7 @@ export function renderVolumeChart() {
     .sort((a, b) => a - b)
     .slice(-8);
   if (weeks.length === 0) {
-    container.innerHTML = '<div class="no-data-msg">Complete workouts to see volume trends.</div>';
+    container.innerHTML = emptyVolume();
     return;
   }
 

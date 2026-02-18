@@ -4,6 +4,9 @@ import { MUSCLE_MAP, MUSCLE_GROUPS } from '../data/muscles.js';
 import { renderPages } from '../render/workout.js';
 import { closeAllModals } from './events.js';
 import { trapFocus, releaseFocus } from './focus-trap.js';
+import { getExerciseGif } from './exercise-api.js';
+
+let previewAbort = null;
 
 export function showSwapModal(dayIdx, exIdx) {
   closeAllModals();
@@ -51,6 +54,7 @@ export function showSwapModal(dayIdx, exIdx) {
     <div class="uk-modal-body">
       <h3 class="uk-modal-title" id="swapTitle">SWAP EXERCISE</h3>
       <p style="margin-bottom:12px;">Choose an alternative for this slot. PRs and history stay linked to the slot.</p>
+      <div class="swap-preview" id="swapPreview"></div>
       <input class="uk-input swap-search" type="text" placeholder="Search exercises..." aria-label="Search exercises">
       <div class="swap-options-list" style="max-height:50vh;overflow-y:auto;">${buildGroupedList('')}</div>
     </div>
@@ -72,22 +76,58 @@ export function showSwapModal(dayIdx, exIdx) {
     attachOptionListeners();
   });
 
+  function showPreview(name) {
+    const preview = modal.querySelector('#swapPreview');
+    if (!preview) return;
+
+    if (previewAbort) previewAbort.abort();
+    const controller = new AbortController();
+    previewAbort = controller;
+
+    preview.innerHTML = `<div class="swap-preview-loading"><span class="swap-preview-name">${name}</span></div>`;
+    preview.classList.add('visible');
+
+    getExerciseGif(name).then((gifUrl) => {
+      if (controller.signal.aborted) return;
+      if (gifUrl) {
+        preview.innerHTML = `<img src="${gifUrl}" alt="${name}" class="swap-preview-gif" loading="lazy"><span class="swap-preview-name">${name}</span>`;
+      } else {
+        const muscles = MUSCLE_MAP[name];
+        const tags = muscles ? [...muscles.primary, ...muscles.secondary].join(' · ') : '';
+        preview.innerHTML = `<div class="swap-preview-muscles">${tags}</div><span class="swap-preview-name">${name}</span>`;
+      }
+    });
+  }
+
+  function hidePreview() {
+    const preview = modal.querySelector('#swapPreview');
+    if (preview) {
+      preview.classList.remove('visible');
+      preview.innerHTML = '';
+    }
+  }
+
   function attachOptionListeners() {
     modal.querySelectorAll('.swap-option').forEach((btn) => {
       btn.addEventListener('click', () => {
         const name = btn.dataset.swap;
         if (name === ex.name) setExerciseSwap(dayIdx, exIdx, null);
         else setExerciseSwap(dayIdx, exIdx, name);
+        hidePreview();
         releaseFocus();
         modal.classList.remove('uk-open');
         setTimeout(() => modal.remove(), 300);
         renderPages();
       });
+
+      btn.addEventListener('mouseenter', () => showPreview(btn.dataset.swap));
+      btn.addEventListener('focus', () => showPreview(btn.dataset.swap));
     });
   }
   attachOptionListeners();
 
   const close = () => {
+    hidePreview();
     releaseFocus();
     modal.classList.remove('uk-open');
     setTimeout(() => modal.remove(), 300);

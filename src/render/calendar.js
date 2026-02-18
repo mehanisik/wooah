@@ -1,4 +1,5 @@
 import { state, historyKey, getEffectiveProgram } from '../state/store.js';
+import { emptyCalendar } from './empty-states.js';
 
 export function renderCalendarPage() {
   const workoutDates = buildWorkoutMap();
@@ -132,7 +133,7 @@ function renderMonth(year, month, workoutDates) {
 
 export function renderCalendarDetail(dateStr, workoutDates) {
   const workout = workoutDates[dateStr];
-  if (!workout) return `<div class="calendar-detail"><div class="no-data-msg">No workout on this day.</div></div>`;
+  if (!workout) return `<div class="calendar-detail">${emptyCalendar()}</div>`;
 
   let h = `<div class="calendar-detail">
     <div class="calendar-detail-title">${workout.name} — ${dateStr}</div>`;

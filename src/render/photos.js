@@ -4,6 +4,7 @@ import { PROGRAM } from '../data/program.js';
 import { getAllPhotos, savePhoto, deletePhoto } from '../ui/photo-store.js';
 import { refreshIcons } from '../ui/icons.js';
 import { showToast } from '../ui/toast.js';
+import { emptyPhotos } from './empty-states.js';
 
 const DAY_NAMES = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
 
@@ -26,7 +27,7 @@ async function loadGallery() {
   const photos = await getAllPhotos();
 
   if (photos.length === 0) {
-    container.innerHTML = `<div class="no-data-msg">No photos yet.<br>Take your first progress photo after a workout!</div>`;
+    container.innerHTML = emptyPhotos();
     return;
   }
 

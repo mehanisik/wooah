@@ -32,7 +32,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'prompt',
       workbox: {
-        globPatterns: ['**/*.{js,css,html,woff2,png,ico,svg}'],
+        globPatterns: ['**/*.{js,css,html,woff2,png,ico,svg,json}'],
         navigateFallback: '/index.html',
         runtimeCaching: [
           {
@@ -50,6 +50,14 @@ export default defineConfig({
           {
             urlPattern: /^https:\/\/.*\.inspirobot\.me\/.*/i,
             handler: 'NetworkOnly',
+          },
+          {
+            urlPattern: /^https:\/\/exercisedb-api\.vercel\.app\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'exercisedb-cache',
+              expiration: { maxEntries: 100, maxAgeSeconds: 7 * 24 * 60 * 60 },
+            },
           },
         ],
       },

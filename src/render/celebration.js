@@ -5,20 +5,7 @@ import { savePhoto } from '../ui/photo-store.js';
 import { closeAllModals } from '../ui/events.js';
 import { trapFocus, releaseFocus } from '../ui/focus-trap.js';
 import { renderRatingStars, setSessionNote } from '../ui/session-notes.js';
-
-async function fetchMotivationalImage() {
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
-    const resp = await fetch('https://inspirobot.me/api?generate=true', { signal: controller.signal });
-    clearTimeout(timeout);
-    if (!resp.ok) throw new Error('API error');
-    const imageUrl = (await resp.text()).trim();
-    return { success: true, imageUrl };
-  } catch {
-    return { success: false, fallbackQuote: MOTIVATIONAL[Math.floor(Math.random() * MOTIVATIONAL.length)] };
-  }
-}
+import { launchConfetti } from '../ui/confetti.js';
 
 export function showMotivationalModal(dayName, newPRs, duration, week, dayIdx) {
   closeAllModals();
@@ -40,10 +27,12 @@ export function showMotivationalModal(dayName, newPRs, duration, week, dayIdx) {
     .filter(Boolean)
     .join('');
 
+  const quote = MOTIVATIONAL[Math.floor(Math.random() * MOTIVATIONAL.length)];
+
   modal.innerHTML = `<div class="celebration-content">
     <div class="celebration-header" id="celebTitle">${dayName} COMPLETE</div>
     ${statsHtml ? `<div class="celebration-stats">${statsHtml}</div>` : ''}
-    <div class="image-skeleton" id="celebSkeleton"></div>
+    <div class="celebration-quote">"${quote}"</div>
     ${renderRatingStars(dayIdx)}
     <div class="photo-upload-section" id="photoSection">
       <input type="file" accept="image/*" capture="environment" id="photoInput" hidden>
@@ -58,6 +47,7 @@ export function showMotivationalModal(dayName, newPRs, duration, week, dayIdx) {
     refreshIcons();
     trapFocus(modal);
     haptic(30);
+    launchConfetti(modal);
   });
 
   let autoDismiss = setTimeout(() => {
@@ -115,31 +105,6 @@ export function showMotivationalModal(dayName, newPRs, duration, week, dayIdx) {
       modal.classList.remove('uk-open');
       setTimeout(() => modal.remove(), 300);
     }, 8000);
-  });
-
-  fetchMotivationalImage().then((result) => {
-    const skeleton = modal.querySelector('#celebSkeleton');
-    if (!skeleton) return;
-    if (result.success) {
-      const img = document.createElement('img');
-      img.className = 'motivation-image';
-      img.alt = 'Motivational image';
-      img.onload = () => img.classList.add('loaded');
-      img.onerror = () => {
-        img.remove();
-        const fallback = document.createElement('div');
-        fallback.className = 'celebration-fallback';
-        fallback.textContent = `"${MOTIVATIONAL[Math.floor(Math.random() * MOTIVATIONAL.length)]}"`;
-        skeleton.replaceWith(fallback);
-      };
-      img.src = result.imageUrl;
-      skeleton.replaceWith(img);
-    } else {
-      const fallback = document.createElement('div');
-      fallback.className = 'celebration-fallback';
-      fallback.textContent = `"${result.fallbackQuote}"`;
-      skeleton.replaceWith(fallback);
-    }
   });
 }
 
@@ -200,4 +165,18 @@ export function loadRestDayImage() {
     load();
   });
   wrap.appendChild(btn);
+}
+
+async function fetchMotivationalImage() {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    const resp = await fetch('https://inspirobot.me/api?generate=true', { signal: controller.signal });
+    clearTimeout(timeout);
+    if (!resp.ok) throw new Error('API error');
+    const imageUrl = (await resp.text()).trim();
+    return { success: true, imageUrl };
+  } catch {
+    return { success: false };
+  }
 }
