@@ -1,4 +1,4 @@
-import { $, getTodayDayIdx, getWeekDates, viewTransition } from '../ui/helpers.js';
+import { $, getTodayDayIdx, getWeekDates, viewTransition, haptic } from '../ui/helpers.js';
 import { state, saveState, isDayFinished } from '../state/store.js';
 import { PROGRAM } from '../data/program.js';
 import { renderPages } from './workout.js';
@@ -34,10 +34,14 @@ export function renderNav() {
   nav.innerHTML = tabs.join('');
   refreshIcons();
 
+  const activeTab = nav.querySelector('.nav-tab.uk-active');
+  if (activeTab) activeTab.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' });
+
   nav.querySelectorAll('.nav-tab').forEach((tab) => {
     tab.addEventListener('click', () => {
       const idx = parseInt(tab.dataset.idx, 10);
       if (idx === state.activeTab) return;
+      haptic();
       state.activeTab = idx;
       saveState();
       viewTransition(() => {

@@ -205,7 +205,7 @@ function renderExerciseCard(ex, dayIdx, exIdx) {
     h += `<div class="pinned-note"><i data-lucide="pin"></i> ${pinned}</div>`;
   }
 
-  h += `<div class="exercise-log">`;
+  h += `<div class="exercise-log"><div class="exercise-log-inner">`;
 
   const lastSession = getLastSession(dayIdx, exIdx);
   if (lastSession) {
@@ -238,7 +238,7 @@ function renderExerciseCard(ex, dayIdx, exIdx) {
   h += `<button class="add-set-btn" data-add-set data-day="${dayIdx}" data-ex="${exIdx}" aria-label="Add extra set for ${ex.name}"><i data-lucide="plus"></i> Add Set</button>`;
   h += renderProgression(ex, dayIdx, exIdx);
   h += renderOneRMDisplay(dayIdx, exIdx);
-  h += `</div>`;
+  h += `</div></div>`;
   h += `</div>`;
   return h;
 }
@@ -285,7 +285,11 @@ function attachExerciseListeners() {
     top.addEventListener('click', () => {
       const card = top.closest('.exercise-card');
       card.classList.toggle('open');
-      top.setAttribute('aria-expanded', card.classList.contains('open'));
+      const isOpen = card.classList.contains('open');
+      top.setAttribute('aria-expanded', isOpen);
+      if (isOpen) {
+        requestAnimationFrame(() => card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
+      }
     });
   });
 

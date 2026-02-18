@@ -23,6 +23,9 @@
     var t = localStorage.getItem('ironppl_theme');
     if (t === 'dark') document.documentElement.classList.add('dark');
     else if (t === 'light') document.documentElement.classList.add('light');
+    var isDark = t === 'dark' || (t !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    var mc = document.querySelector('meta[name="theme-color"]');
+    if (mc) mc.setAttribute('content', isDark ? '#151716' : '#ffffff');
     setTimeout(function() {
       var s = document.getElementById('splash');
       if (s && s.style.display !== 'none') {

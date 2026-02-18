@@ -79,6 +79,25 @@ body::before {
   border-radius: 2px;
 }
 
+/* ===== TAP-SCALE FEEDBACK ===== */
+.uk-btn:active,
+.nav-tab:active,
+.exercise-top:active,
+.set-check:active,
+.swap-btn:active,
+.add-set-btn:active,
+.circuit-start-btn:active,
+.pill-btn:active,
+.warmup-toggle:active,
+.photo-add-thumb:active,
+.celebration-btn:active,
+.finish-btn:active,
+.gym-busy-btn:active,
+.exercise-note-btn:active {
+  transform: scale(0.97);
+  transition: transform 60ms ease;
+}
+
 /* ===== HEADER ===== */
 .header {
   position: sticky;
@@ -486,8 +505,9 @@ body::before {
   transform: rotate(90deg);
 }
 .warmup-content {
-  display: none;
-  padding: 12px 14px;
+  max-height: 0;
+  overflow: hidden;
+  padding: 0 14px;
   background: var(--surface);
   border: 1px solid var(--edge);
   border-top: none;
@@ -495,9 +515,16 @@ body::before {
   font-size: 0.82rem;
   color: var(--text-dim);
   line-height: 1.7;
+  opacity: 0;
+  transition:
+    max-height 0.25s cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 0.2s ease,
+    padding 0.25s ease;
 }
 .warmup-content.open {
-  display: block;
+  max-height: 600px;
+  padding: 12px 14px;
+  opacity: 1;
 }
 .warmup-content li {
   margin-left: 16px;
@@ -637,15 +664,26 @@ body::before {
   transform: rotate(180deg);
 }
 
-/* Logging panel */
+/* Logging panel — grid-row expand animation */
 .exercise-log {
-  display: none;
-  padding: 0 14px 14px;
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 0.25s cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 0.2s ease;
   border-top: 1px solid var(--edge);
 }
 .exercise-card.open .exercise-log {
-  display: block;
-  will-change: max-height;
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+.exercise-log-inner {
+  overflow: hidden;
+  padding: 0 14px;
+}
+.exercise-card.open .exercise-log-inner {
+  padding-bottom: 14px;
 }
 
 .set-row {
@@ -745,9 +783,6 @@ body::before {
   cursor: pointer;
   transition: all 0.15s;
 }
-.add-set-btn:active {
-  background: var(--surface-3);
-}
 .add-set-btn svg {
   width: 14px;
   height: 14px;
@@ -791,9 +826,6 @@ body::before {
   border-radius: var(--radius);
   cursor: pointer;
   transition: opacity 0.15s;
-}
-.circuit-start-btn:active {
-  opacity: 0.8;
 }
 .circuit-start-btn:disabled {
   opacity: 0.4;
@@ -1037,7 +1069,9 @@ body::before {
   left: calc(16px + env(safe-area-inset-left, 0px));
   right: calc(16px + env(safe-area-inset-right, 0px));
   padding: 10px 14px;
-  background: var(--surface-2);
+  background: color-mix(in srgb, var(--surface-2) 80%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--edge-light);
   border-radius: var(--radius);
   z-index: 60;
@@ -1196,18 +1230,38 @@ body::before {
 
 /* ===== MODAL (Franken UI overrides) ===== */
 .uk-modal {
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   padding: 20px;
 }
 .uk-modal.uk-open {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
-  will-change: opacity;
+  animation: modalFadeIn 0.2s ease;
+}
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 .uk-modal-dialog {
   max-width: 340px;
   width: 100%;
+  border-radius: 12px 12px 0 0;
+  animation: modalSlideUp 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+}
+@keyframes modalSlideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
 }
 .uk-modal-title {
   font-family: var(--font-display);
@@ -1267,7 +1321,7 @@ body::before {
   font-size: 0.72rem;
   color: var(--green);
   opacity: 0;
-  transition: all 0.3s ease;
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
   z-index: 300;
   white-space: nowrap;
 }
@@ -2033,9 +2087,6 @@ body::before {
   cursor: pointer;
   transition: all 0.15s;
 }
-.pill-btn:active {
-  background: var(--surface-3);
-}
 .pill-btn.active {
   background: var(--brand-glow);
   border-color: var(--brand);
@@ -2255,21 +2306,26 @@ body::before {
 
 /* ===== CELEBRATION MODAL ===== */
 .celebration-modal {
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
   padding: 20px;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 .celebration-modal.uk-open {
   display: flex;
+  animation: modalFadeIn 0.2s ease;
 }
 .celebration-content {
   background: var(--surface);
   border: 1px solid var(--edge);
-  border-radius: var(--radius);
+  border-radius: 12px 12px 0 0;
   padding: 28px 24px;
   max-width: 340px;
   width: 100%;
   text-align: center;
+  animation: modalSlideUp 0.35s cubic-bezier(0.32, 0.72, 0, 1);
 }
 .celebration-header {
   font-family: var(--font-display);
@@ -2825,4 +2881,77 @@ body::before {
   justify-content: flex-start;
   font-size: 0.75rem;
   min-height: 36px;
+}
+
+/* ── Responsive: small phones (<375px) ── */
+@media (max-width: 374px) {
+  .logo {
+    font-size: 1.5rem;
+    letter-spacing: 2px;
+  }
+  .greeting-text {
+    font-size: 1.25rem;
+    letter-spacing: 1.5px;
+  }
+  .nav-tab {
+    padding: 8px 10px;
+    font-size: 0.72rem;
+    letter-spacing: 1px;
+  }
+  .set-row {
+    grid-template-columns: 32px 1fr 1fr 40px;
+    gap: 6px;
+  }
+  .circuit-ring {
+    width: 150px;
+    height: 150px;
+  }
+  .circuit-time {
+    font-size: 3.4rem;
+  }
+  .heatmap-table {
+    min-width: 0;
+    font-size: 0.5rem;
+  }
+  .heatmap-label {
+    padding: 3px 4px;
+    font-size: 0.5rem;
+  }
+  .heatmap-table th {
+    padding: 3px 1px;
+    font-size: 0.5rem;
+  }
+  .heatmap-cell {
+    padding: 3px 1px;
+  }
+  .compare-selects {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .compare-selects .exercise-select {
+    width: 100%;
+  }
+  .photo-thumb,
+  .photo-add-thumb {
+    width: 80px;
+    height: 107px;
+  }
+}
+
+/* ── Responsive: tablets+ (≥600px) ── */
+@media (min-width: 600px) {
+  .uk-modal.uk-open {
+    align-items: center;
+  }
+  .uk-modal-dialog {
+    max-width: 440px;
+    border-radius: 12px;
+  }
+  .celebration-modal {
+    align-items: center;
+  }
+  .celebration-content {
+    max-width: 440px;
+    border-radius: 12px;
+  }
 }
