@@ -1,7 +1,9 @@
 'use client'
 
 import { Flame, Settings, Trophy, Zap } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
+import { useAuth } from '@/hooks/use-auth'
 import {
   selectCompletedThisWeek,
   usePRCount,
@@ -13,6 +15,8 @@ export function Header() {
   const completed = useWorkoutStore((s) => selectCompletedThisWeek(s))
   const streak = useStreak()
   const prs = usePRCount()
+  const { user } = useAuth()
+  const avatarUrl = user?.user_metadata?.avatar_url as string | undefined
 
   return (
     <header className="sticky top-0 z-40 border-border border-b bg-background/95 backdrop-blur-sm">
@@ -52,7 +56,18 @@ export function Header() {
               className="rounded-md p-1.5 transition-colors hover:bg-accent"
               aria-label="Settings"
             >
-              <Settings className="h-4 w-4 text-muted-foreground" />
+              {avatarUrl ? (
+                <Image
+                  src={avatarUrl}
+                  alt=""
+                  width={24}
+                  height={24}
+                  className="rounded-full"
+                  unoptimized
+                />
+              ) : (
+                <Settings className="h-4 w-4 text-muted-foreground" />
+              )}
             </Link>
           </div>
         </div>
