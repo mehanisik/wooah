@@ -13,3 +13,4 @@ playwright-report/
 public/sw.js
 public/swe-worker-*.js
 serwist-*.js
+tsconfig.tsbuildinfo
