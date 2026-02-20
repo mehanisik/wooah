@@ -1,0 +1,53 @@
+'use client'
+
+import { useWorkoutStore } from '@/lib/store/use-workout-store'
+import { calcPlates, isBarbell, PLATE_COLORS } from '@/lib/workout/plate-calc'
+
+interface PlateBreakdownProps {
+  weight: string
+  exerciseName: string
+}
+
+export function PlateBreakdown({ weight, exerciseName }: PlateBreakdownProps) {
+  const barWeight = useWorkoutStore((s) => s.plateSettings.barWeight)
+
+  if (!(weight && isBarbell(exerciseName))) return null
+
+  const result = calcPlates(Number.parseFloat(weight), exerciseName, barWeight)
+  if (!result || result.plates.length === 0) return null
+
+  const grouped: Record<number, number> = {}
+  for (const p of result.plates) {
+    grouped[p] = (grouped[p] || 0) + 1
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-1">
+      {Object.entries(grouped)
+        .sort((a, b) => Number(b[0]) - Number(a[0]))
+        .map(([plate, count]) => {
+          const p = Number(plate)
+          const color = PLATE_COLORS[p] || '#666'
+          const label = count > 1 ? `${count}x${plate}` : plate
+          return (
+            <span
+              key={plate}
+              className="rounded-sm px-1.5 py-0.5 font-mono text-[9px]"
+              style={{
+                background: color,
+                color: p === 5 ? '#333' : '#fff',
+              }}
+            >
+              {label}
+            </span>
+          )
+        })}
+      <span className="font-body text-[9px] text-muted-foreground">/side</span>
+      {result.remainder > 0 && (
+        <span className="font-body text-[9px] text-warning">
+          +{result.remainder}kg
+        </span>
+      )}
+    </div>
+  )
+}
