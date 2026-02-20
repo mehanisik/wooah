@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { LoginPage } from '@/components/auth/login-page'
 import { useAuth } from '@/hooks/use-auth'
+import { loadExerciseDb } from '@/lib/exercise-db'
 import { migrateFromV2 } from '@/lib/store/migration'
 import { useWorkoutStore } from '@/lib/store/use-workout-store'
 import { Header } from './header'
@@ -23,6 +24,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     }
     initWeek()
     setReady(true)
+    loadExerciseDb().catch(() => {})
   }, [authLoading, user, initWeek, mergeState])
 
   if (authLoading) {
@@ -66,7 +68,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-dvh flex-col bg-background">
       <Header />
-      <main className="mx-auto w-full max-w-lg flex-1 px-4 pb-20">
+      <main className="mx-auto w-full max-w-lg flex-1 px-4 pb-20 safe-area-mb">
         {children}
       </main>
       <NavBar />

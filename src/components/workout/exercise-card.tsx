@@ -1,8 +1,10 @@
 'use client'
 
-import { ChevronDown, Plus, Trash2 } from 'lucide-react'
+import { ChevronDown, Plus, Trash2, X } from 'lucide-react'
+import Image from 'next/image'
 import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
+import { useExerciseGif } from '@/hooks/use-exercise-gif'
 import type { Exercise } from '@/lib/data/program'
 import {
   selectExtraSets,
@@ -33,7 +35,9 @@ export function ExerciseCard({
   onStartRest,
 }: ExerciseCardProps) {
   const [open, setOpen] = useState(false)
+  const [showGif, setShowGif] = useState(false)
   const displayName = useDisplayName(dayIdx, exIdx)
+  const gifUrl = useExerciseGif(displayName, open)
   const extraSets = useWorkoutStore((s) => selectExtraSets(s, dayIdx, exIdx))
   const addExtraSet = useWorkoutStore((s) => s.addExtraSet)
   const totalSets = exercise.sets + extraSets
@@ -67,16 +71,51 @@ export function ExerciseCard({
         className="flex w-full items-center gap-3 px-3 py-2.5 text-left"
         aria-expanded={open}
       >
-        <span
-          className={cn(
-            'flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full font-bold font-mono text-xs',
-            allDone
-              ? 'bg-success-dim text-success'
-              : 'bg-surface-2 text-muted-foreground'
-          )}
-        >
-          {exIdx + 1}
-        </span>
+        {gifUrl ? (
+          <span
+            role="button"
+            tabIndex={0}
+            onClick={(e) => {
+              e.stopPropagation()
+              setShowGif(!showGif)
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.stopPropagation()
+                e.preventDefault()
+                setShowGif(!showGif)
+              }
+            }}
+            className="relative h-7 w-7 flex-shrink-0 cursor-pointer overflow-hidden rounded-full"
+            aria-label="Show exercise demo"
+          >
+            <Image
+              src={gifUrl}
+              alt=""
+              className="h-full w-full object-cover"
+              width={28}
+              height={28}
+              unoptimized
+            />
+            <span
+              className={cn(
+                'absolute inset-0 rounded-full ring-2 ring-inset',
+                allDone ? 'ring-success' : 'ring-surface-2'
+              )}
+            />
+          </span>
+        ) : (
+          <span
+            className={cn(
+              'flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full font-bold font-mono text-xs',
+              allDone
+                ? 'bg-success-dim text-success'
+                : 'bg-surface-2 text-muted-foreground'
+            )}
+          >
+            {exIdx + 1}
+          </span>
+        )}
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
             <span className="truncate font-body font-semibold text-sm">
@@ -106,6 +145,27 @@ export function ExerciseCard({
           )}
         />
       </button>
+
+      {showGif && gifUrl && (
+        <div className="relative mx-3 mb-2 overflow-hidden rounded-md bg-surface">
+          <Image
+            src={gifUrl}
+            alt={`${displayName} demonstration`}
+            className="mx-auto h-auto max-h-48 w-auto object-contain"
+            width={320}
+            height={192}
+            unoptimized
+          />
+          <button
+            type="button"
+            onClick={() => setShowGif(false)}
+            className="absolute top-1.5 right-1.5 rounded-full bg-background/80 p-1 backdrop-blur-sm"
+            aria-label="Close demo"
+          >
+            <X className="h-3.5 w-3.5 text-muted-foreground" />
+          </button>
+        </div>
+      )}
 
       {open && (
         <div className="space-y-1.5 px-3 pb-3">

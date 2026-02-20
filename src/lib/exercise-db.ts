@@ -112,7 +112,7 @@ function writeCache(entries: ExerciseDbEntry[]) {
 async function fetchAllExercises(): Promise<ExerciseDbEntry[]> {
   const all: ExerciseDbEntry[] = []
   let offset = 0
-  const limit = 200
+  const limit = 100
 
   while (true) {
     const controller = new AbortController()
@@ -126,7 +126,9 @@ async function fetchAllExercises(): Promise<ExerciseDbEntry[]> {
     if (!resp.ok) break
 
     const json = await resp.json()
-    const exercises = json.data?.exercises ?? json.exercises ?? []
+    const exercises = Array.isArray(json.data)
+      ? json.data
+      : (json.data?.exercises ?? json.exercises ?? [])
     if (!exercises.length) break
 
     for (const ex of exercises) {
@@ -134,9 +136,9 @@ async function fetchAllExercises(): Promise<ExerciseDbEntry[]> {
         exerciseId: ex.exerciseId ?? ex.id ?? '',
         name: ex.name ?? '',
         gifUrl: ex.gifUrl ?? '',
-        targetMuscles: (ex.targetMuscles ?? ex.target) ? [ex.target] : [],
-        bodyParts: (ex.bodyParts ?? ex.bodyPart) ? [ex.bodyPart] : [],
-        equipments: (ex.equipments ?? ex.equipment) ? [ex.equipment] : [],
+        targetMuscles: ex.targetMuscles ?? (ex.target ? [ex.target] : []),
+        bodyParts: ex.bodyParts ?? (ex.bodyPart ? [ex.bodyPart] : []),
+        equipments: ex.equipments ?? (ex.equipment ? [ex.equipment] : []),
         secondaryMuscles: ex.secondaryMuscles ?? [],
       })
     }

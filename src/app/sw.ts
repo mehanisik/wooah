@@ -25,6 +25,18 @@ const serwist = new Serwist({
       }),
     },
     {
+      matcher: /^https:\/\/static\.exercisedb\.dev\/.*/i,
+      handler: new CacheFirst({
+        cacheName: 'exercise-gifs',
+        plugins: [
+          new ExpirationPlugin({
+            maxEntries: 200,
+            maxAgeSeconds: 30 * 24 * 60 * 60,
+          }),
+        ],
+      }),
+    },
+    {
       matcher: /^https:\/\/.*\.supabase\.co\/(auth|rest|storage)\/.*/i,
       handler: new NetworkOnly(),
     },
