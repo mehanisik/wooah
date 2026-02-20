@@ -5,7 +5,6 @@ import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useRestTimer } from '@/hooks/use-rest-timer'
-import { syncToSupabase } from '@/lib/supabase/sync'
 import { useWakeLock } from '@/hooks/use-wake-lock'
 import { useWorkoutClock } from '@/hooks/use-workout-clock'
 import { PROGRAM } from '@/lib/data/program'
@@ -14,6 +13,7 @@ import {
   getEffectiveProgram,
   useWorkoutStore,
 } from '@/lib/store/use-workout-store'
+import { syncToSupabase } from '@/lib/supabase/sync'
 import { cn } from '@/lib/utils'
 import { CardioSection } from './cardio-section'
 import { CelebrationModal } from './celebration-modal'
@@ -46,7 +46,9 @@ export function WorkoutPage({ dayIdx }: WorkoutPageProps) {
   function handleFinish() {
     finishDay(dayIdx)
     setCelebrationOpen(true)
-    syncToSupabase(dayIdx).catch(() => {})
+    syncToSupabase(dayIdx).catch(() => {
+      // sync failure is non-fatal
+    })
   }
 
   return (
