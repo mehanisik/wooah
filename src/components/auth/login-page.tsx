@@ -100,17 +100,17 @@ export function LoginPage() {
             <Input
               type="text"
               inputMode="numeric"
-              maxLength={6}
+              maxLength={8}
               value={token}
               onChange={(e) => setToken(e.target.value.replace(/\D/g, ''))}
-              placeholder="6-digit code"
+              placeholder="Enter code"
               className="h-10 text-center font-mono text-sm tracking-widest"
               onKeyDown={(e) => e.key === 'Enter' && handleVerify()}
             />
             <Button
               className="w-full text-xs"
               onClick={handleVerify}
-              disabled={loading || token.length !== 6}
+              disabled={loading || token.length < 6}
             >
               {loading ? 'VERIFYING...' : 'VERIFY'}
             </Button>
