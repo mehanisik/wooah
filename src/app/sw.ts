@@ -17,19 +17,6 @@ const serwist = new Serwist({
   clientsClaim: true,
   navigationPreload: true,
   runtimeCaching: [
-    ...defaultCache,
-    {
-      matcher: /\/api\/exercises/i,
-      handler: new StaleWhileRevalidate({
-        cacheName: 'exercise-db',
-        plugins: [
-          new ExpirationPlugin({
-            maxEntries: 100,
-            maxAgeSeconds: 7 * 24 * 60 * 60,
-          }),
-        ],
-      }),
-    },
     {
       matcher: /^https:\/\/static\.exercisedb\.dev\/.*/i,
       handler: new CacheFirst({
@@ -43,6 +30,18 @@ const serwist = new Serwist({
       }),
     },
     {
+      matcher: /\/api\/exercises/i,
+      handler: new StaleWhileRevalidate({
+        cacheName: 'exercise-db',
+        plugins: [
+          new ExpirationPlugin({
+            maxEntries: 100,
+            maxAgeSeconds: 7 * 24 * 60 * 60,
+          }),
+        ],
+      }),
+    },
+    {
       matcher: /^https:\/\/.*\.supabase\.co\/(auth|rest|storage)\/.*/i,
       handler: new NetworkOnly(),
     },
@@ -50,6 +49,7 @@ const serwist = new Serwist({
       matcher: /^https:\/\/accounts\.google\.com\/.*/i,
       handler: new NetworkOnly(),
     },
+    ...defaultCache,
   ],
 })
 

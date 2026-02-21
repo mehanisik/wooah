@@ -9,6 +9,13 @@ export const metadata: Metadata = {
   title: 'IRON PPL — Hypertrophy Tracker',
   description:
     '6-day Push/Pull/Legs hypertrophy tracker with progressive overload, volume science, and mesocycle management.',
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: '48x48' },
+      { url: '/icon.svg', type: 'image/svg+xml' },
+    ],
+    apple: [{ url: '/apple-touch-icon-180x180.png', sizes: '180x180' }],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
