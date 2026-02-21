@@ -93,6 +93,7 @@ jobs:
         with:
           name: nextjs-build
           path: .next
+          include-hidden-files: true
           retention-days: 1
 
   # Phase 3 — needs build artifact
