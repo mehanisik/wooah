@@ -18,7 +18,7 @@ const serwist = new Serwist({
   navigationPreload: true,
   runtimeCaching: [
     {
-      matcher: /^https:\/\/static\.exercisedb\.dev\/.*/i,
+      matcher: /\/api\/gif\?/i,
       handler: new CacheFirst({
         cacheName: 'exercise-gifs',
         plugins: [

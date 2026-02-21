@@ -13,6 +13,7 @@ export interface ExerciseDbEntry {
 }
 
 const API_BASE = '/api/exercises'
+const GIF_PROXY = '/api/gif?url='
 const CACHE_KEY = 'exercisedb_cache'
 const CACHE_TTL = 7 * 24 * 60 * 60 * 1000 // 7 days
 
@@ -132,10 +133,14 @@ async function fetchAllExercises(): Promise<ExerciseDbEntry[]> {
     if (!exercises.length) break
 
     for (const ex of exercises) {
+      const rawGif: string = ex.gifUrl ?? ''
+      const gifUrl = rawGif.startsWith('https://static.exercisedb.dev/')
+        ? GIF_PROXY + encodeURIComponent(rawGif)
+        : rawGif
       all.push({
         exerciseId: ex.exerciseId ?? ex.id ?? '',
         name: ex.name ?? '',
-        gifUrl: ex.gifUrl ?? '',
+        gifUrl,
         targetMuscles: ex.targetMuscles ?? (ex.target ? [ex.target] : []),
         bodyParts: ex.bodyParts ?? (ex.bodyPart ? [ex.bodyPart] : []),
         equipments: ex.equipments ?? (ex.equipment ? [ex.equipment] : []),

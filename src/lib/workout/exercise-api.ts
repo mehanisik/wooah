@@ -1,5 +1,13 @@
 const API_BASE = '/api/exercises'
+const GIF_PROXY = '/api/gif?url='
 const cache = new Map<string, string | null>()
+
+function proxyGif(url: string): string {
+  if (url.startsWith('https://static.exercisedb.dev/')) {
+    return GIF_PROXY + encodeURIComponent(url)
+  }
+  return url
+}
 
 const NAME_MAP: Record<string, string> = {
   // Push A
@@ -115,16 +123,18 @@ export async function getExerciseGif(
       (e: { name?: string }) => e.name?.toLowerCase() === searchTerm
     )
     if (exact?.gifUrl) {
-      cache.set(key, exact.gifUrl)
-      return exact.gifUrl
+      const url = proxyGif(exact.gifUrl)
+      cache.set(key, url)
+      return url
     }
 
     const relevant = exercises.find(
       (e: { name?: string }) => e.name && isRelevantMatch(e.name, searchTerm)
     )
     if (relevant?.gifUrl) {
-      cache.set(key, relevant.gifUrl)
-      return relevant.gifUrl
+      const url = proxyGif(relevant.gifUrl)
+      cache.set(key, url)
+      return url
     }
 
     cache.set(key, null)
