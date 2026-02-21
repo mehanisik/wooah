@@ -36,13 +36,12 @@ function getStreaks(
   }
 
   streak = 0
-  for (let w = currentWeek; w >= 1; w--) {
+  outer: for (let w = currentWeek; w >= 1; w--) {
     for (let d = 5; d >= 0; d--) {
       if (finishedDays[`w${w}-d${d}`]) {
         streak++
       } else if (streak > 0) {
-        current = streak
-        return { current, longest }
+        break outer
       }
     }
   }

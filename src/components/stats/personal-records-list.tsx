@@ -1,10 +1,18 @@
 'use client'
 
 import { Trophy } from 'lucide-react'
+import { formatDateShort } from '@/lib/format'
 import {
   getEffectiveProgram,
   useWorkoutStore,
 } from '@/lib/store/use-workout-store'
+import { ChartCard } from './chart-card'
+
+const TROPHY_STYLES = [
+  'text-yellow-400 dark:drop-shadow-[0_0_4px_rgba(250,204,21,0.6)]',
+  'text-zinc-400 dark:drop-shadow-[0_0_4px_rgba(161,161,170,0.5)]',
+  'text-amber-600 dark:drop-shadow-[0_0_4px_rgba(217,119,6,0.5)]',
+] as const
 
 export function PersonalRecordsList() {
   const records = useWorkoutStore((s) => s.personalRecords)
@@ -25,36 +33,26 @@ export function PersonalRecordsList() {
     }))
     .sort((a, b) => b.volume - a.volume)
 
-  if (entries.length === 0) {
-    return (
-      <div className="rounded-lg border border-border bg-card px-4 py-3 text-center">
-        <p className="text-muted-foreground text-xs">No personal records yet</p>
-      </div>
-    )
-  }
-
   return (
-    <div className="rounded-lg border border-border bg-card px-4 py-3">
-      <h3 className="mb-2 font-display text-sm tracking-wider">
-        PERSONAL RECORDS
-      </h3>
+    <ChartCard title="PERSONAL RECORDS" empty={entries.length === 0}>
       <div className="space-y-1">
         {entries.slice(0, 15).map((pr, i) => (
           <div key={i} className="flex items-center gap-2 py-0.5">
-            <Trophy className="h-3 w-3 flex-shrink-0 text-warning" />
+            <Trophy
+              className={`h-3 w-3 flex-shrink-0 ${
+                i < 3 ? TROPHY_STYLES[i] : 'text-warning'
+              }`}
+            />
             <span className="flex-1 truncate font-body text-xs">{pr.name}</span>
             <span className="font-mono text-[10px] text-muted-foreground">
               {pr.volume.toLocaleString()}kg
             </span>
             <span className="text-[9px] text-muted-foreground">
-              {new Date(pr.date).toLocaleDateString('en-GB', {
-                month: 'short',
-                day: 'numeric',
-              })}
+              {formatDateShort(new Date(pr.date))}
             </span>
           </div>
         ))}
       </div>
-    </div>
+    </ChartCard>
   )
 }

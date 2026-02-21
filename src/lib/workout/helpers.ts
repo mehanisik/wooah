@@ -41,11 +41,6 @@ export function formatDuration(totalSec: number): string {
   return `${m}:${s.toString().padStart(2, '0')}`
 }
 
-export function formatTimeShort(iso: string): string {
-  const d = new Date(iso)
-  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-}
-
 export function haptic(ms = 10) {
   navigator.vibrate?.(ms)
 }

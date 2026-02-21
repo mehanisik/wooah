@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useEffectEvent, useRef, useState } from 'react'
 
 interface RestTimerState {
   endAt: number
@@ -19,40 +19,37 @@ export function useRestTimer() {
   const [remaining, setRemaining] = useState(0)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  const stop = useCallback(() => {
+  const stop = () => {
     if (intervalRef.current) {
       clearInterval(intervalRef.current)
       intervalRef.current = null
     }
     setState({ endAt: 0, total: 0, label: '', active: false })
     setRemaining(0)
-  }, [])
+  }
 
-  const start = useCallback(
-    (seconds: number, label = 'Rest') => {
-      stop()
-      const endAt = Date.now() + seconds * 1000
-      setState({ endAt, total: seconds, label, active: true })
-      setRemaining(seconds)
-    },
-    [stop]
-  )
+  const start = (seconds: number, label = 'Rest') => {
+    stop()
+    const endAt = Date.now() + seconds * 1000
+    setState({ endAt, total: seconds, label, active: true })
+    setRemaining(seconds)
+  }
+
+  const tick = useEffectEvent(() => {
+    const left = Math.round((state.endAt - Date.now()) / 1000)
+    if (left <= 0) {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+      intervalRef.current = null
+      navigator.vibrate?.([100, 50, 100])
+      setState((prev) => ({ ...prev, active: false }))
+      setRemaining(0)
+    } else {
+      setRemaining(left)
+    }
+  })
 
   useEffect(() => {
     if (!state.active) return
-
-    const tick = () => {
-      const left = Math.round((state.endAt - Date.now()) / 1000)
-      if (left <= 0) {
-        if (intervalRef.current) clearInterval(intervalRef.current)
-        intervalRef.current = null
-        navigator.vibrate?.([100, 50, 100])
-        setState((prev) => ({ ...prev, active: false }))
-        setRemaining(0)
-      } else {
-        setRemaining(left)
-      }
-    }
 
     tick()
     intervalRef.current = setInterval(tick, 1000)
@@ -60,7 +57,7 @@ export function useRestTimer() {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current)
     }
-  }, [state.active, state.endAt])
+  }, [state.active])
 
   return {
     remaining,

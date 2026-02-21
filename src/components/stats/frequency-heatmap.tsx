@@ -6,6 +6,7 @@ import {
   useWorkoutStore,
 } from '@/lib/store/use-workout-store'
 import { cn } from '@/lib/utils'
+import { ChartCard } from './chart-card'
 
 export function FrequencyHeatmap() {
   const currentWeek = useWorkoutStore((s) => s.currentWeek)
@@ -38,10 +39,13 @@ export function FrequencyHeatmap() {
   }
 
   const days = ['M', 'T', 'W', 'T', 'F', 'S']
+  const maxCell = Math.max(
+    ...MUSCLE_GROUPS.flatMap((g) => Object.values(grid[g])),
+    1
+  )
 
   return (
-    <div className="rounded-lg border border-border bg-card px-4 py-3">
-      <h3 className="mb-2 font-display text-sm tracking-wider">FREQUENCY</h3>
+    <ChartCard title="FREQUENCY">
       <div className="overflow-x-auto">
         <table className="w-full text-[10px]">
           <thead>
@@ -80,10 +84,20 @@ export function FrequencyHeatmap() {
                   </td>
                   {days.map((_, i) => {
                     const val = grid[group][i] || 0
+                    const intensity = val > 0 ? Math.min(val / maxCell, 1) : 0
                     return (
                       <td key={i} className="text-center font-mono">
                         {val > 0 ? (
-                          <span className="inline-block h-5 w-5 rounded-sm bg-primary/20 text-foreground leading-5">
+                          <span
+                            className="inline-block h-5 w-5 rounded-sm text-foreground leading-5"
+                            style={{
+                              backgroundColor: `hsl(var(--primary) / ${0.1 + intensity * 0.35})`,
+                              boxShadow:
+                                intensity > 0.3
+                                  ? `0 0 ${4 + intensity * 4}px hsl(var(--primary) / ${intensity * 0.3})`
+                                  : undefined,
+                            }}
+                          >
                             {val}
                           </span>
                         ) : (
@@ -106,6 +120,6 @@ export function FrequencyHeatmap() {
           </tbody>
         </table>
       </div>
-    </div>
+    </ChartCard>
   )
 }

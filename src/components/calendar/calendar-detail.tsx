@@ -1,6 +1,7 @@
 'use client'
 
 import { Trophy, X } from 'lucide-react'
+import { formatDate, parseLocalDate } from '@/lib/format'
 import {
   getEffectiveProgram,
   useWorkoutStore,
@@ -17,7 +18,7 @@ export function CalendarDetail({ date, onClose }: CalendarDetailProps) {
   const startDate = useWorkoutStore((s) => s.startDate)
   const timers = useWorkoutStore((s) => s.workoutTimers)
 
-  const d = new Date(date)
+  const d = parseLocalDate(date)
   const dow = d.getDay()
   const dayIdx = dow === 0 ? 6 : dow - 1
   if (dayIdx >= 6 || !startDate) return null
@@ -51,7 +52,7 @@ export function CalendarDetail({ date, onClose }: CalendarDetailProps) {
     return vol + ex.entry.weight * ex.entry.reps
   }, 0)
 
-  const dateLabel = d.toLocaleDateString('en-GB', {
+  const dateLabel = formatDate(d, {
     weekday: 'short',
     day: 'numeric',
     month: 'short',

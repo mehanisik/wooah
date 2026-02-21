@@ -1,12 +1,12 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useState } from 'react'
 import { type SyncStatus, syncToSupabase } from '@/lib/supabase/sync'
 
 export function useSync() {
   const [status, setStatus] = useState<SyncStatus>('idle')
 
-  const sync = useCallback(async (dayIdx: number) => {
+  const sync = async (dayIdx: number) => {
     setStatus('syncing')
     try {
       await syncToSupabase(dayIdx)
@@ -16,7 +16,7 @@ export function useSync() {
       setStatus('error')
       setTimeout(() => setStatus('idle'), 5000)
     }
-  }, [])
+  }
 
   return { status, sync }
 }

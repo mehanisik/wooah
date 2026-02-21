@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
 
 const WORK_TIME = 45
 const REST_TIME = 15
@@ -111,28 +111,35 @@ export function useCircuitTimer(
     }
   }, [items.length, onItemComplete, onFinish, stop])
 
-  useEffect(() => {
-    if (!state || state.phase === 'done' || state.paused) return
-    if (intervalRef.current) clearInterval(intervalRef.current)
+  const tick = useEffectEvent(() => {
+    const s = stateRef.current
+    if (!s) return
+    const left = Math.max(0, Math.round((s.endAt - Date.now()) / 1000))
+    setRemaining(left)
 
-    const tick = () => {
-      const left = Math.max(0, Math.round((state.endAt - Date.now()) / 1000))
-      setRemaining(left)
-
-      if (left <= 4 && left > 0 && state.phase !== 'prepare') {
-        const now = Date.now()
-        if (now - lastBeepRef.current > 800) {
-          beep(660, 100)
-          lastBeepRef.current = now
-        }
-      }
-
-      if (left <= 0) {
-        if (intervalRef.current) clearInterval(intervalRef.current)
-        intervalRef.current = null
-        setTimeout(advancePhase, 0)
+    if (left <= 4 && left > 0 && s.phase !== 'prepare') {
+      const now = Date.now()
+      if (now - lastBeepRef.current > 800) {
+        beep(660, 100)
+        lastBeepRef.current = now
       }
     }
+
+    if (left <= 0) {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+      intervalRef.current = null
+      setTimeout(advancePhase, 0)
+    }
+  })
+
+  const phase = state?.phase
+  const currentIdx = state?.currentIdx
+  const paused = state?.paused
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: currentIdx restarts interval on exercise advance
+  useEffect(() => {
+    if (!phase || phase === 'done' || paused) return
+    if (intervalRef.current) clearInterval(intervalRef.current)
 
     tick()
     intervalRef.current = setInterval(tick, 1000)
@@ -140,14 +147,7 @@ export function useCircuitTimer(
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current)
     }
-  }, [
-    state?.phase,
-    state?.currentIdx,
-    state?.paused,
-    state?.endAt,
-    advancePhase,
-    state,
-  ])
+  }, [phase, currentIdx, paused])
 
   const start = useCallback((startIdx: number) => {
     setState({

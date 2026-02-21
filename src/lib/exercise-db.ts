@@ -12,7 +12,7 @@ export interface ExerciseDbEntry {
   secondaryMuscles: string[]
 }
 
-const API_BASE = 'https://exercisedb-api.vercel.app/api/v1/exercises'
+const API_BASE = '/api/exercises'
 const CACHE_KEY = 'exercisedb_cache'
 const CACHE_TTL = 7 * 24 * 60 * 60 * 1000 // 7 days
 

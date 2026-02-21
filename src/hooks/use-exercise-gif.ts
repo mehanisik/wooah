@@ -18,16 +18,21 @@ function findInCache(exerciseName: string): string | null {
 
     for (const e of entries) {
       const n = e.name?.toLowerCase()
-      if (!n || !e.gifUrl) continue
+      if (!(n && e.gifUrl)) continue
       if (n === lower || n === normalized) return e.gifUrl
     }
 
-    // partial: check if normalized name is contained in API name or vice versa
+    // partial: pick the shortest name that contains the normalized term (most specific match)
+    let best: { url: string; len: number } | null = null
     for (const e of entries) {
       const n = e.name?.toLowerCase()
-      if (!n || !e.gifUrl) continue
-      if (n.includes(normalized) || normalized.includes(n)) return e.gifUrl
+      if (!(n && e.gifUrl)) continue
+      if (!n.includes(normalized)) continue
+      if (!best || n.length < best.len) {
+        best = { url: e.gifUrl, len: n.length }
+      }
     }
+    if (best) return best.url
 
     return null
   } catch {
@@ -35,11 +40,13 @@ function findInCache(exerciseName: string): string | null {
   }
 }
 
-export function useExerciseGif(exerciseName: string, enabled: boolean) {
-  const [gifUrl, setGifUrl] = useState<string | null>(null)
+export function useExerciseGif(exerciseName: string) {
+  const [gifUrl, setGifUrl] = useState<string | null>(() =>
+    findInCache(exerciseName)
+  )
 
   useEffect(() => {
-    if (!enabled) return
+    if (gifUrl) return
 
     const cached = findInCache(exerciseName)
     if (cached) {
@@ -49,7 +56,7 @@ export function useExerciseGif(exerciseName: string, enabled: boolean) {
 
     let cancelled = false
 
-    // cache may still be loading from API — retry after delay
+    // cache may still be loading from API — retry after short delay
     const timer = setTimeout(() => {
       if (cancelled) return
       const retry = findInCache(exerciseName)
@@ -60,13 +67,13 @@ export function useExerciseGif(exerciseName: string, enabled: boolean) {
       getExerciseGif(exerciseName).then((url) => {
         if (!cancelled && url) setGifUrl(url)
       })
-    }, 3000)
+    }, 1000)
 
     return () => {
       cancelled = true
       clearTimeout(timer)
     }
-  }, [exerciseName, enabled])
+  }, [exerciseName, gifUrl])
 
   return gifUrl
 }

@@ -10,9 +10,25 @@ const withSerwist = withSerwistInit({
 })
 
 const nextConfig: NextConfig = {
+  reactStrictMode: true,
+  reactCompiler: true,
+  poweredByHeader: false,
+  compress: true,
   images: { unoptimized: true },
+  turbopack: {},
+  compiler: {
+    removeConsole:
+      process.env.NODE_ENV === 'production'
+        ? { exclude: ['error', 'warn'] }
+        : false,
+  },
   experimental: {
-    viewTransition: true,
+    optimizePackageImports: [
+      'lucide-react',
+      'recharts',
+      'radix-ui',
+      'zustand',
+    ],
   },
 }
 

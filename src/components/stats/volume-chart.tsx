@@ -1,19 +1,37 @@
 'use client'
 
 import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
+import {
   getEffectiveProgram,
   useWorkoutStore,
 } from '@/lib/store/use-workout-store'
+import { ChartCard } from './chart-card'
+import { ChartLegend } from './chart-legend'
+import {
+  AXIS_STYLE,
+  CHART_COLORS,
+  GRID_STYLE,
+  TOOLTIP_STYLE,
+} from './chart-theme'
 
 export function VolumeChart() {
   const currentWeek = useWorkoutStore((s) => s.currentWeek)
   const history = useWorkoutStore((s) => s.history)
 
-  const weeks: { week: number; push: number; pull: number; legs: number }[] = []
+  const weeks: { label: string; push: number; pull: number; legs: number }[] =
+    []
   const startWeek = Math.max(1, currentWeek - 7)
 
   for (let w = startWeek; w <= currentWeek; w++) {
-    const row = { week: w, push: 0, pull: 0, legs: 0 }
+    const row = { label: `W${w}`, push: 0, pull: 0, legs: 0 }
     for (let d = 0; d < 6; d++) {
       const prog = getEffectiveProgram(d)
       const type = prog.type as 'push' | 'pull' | 'legs'
@@ -31,77 +49,69 @@ export function VolumeChart() {
     weeks.push(row)
   }
 
-  const maxVol = Math.max(...weeks.map((w) => w.push + w.pull + w.legs), 1)
+  const thisWeek = weeks[weeks.length - 1]
+  const prevWeek = weeks[weeks.length - 2]
+  const thisTotal = thisWeek ? thisWeek.push + thisWeek.pull + thisWeek.legs : 0
+  const prevTotal = prevWeek ? prevWeek.push + prevWeek.pull + prevWeek.legs : 0
+  const change = prevTotal > 0 ? Math.round(thisTotal - prevTotal) : 0
+  const headlineStr =
+    thisTotal >= 1000 ? `${(thisTotal / 1000).toFixed(1)}t` : `${thisTotal}kg`
 
-  const typeColors = {
-    push: 'bg-[var(--push-color)]',
-    pull: 'bg-[var(--pull-color)]',
-    legs: 'bg-[var(--legs-color)]',
-  }
+  const hasData = weeks.some((w) => w.push + w.pull + w.legs > 0)
 
   return (
-    <div className="rounded-lg border border-border bg-card px-4 py-3">
-      <h3 className="mb-3 font-display text-sm tracking-wider">
-        WEEKLY VOLUME
-      </h3>
-      {weeks.length === 0 ? (
-        <p className="py-4 text-center text-muted-foreground text-xs">
-          No data yet
-        </p>
-      ) : (
-        <>
-          <div className="flex h-28 items-end gap-1">
-            {weeks.map((w) => {
-              const total = w.push + w.pull + w.legs
-              const h = (total / maxVol) * 100
-              const pushH = total > 0 ? (w.push / total) * h : 0
-              const pullH = total > 0 ? (w.pull / total) * h : 0
-              const legsH = total > 0 ? (w.legs / total) * h : 0
-              return (
-                <div
-                  key={w.week}
-                  className="flex h-full flex-1 flex-col items-center justify-end"
-                >
-                  <div
-                    className="flex w-full flex-col-reverse"
-                    style={{ height: `${h}%` }}
-                  >
-                    <div
-                      className={`${typeColors.push} w-full rounded-b-sm`}
-                      style={{ height: `${pushH}%` }}
-                    />
-                    <div
-                      className={`${typeColors.pull} w-full`}
-                      style={{ height: `${pullH}%` }}
-                    />
-                    <div
-                      className={`${typeColors.legs} w-full rounded-t-sm`}
-                      style={{ height: `${legsH}%` }}
-                    />
-                  </div>
-                  <span className="mt-0.5 font-mono text-[8px] text-muted-foreground">
-                    W{w.week}
-                  </span>
-                </div>
-              )
-            })}
-          </div>
-          <div className="mt-2 flex justify-center gap-3 text-[9px] text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <span className="h-2 w-2 rounded-sm bg-[var(--push-color)]" />{' '}
-              Push
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="h-2 w-2 rounded-sm bg-[var(--pull-color)]" />{' '}
-              Pull
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="h-2 w-2 rounded-sm bg-[var(--legs-color)]" />{' '}
-              Legs
-            </span>
-          </div>
-        </>
-      )}
-    </div>
+    <ChartCard
+      title="WEEKLY VOLUME"
+      headline={headlineStr}
+      change={change}
+      changeLabel="kg"
+      empty={!hasData}
+      footer={
+        <ChartLegend
+          items={[
+            { color: CHART_COLORS.push, label: 'Push' },
+            { color: CHART_COLORS.pull, label: 'Pull' },
+            { color: CHART_COLORS.legs, label: 'Legs' },
+          ]}
+        />
+      }
+    >
+      <ResponsiveContainer width="100%" height={120}>
+        <BarChart data={weeks} barCategoryGap="20%">
+          <CartesianGrid vertical={false} {...GRID_STYLE} />
+          <XAxis
+            dataKey="label"
+            tickLine={false}
+            axisLine={false}
+            {...AXIS_STYLE}
+          />
+          <YAxis hide />
+          <Tooltip
+            {...TOOLTIP_STYLE}
+            formatter={(val: number) =>
+              val >= 1000 ? `${(val / 1000).toFixed(1)}t` : `${val}kg`
+            }
+          />
+          <Bar
+            dataKey="push"
+            stackId="vol"
+            fill={CHART_COLORS.push}
+            radius={[0, 0, 0, 0]}
+          />
+          <Bar
+            dataKey="pull"
+            stackId="vol"
+            fill={CHART_COLORS.pull}
+            radius={[0, 0, 0, 0]}
+          />
+          <Bar
+            dataKey="legs"
+            stackId="vol"
+            fill={CHART_COLORS.legs}
+            radius={[2, 2, 0, 0]}
+          />
+        </BarChart>
+      </ResponsiveContainer>
+    </ChartCard>
   )
 }

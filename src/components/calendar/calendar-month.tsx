@@ -1,6 +1,7 @@
 'use client'
 
 import { PROGRAM } from '@/lib/data/program'
+import { formatMonthYear } from '@/lib/format'
 import { useWorkoutStore } from '@/lib/store/use-workout-store'
 import { cn } from '@/lib/utils'
 
@@ -69,10 +70,7 @@ export function CalendarMonth({
   for (let i = 0; i < startCol; i++) cells.push(null)
   for (let d = 1; d <= daysInMonth; d++) cells.push(d)
 
-  const monthName = month.toLocaleDateString('en-US', {
-    month: 'long',
-    year: 'numeric',
-  })
+  const monthName = formatMonthYear(month)
 
   return (
     <div className="rounded-lg border border-border bg-card px-3 py-2">

@@ -22,7 +22,7 @@ export function RestTimerBar({ timer }: RestTimerBarProps) {
   const isDone = timer.remaining <= 0
 
   return (
-    <div className="fixed right-0 bottom-14 left-0 z-30 safe-area-mb px-3 pb-2">
+    <div className="safe-area-mb fixed right-0 bottom-14 left-0 z-30 px-3 pb-2">
       <div className="mx-auto max-w-lg">
         <div
           className={cn(

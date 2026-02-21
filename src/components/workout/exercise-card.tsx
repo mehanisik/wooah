@@ -37,7 +37,7 @@ export function ExerciseCard({
   const [open, setOpen] = useState(false)
   const [showGif, setShowGif] = useState(false)
   const displayName = useDisplayName(dayIdx, exIdx)
-  const gifUrl = useExerciseGif(displayName, open)
+  const gifUrl = useExerciseGif(displayName)
   const extraSets = useWorkoutStore((s) => selectExtraSets(s, dayIdx, exIdx))
   const addExtraSet = useWorkoutStore((s) => s.addExtraSet)
   const totalSets = exercise.sets + extraSets
@@ -72,9 +72,8 @@ export function ExerciseCard({
         aria-expanded={open}
       >
         {gifUrl ? (
-          <span
-            role="button"
-            tabIndex={0}
+          <button
+            type="button"
             onClick={(e) => {
               e.stopPropagation()
               setShowGif(!showGif)
@@ -103,7 +102,7 @@ export function ExerciseCard({
                 allDone ? 'ring-success' : 'ring-surface-2'
               )}
             />
-          </span>
+          </button>
         ) : (
           <span
             className={cn(

@@ -263,6 +263,36 @@
   .safe-area-mb {
     margin-bottom: env(safe-area-inset-bottom, 0px);
   }
+
+  .chart-card {
+    @apply rounded-lg border border-border bg-card px-4 py-3;
+  }
+  .dark .chart-card {
+    box-shadow: 0 1px 12px -2px rgba(0, 0, 0, 0.5);
+    border-color: hsl(var(--border) / 0.6);
+  }
+  .glow-push {
+    box-shadow: 0 0 8px var(--push-color);
+  }
+  .glow-pull {
+    box-shadow: 0 0 8px var(--pull-color);
+  }
+  .glow-legs {
+    box-shadow: 0 0 8px var(--legs-color);
+  }
+  .glow-brand {
+    box-shadow: 0 0 8px var(--brand);
+  }
+  .glow-success {
+    box-shadow: 0 0 8px var(--green);
+  }
+}
+
+.dark .recharts-bar-rectangle path {
+  filter: drop-shadow(0 0 4px currentColor);
+}
+.dark .recharts-area-curve {
+  filter: drop-shadow(0 0 6px currentColor);
 }
 
 @media (prefers-reduced-motion: reduce) {

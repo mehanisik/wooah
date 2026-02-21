@@ -11,21 +11,37 @@ import {
   useWorkoutStore,
 } from '@/lib/store/use-workout-store'
 import { cn } from '@/lib/utils'
+import { ChartCard } from './chart-card'
+import { ChartLegend } from './chart-legend'
 
-function getVolumeZoneColor(sets: number, group: MuscleGroup) {
-  const lm = VOLUME_LANDMARKS[group]
-  if (sets < lm.mev) return 'bg-muted-foreground/30'
-  if (sets <= lm.mav) return 'bg-success'
-  if (sets <= lm.mrv) return 'bg-warning'
-  return 'bg-destructive'
+const ZONE_CONFIG: Record<
+  string,
+  { bg: string; color: string; glowColor: string }
+> = {
+  under: { bg: 'bg-muted-foreground/30', color: '', glowColor: '' },
+  optimal: {
+    bg: 'bg-success',
+    color: 'var(--green)',
+    glowColor: 'var(--green)',
+  },
+  pushing: {
+    bg: 'bg-warning',
+    color: 'var(--yellow)',
+    glowColor: 'var(--yellow)',
+  },
+  over: {
+    bg: 'bg-destructive',
+    color: 'hsl(var(--destructive))',
+    glowColor: 'hsl(var(--destructive))',
+  },
 }
 
-function _getVolumeZoneLabel(sets: number, group: MuscleGroup) {
+function getZone(sets: number, group: MuscleGroup) {
   const lm = VOLUME_LANDMARKS[group]
-  if (sets < lm.mev) return 'Under'
-  if (sets <= lm.mav) return 'Optimal'
-  if (sets <= lm.mrv) return 'Pushing'
-  return 'Over MRV'
+  if (sets < lm.mev) return ZONE_CONFIG.under
+  if (sets <= lm.mav) return ZONE_CONFIG.optimal
+  if (sets <= lm.mrv) return ZONE_CONFIG.pushing
+  return ZONE_CONFIG.over
 }
 
 export function MuscleVolumeChart() {
@@ -58,15 +74,25 @@ export function MuscleVolumeChart() {
   const maxMRV = Math.max(...MUSCLE_GROUPS.map((g) => VOLUME_LANDMARKS[g].mrv))
 
   return (
-    <div className="rounded-lg border border-border bg-card px-4 py-3">
-      <h3 className="mb-3 font-display text-sm tracking-wider">
-        WEEKLY VOLUME
-      </h3>
+    <ChartCard
+      title="MUSCLE VOLUME"
+      footer={
+        <ChartLegend
+          items={[
+            { color: 'hsl(var(--muted-foreground) / 0.3)', label: 'Under' },
+            { color: 'var(--green)', label: 'Optimal' },
+            { color: 'var(--yellow)', label: 'Pushing' },
+            { color: 'hsl(var(--destructive))', label: 'Over' },
+          ]}
+        />
+      }
+    >
       <div className="space-y-1.5">
         {MUSCLE_GROUPS.map((group) => {
           const sets = Math.round(weeklyVolume[group] || 0)
           const lm = VOLUME_LANDMARKS[group]
           const pct = Math.min(100, (sets / maxMRV) * 100)
+          const zone = getZone(sets, group)
 
           return (
             <div key={group} className="flex items-center gap-2">
@@ -75,11 +101,14 @@ export function MuscleVolumeChart() {
               </span>
               <div className="relative h-4 flex-1 overflow-hidden rounded-sm bg-muted">
                 <div
-                  className={cn(
-                    'h-full rounded-sm transition-all',
-                    getVolumeZoneColor(sets, group)
-                  )}
-                  style={{ width: `${pct}%` }}
+                  className={cn('h-full rounded-sm transition-all', zone.bg)}
+                  style={{
+                    width: `${pct}%`,
+                    boxShadow:
+                      zone.glowColor && sets > 0
+                        ? `0 0 6px ${zone.glowColor}`
+                        : undefined,
+                  }}
                 />
                 <div
                   className="absolute top-0 h-full w-px bg-foreground/30"
@@ -99,20 +128,6 @@ export function MuscleVolumeChart() {
           )
         })}
       </div>
-      <div className="mt-2 flex justify-center gap-3 text-[9px] text-muted-foreground">
-        <span className="flex items-center gap-1">
-          <span className="h-2 w-2 rounded-sm bg-muted-foreground/30" /> Under
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="h-2 w-2 rounded-sm bg-success" /> Optimal
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="h-2 w-2 rounded-sm bg-warning" /> Pushing
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="h-2 w-2 rounded-sm bg-destructive" /> Over
-        </span>
-      </div>
-    </div>
+    </ChartCard>
   )
 }

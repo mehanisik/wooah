@@ -24,7 +24,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     }
     initWeek()
     setReady(true)
-    loadExerciseDb().catch(() => {})
+    loadExerciseDb().catch(() => undefined)
   }, [authLoading, user, initWeek, mergeState])
 
   if (authLoading) {
@@ -68,7 +68,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-dvh flex-col bg-background">
       <Header />
-      <main className="mx-auto w-full max-w-lg flex-1 px-4 pb-20 safe-area-mb">
+      <main className="safe-area-mb mx-auto w-full max-w-lg flex-1 px-4 pb-20">
         {children}
       </main>
       <NavBar />

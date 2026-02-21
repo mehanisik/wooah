@@ -1,6 +1,14 @@
 'use client'
 
 import { useState } from 'react'
+import {
+  Bar,
+  BarChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -13,6 +21,8 @@ import {
   getEffectiveProgram,
   useWorkoutStore,
 } from '@/lib/store/use-workout-store'
+import { ChartCard } from './chart-card'
+import { CHART_COLORS, TOOLTIP_STYLE } from './chart-theme'
 
 type Range = 'all' | '6m' | '3m' | '1m'
 
@@ -46,18 +56,35 @@ export function ExerciseComparison() {
   }
 
   const dataA = filterByRange(oneRmHistory[exA] || [])
+    .slice(-10)
+    .map((e, i) => ({ idx: i + 1, value: e.value }))
   const dataB = filterByRange(oneRmHistory[exB] || [])
-  const maxVal = Math.max(
-    ...dataA.map((e) => e.value),
-    ...dataB.map((e) => e.value),
-    1
-  )
+    .slice(-10)
+    .map((e, i) => ({ idx: i + 1, value: e.value }))
 
   const ranges: Range[] = ['all', '6m', '3m', '1m']
+  const empty = dataA.length === 0 && dataB.length === 0
 
   return (
-    <div className="rounded-lg border border-border bg-card px-4 py-3">
-      <h3 className="mb-2 font-display text-sm tracking-wider">1RM COMPARE</h3>
+    <ChartCard
+      title="1RM COMPARE"
+      action={
+        <div className="flex gap-1">
+          {ranges.map((r) => (
+            <Button
+              key={r}
+              variant={range === r ? 'default' : 'outline'}
+              size="sm"
+              className="h-6 px-2 text-[10px]"
+              onClick={() => setRange(r)}
+            >
+              {r.toUpperCase()}
+            </Button>
+          ))}
+        </div>
+      }
+      empty={empty}
+    >
       <div className="mb-2 flex gap-2">
         <Select value={exA} onValueChange={setExA}>
           <SelectTrigger className="h-7 flex-1 text-[10px]">
@@ -84,64 +111,51 @@ export function ExerciseComparison() {
           </SelectContent>
         </Select>
       </div>
-      <div className="mb-3 flex justify-center gap-1">
-        {ranges.map((r) => (
-          <Button
-            key={r}
-            variant={range === r ? 'default' : 'outline'}
-            size="sm"
-            className="h-6 px-2 text-[10px]"
-            onClick={() => setRange(r)}
-          >
-            {r.toUpperCase()}
-          </Button>
-        ))}
-      </div>
-      {dataA.length === 0 && dataB.length === 0 ? (
-        <p className="py-4 text-center text-muted-foreground text-xs">
-          No 1RM data yet
-        </p>
-      ) : (
-        <div className="flex h-28 gap-2">
-          <div className="flex-1">
-            <div className="mb-1 truncate text-center text-[9px] text-muted-foreground">
-              {nameMap[exA] || '—'}
-            </div>
-            <div className="flex h-20 items-end gap-0.5">
-              {dataA.slice(-10).map((e, i) => (
-                <div
-                  key={i}
-                  className="flex h-full flex-1 flex-col items-center justify-end"
-                >
-                  <div
-                    className="min-h-[2px] w-full rounded-t-sm bg-primary"
-                    style={{ height: `${(e.value / maxVal) * 100}%` }}
-                  />
-                </div>
-              ))}
-            </div>
+      <div className="flex gap-2">
+        <div className="flex-1">
+          <div className="mb-1 truncate text-center text-[9px] text-muted-foreground">
+            {nameMap[exA] || '—'}
           </div>
-          <div className="w-px bg-border" />
-          <div className="flex-1">
-            <div className="mb-1 truncate text-center text-[9px] text-muted-foreground">
-              {nameMap[exB] || '—'}
-            </div>
-            <div className="flex h-20 items-end gap-0.5">
-              {dataB.slice(-10).map((e, i) => (
-                <div
-                  key={i}
-                  className="flex h-full flex-1 flex-col items-center justify-end"
-                >
-                  <div
-                    className="min-h-[2px] w-full rounded-t-sm bg-secondary-foreground/50"
-                    style={{ height: `${(e.value / maxVal) * 100}%` }}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
+          <ResponsiveContainer width="100%" height={80}>
+            <BarChart data={dataA} barCategoryGap="15%">
+              <XAxis hide />
+              <YAxis hide />
+              <Tooltip
+                {...TOOLTIP_STYLE}
+                formatter={(val: number) => [`${val}kg`, '1RM']}
+                labelFormatter={() => ''}
+              />
+              <Bar
+                dataKey="value"
+                fill={CHART_COLORS.primary}
+                radius={[2, 2, 0, 0]}
+              />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
-      )}
-    </div>
+        <div className="w-px bg-border" />
+        <div className="flex-1">
+          <div className="mb-1 truncate text-center text-[9px] text-muted-foreground">
+            {nameMap[exB] || '—'}
+          </div>
+          <ResponsiveContainer width="100%" height={80}>
+            <BarChart data={dataB} barCategoryGap="15%">
+              <XAxis hide />
+              <YAxis hide />
+              <Tooltip
+                {...TOOLTIP_STYLE}
+                formatter={(val: number) => [`${val}kg`, '1RM']}
+                labelFormatter={() => ''}
+              />
+              <Bar
+                dataKey="value"
+                fill={CHART_COLORS.muted}
+                radius={[2, 2, 0, 0]}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    </ChartCard>
   )
 }

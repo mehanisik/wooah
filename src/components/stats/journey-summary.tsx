@@ -1,7 +1,9 @@
 'use client'
 
+import { formatDate } from '@/lib/format'
 import { useWorkoutStore } from '@/lib/store/use-workout-store'
 import { formatDuration } from '@/lib/workout/helpers'
+import { ChartCard } from './chart-card'
 
 export function JourneySummary() {
   const totalSessions = useWorkoutStore((s) => s.totalSessions)
@@ -50,20 +52,19 @@ export function JourneySummary() {
     {
       label: 'SINCE',
       value: startDate
-        ? new Date(startDate).toLocaleDateString('en-GB', {
-            month: 'short',
-            year: '2-digit',
-          })
+        ? formatDate(new Date(startDate), { month: 'short', year: '2-digit' })
         : '—',
     },
   ]
 
   return (
-    <div className="rounded-lg border border-border bg-card px-4 py-3">
-      <h3 className="mb-2 font-display text-sm tracking-wider">JOURNEY</h3>
+    <ChartCard title="JOURNEY">
       <div className="grid grid-cols-3 gap-2">
         {stats.map((s) => (
-          <div key={s.label} className="text-center">
+          <div
+            key={s.label}
+            className="rounded-md bg-muted/50 px-2 py-1.5 text-center dark:bg-white/[0.03]"
+          >
             <div className="font-mono font-semibold text-lg">{s.value}</div>
             <div className="text-[9px] text-muted-foreground tracking-wide">
               {s.label}
@@ -71,6 +72,6 @@ export function JourneySummary() {
           </div>
         ))}
       </div>
-    </div>
+    </ChartCard>
   )
 }

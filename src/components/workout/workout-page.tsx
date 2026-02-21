@@ -1,9 +1,16 @@
 'use client'
 
-import { Plus, Trophy } from 'lucide-react'
+import { Pencil, Plus, Trophy } from 'lucide-react'
 import { useState } from 'react'
+import { ProgramEditor } from '@/components/program/program-editor'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet'
 import { useRestTimer } from '@/hooks/use-rest-timer'
 import { useWakeLock } from '@/hooks/use-wake-lock'
 import { useWorkoutClock } from '@/hooks/use-workout-clock'
@@ -38,6 +45,7 @@ export function WorkoutPage({ dayIdx }: WorkoutPageProps) {
 
   const [addModalOpen, setAddModalOpen] = useState(false)
   const [celebrationOpen, setCelebrationOpen] = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
 
   useWakeLock(!finished)
 
@@ -63,6 +71,15 @@ export function WorkoutPage({ dayIdx }: WorkoutPageProps) {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {!finished && (
+            <button
+              type="button"
+              onClick={() => setEditOpen(true)}
+              className="rounded-md p-1.5 text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <Pencil className="h-4 w-4" />
+            </button>
+          )}
           <Badge
             variant="outline"
             className={cn(
@@ -130,6 +147,19 @@ export function WorkoutPage({ dayIdx }: WorkoutPageProps) {
         open={celebrationOpen}
         onClose={() => setCelebrationOpen(false)}
       />
+
+      <Sheet open={editOpen} onOpenChange={setEditOpen}>
+        <SheetContent
+          side="bottom"
+          className="max-h-[85vh] overflow-y-auto"
+          showCloseButton={false}
+        >
+          <SheetHeader className="sr-only">
+            <SheetTitle>Edit Program</SheetTitle>
+          </SheetHeader>
+          <ProgramEditor dayIdx={dayIdx} onClose={() => setEditOpen(false)} />
+        </SheetContent>
+      </Sheet>
     </div>
   )
 }

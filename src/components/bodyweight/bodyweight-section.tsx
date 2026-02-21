@@ -2,8 +2,23 @@
 
 import { Scale } from 'lucide-react'
 import { useState } from 'react'
+import {
+  Area,
+  AreaChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
+import { ChartCard } from '@/components/stats/chart-card'
+import {
+  AXIS_STYLE,
+  CHART_COLORS,
+  TOOLTIP_STYLE,
+} from '@/components/stats/chart-theme'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { formatDateCompact } from '@/lib/format'
 import { useWorkoutStore } from '@/lib/store/use-workout-store'
 
 export function BodyweightSection() {
@@ -15,10 +30,12 @@ export function BodyweightSection() {
   const first = entries[0]
   const change =
     latest && first ? +(latest.weight - first.weight).toFixed(1) : 0
+
   const last14 = entries.slice(-14)
-  const maxW = Math.max(...last14.map((e) => e.weight), 1)
-  const minW = Math.min(...last14.map((e) => e.weight), maxW)
-  const range = maxW - minW || 1
+  const data = last14.map((e, i) => ({
+    label: i % 3 === 0 ? formatDateCompact(new Date(e.date)) : '',
+    weight: e.weight,
+  }))
 
   const handleSave = () => {
     const w = Number.parseFloat(value)
@@ -29,8 +46,12 @@ export function BodyweightSection() {
   }
 
   return (
-    <div className="rounded-lg border border-border bg-card px-4 py-3">
-      <h3 className="mb-2 font-display text-sm tracking-wider">BODYWEIGHT</h3>
+    <ChartCard
+      title="BODYWEIGHT"
+      headline={latest ? `${latest.weight}kg` : '—'}
+      change={change}
+      changeLabel="kg"
+    >
       <div className="mb-3 flex gap-2">
         <Input
           type="number"
@@ -48,46 +69,46 @@ export function BodyweightSection() {
         </Button>
       </div>
 
-      {latest && (
-        <div className="mb-3 flex gap-4 text-[10px]">
-          <span className="text-muted-foreground">
-            Current:{' '}
-            <span className="font-mono text-foreground">{latest.weight}kg</span>
-          </span>
-          {change !== 0 && (
-            <span className={change > 0 ? 'text-success' : 'text-destructive'}>
-              {change > 0 ? '+' : ''}
-              {change}kg
-            </span>
-          )}
-        </div>
-      )}
-
       {last14.length > 1 && (
-        <div className="flex h-16 items-end gap-1">
-          {last14.map((entry, i) => (
-            <div
-              key={i}
-              className="flex h-full flex-1 flex-col items-center justify-end"
-            >
-              <div
-                className="min-h-[2px] w-full rounded-t-sm bg-primary/60"
-                style={{
-                  height: `${15 + ((entry.weight - minW) / range) * 80}%`,
-                }}
-              />
-              {i % 3 === 0 && (
-                <span className="mt-0.5 font-mono text-[7px] text-muted-foreground">
-                  {new Date(entry.date).toLocaleDateString('en-GB', {
-                    month: 'numeric',
-                    day: 'numeric',
-                  })}
-                </span>
-              )}
-            </div>
-          ))}
-        </div>
+        <ResponsiveContainer width="100%" height={80}>
+          <AreaChart data={data}>
+            <defs>
+              <linearGradient id="bwGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop
+                  offset="0%"
+                  stopColor={CHART_COLORS.primary}
+                  stopOpacity={0.3}
+                />
+                <stop
+                  offset="100%"
+                  stopColor={CHART_COLORS.primary}
+                  stopOpacity={0.02}
+                />
+              </linearGradient>
+            </defs>
+            <XAxis
+              dataKey="label"
+              tickLine={false}
+              axisLine={false}
+              {...AXIS_STYLE}
+              interval={0}
+            />
+            <YAxis hide domain={['dataMin - 1', 'dataMax + 1']} />
+            <Tooltip
+              {...TOOLTIP_STYLE}
+              formatter={(val: number) => [`${val}kg`, 'Weight']}
+              labelFormatter={() => ''}
+            />
+            <Area
+              type="monotone"
+              dataKey="weight"
+              stroke={CHART_COLORS.primary}
+              strokeWidth={2}
+              fill="url(#bwGradient)"
+            />
+          </AreaChart>
+        </ResponsiveContainer>
       )}
-    </div>
+    </ChartCard>
   )
 }

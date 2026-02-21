@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import type { SetLog } from '@/lib/store/types'
 import { useWorkoutStore } from '@/lib/store/use-workout-store'
 
@@ -16,26 +16,28 @@ export function useUndo() {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const setLog = useWorkoutStore((s) => s.setLog)
 
-  const push = useCallback(
-    (dayIdx: number, exIdx: number, setIdx: number, previousData: SetLog) => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current)
-      setEntry({ dayIdx, exIdx, setIdx, previousData })
-      timeoutRef.current = setTimeout(() => setEntry(null), 5000)
-    },
-    []
-  )
+  const push = (
+    dayIdx: number,
+    exIdx: number,
+    setIdx: number,
+    previousData: SetLog
+  ) => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    setEntry({ dayIdx, exIdx, setIdx, previousData })
+    timeoutRef.current = setTimeout(() => setEntry(null), 5000)
+  }
 
-  const undo = useCallback(() => {
+  const undo = () => {
     if (!entry) return
     setLog(entry.dayIdx, entry.exIdx, entry.setIdx, entry.previousData)
     if (timeoutRef.current) clearTimeout(timeoutRef.current)
     setEntry(null)
-  }, [entry, setLog])
+  }
 
-  const dismiss = useCallback(() => {
+  const dismiss = () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current)
     setEntry(null)
-  }, [])
+  }
 
   return { entry, push, undo, dismiss }
 }

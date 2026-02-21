@@ -1,7 +1,7 @@
 'use client'
 
-import { useMemo } from 'react'
 import { MOTIVATIONAL, PROGRAM } from '@/lib/data/program'
+import { formatDateFull } from '@/lib/format'
 import {
   selectCompletedThisWeek,
   selectIsDayFinished,
@@ -15,26 +15,17 @@ export function Greeting() {
   const todayFinished = useWorkoutStore((s) => selectIsDayFinished(s, todayIdx))
   const todayWorkout = PROGRAM[todayIdx]
 
-  const { timeGreeting, dateStr } = useMemo(() => {
-    const hour = new Date().getHours()
-    let greeting: string
-    if (hour < 6) greeting = 'LATE NIGHT GRIND'
-    else if (hour < 12) greeting = 'GOOD MORNING'
-    else if (hour < 17) greeting = 'GOOD AFTERNOON'
-    else if (hour < 21) greeting = 'EVENING SESSION'
-    else greeting = 'LATE NIGHT GRIND'
-    const date = new Date().toLocaleDateString('en-US', {
-      weekday: 'long',
-      month: 'short',
-      day: 'numeric',
-    })
-    return { timeGreeting: greeting, dateStr: date }
-  }, [])
+  const hour = new Date().getHours()
+  let timeGreeting: string
+  if (hour < 6) timeGreeting = 'LATE NIGHT GRIND'
+  else if (hour < 12) timeGreeting = 'GOOD MORNING'
+  else if (hour < 17) timeGreeting = 'GOOD AFTERNOON'
+  else if (hour < 21) timeGreeting = 'EVENING SESSION'
+  else timeGreeting = 'LATE NIGHT GRIND'
 
-  const quote = useMemo(
-    () => MOTIVATIONAL[Math.floor(Math.random() * MOTIVATIONAL.length)],
-    []
-  )
+  const dateStr = formatDateFull(new Date())
+
+  const quote = MOTIVATIONAL[Math.floor(Math.random() * MOTIVATIONAL.length)]
 
   let todayMsg: string
   if (todayWorkout.type === 'rest') {

@@ -1,5 +1,11 @@
 import { defaultCache } from '@serwist/next/worker'
-import { CacheFirst, ExpirationPlugin, NetworkOnly, Serwist } from 'serwist'
+import {
+  CacheFirst,
+  ExpirationPlugin,
+  NetworkOnly,
+  Serwist,
+  StaleWhileRevalidate,
+} from 'serwist'
 
 declare const self: ServiceWorkerGlobalScope & {
   __SW_MANIFEST: Array<{ url: string; revision: string | null }>
@@ -13,8 +19,8 @@ const serwist = new Serwist({
   runtimeCaching: [
     ...defaultCache,
     {
-      matcher: /^https:\/\/exercisedb-api\.vercel\.app\/.*/i,
-      handler: new CacheFirst({
+      matcher: /\/api\/exercises/i,
+      handler: new StaleWhileRevalidate({
         cacheName: 'exercise-db',
         plugins: [
           new ExpirationPlugin({

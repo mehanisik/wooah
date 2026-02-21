@@ -2,6 +2,14 @@
 
 import { useState } from 'react'
 import {
+  Bar,
+  BarChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -12,6 +20,8 @@ import {
   getEffectiveProgram,
   useWorkoutStore,
 } from '@/lib/store/use-workout-store'
+import { ChartCard } from './chart-card'
+import { AXIS_STYLE, CHART_COLORS, TOOLTIP_STYLE } from './chart-theme'
 
 export function WeightProgression() {
   const history = useWorkoutStore((s) => s.history)
@@ -30,16 +40,23 @@ export function WeightProgression() {
   const [selected, setSelected] = useState(exerciseOptions[0]?.key || '')
   const entries = history[selected] || []
   const last10 = entries.slice(-10)
-  const maxWeight = Math.max(...last10.map((e) => e.weight), 1)
+
+  const data = last10.map((e, i) => ({
+    idx: i + 1,
+    weight: e.weight,
+  }))
 
   const latest = last10[last10.length - 1]
   const prev = last10[last10.length - 2]
   const change = latest && prev ? latest.weight - prev.weight : 0
 
   return (
-    <div className="rounded-lg border border-border bg-card px-4 py-3">
-      <div className="mb-3 flex items-center justify-between">
-        <h3 className="font-display text-sm tracking-wider">PROGRESSION</h3>
+    <ChartCard
+      title="PROGRESSION"
+      headline={latest ? `${latest.weight}kg` : '—'}
+      change={change}
+      changeLabel="kg"
+      action={
         <Select value={selected} onValueChange={setSelected}>
           <SelectTrigger className="h-7 w-40 text-[10px]">
             <SelectValue placeholder="Exercise" />
@@ -52,45 +69,30 @@ export function WeightProgression() {
             ))}
           </SelectContent>
         </Select>
-      </div>
-
-      {last10.length === 0 ? (
-        <p className="py-4 text-center text-muted-foreground text-xs">
-          No data yet
-        </p>
-      ) : (
-        <>
-          <div className="flex h-24 items-end gap-1">
-            {last10.map((entry, i) => (
-              <div key={i} className="flex flex-1 flex-col items-center">
-                <span className="mb-0.5 font-mono text-[8px] text-muted-foreground">
-                  {entry.weight}
-                </span>
-                <div
-                  className="min-h-[2px] w-full rounded-t-sm bg-primary"
-                  style={{ height: `${(entry.weight / maxWeight) * 80}%` }}
-                />
-              </div>
-            ))}
-          </div>
-          <div className="mt-2 flex justify-between text-[10px] text-muted-foreground">
-            <span>Max: {latest?.weight || 0}kg</span>
-            {latest?.sets?.[0] && (
-              <span>
-                Best: {latest.sets[0].weight}×{latest.sets[0].reps}
-              </span>
-            )}
-            {change !== 0 && (
-              <span
-                className={change > 0 ? 'text-success' : 'text-destructive'}
-              >
-                {change > 0 ? '+' : ''}
-                {change}kg
-              </span>
-            )}
-          </div>
-        </>
-      )}
-    </div>
+      }
+      empty={last10.length === 0}
+    >
+      <ResponsiveContainer width="100%" height={100}>
+        <BarChart data={data} barCategoryGap="15%">
+          <XAxis
+            dataKey="idx"
+            tickLine={false}
+            axisLine={false}
+            {...AXIS_STYLE}
+          />
+          <YAxis hide />
+          <Tooltip
+            {...TOOLTIP_STYLE}
+            formatter={(val: number) => [`${val}kg`, 'Weight']}
+            labelFormatter={() => ''}
+          />
+          <Bar
+            dataKey="weight"
+            fill={CHART_COLORS.primary}
+            radius={[2, 2, 0, 0]}
+          />
+        </BarChart>
+      </ResponsiveContainer>
+    </ChartCard>
   )
 }
