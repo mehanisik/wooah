@@ -91,11 +91,22 @@ interface CacheData {
   entries: ExerciseDbEntry[]
 }
 
+function proxyGif(url: string): string {
+  if (url.startsWith('https://static.exercisedb.dev/')) {
+    return GIF_PROXY + encodeURIComponent(url)
+  }
+  return url
+}
+
 function readCache(): CacheData | null {
   try {
     const raw = localStorage.getItem(CACHE_KEY)
     if (!raw) return null
-    return JSON.parse(raw) as CacheData
+    const data = JSON.parse(raw) as CacheData
+    for (const e of data.entries) {
+      e.gifUrl = proxyGif(e.gifUrl)
+    }
+    return data
   } catch {
     return null
   }

@@ -4,6 +4,14 @@ import { useEffect, useState } from 'react'
 import { getExerciseGif, normalize } from '@/lib/workout/exercise-api'
 
 const CACHE_KEY = 'exercisedb_cache'
+const GIF_PROXY = '/api/gif?url='
+
+function toProxy(url: string): string {
+  if (url.startsWith('https://static.exercisedb.dev/')) {
+    return GIF_PROXY + encodeURIComponent(url)
+  }
+  return url
+}
 
 function findInCache(exerciseName: string): string | null {
   try {
@@ -19,17 +27,16 @@ function findInCache(exerciseName: string): string | null {
     for (const e of entries) {
       const n = e.name?.toLowerCase()
       if (!(n && e.gifUrl)) continue
-      if (n === lower || n === normalized) return e.gifUrl
+      if (n === lower || n === normalized) return toProxy(e.gifUrl)
     }
 
-    // partial: pick the shortest name that contains the normalized term (most specific match)
     let best: { url: string; len: number } | null = null
     for (const e of entries) {
       const n = e.name?.toLowerCase()
       if (!(n && e.gifUrl)) continue
       if (!n.includes(normalized)) continue
       if (!best || n.length < best.len) {
-        best = { url: e.gifUrl, len: n.length }
+        best = { url: toProxy(e.gifUrl), len: n.length }
       }
     }
     if (best) return best.url
