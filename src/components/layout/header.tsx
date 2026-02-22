@@ -1,10 +1,11 @@
 'use client'
 
 import { Flame, Settings, Trophy, Zap } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
-import { useAuth } from '@/hooks/use-auth'
 import { WooahLogo } from '@/components/ui/wooah-logo'
+import { useAuth } from '@/hooks/use-auth'
 import {
   selectCompletedThisWeek,
   usePRCount,
@@ -57,7 +58,7 @@ export function Header() {
               aria-label="Settings"
             >
               {avatarUrl && !avatarError ? (
-                <img
+                <Image
                   src={avatarUrl}
                   alt=""
                   width={24}
@@ -65,6 +66,7 @@ export function Header() {
                   className="rounded-full"
                   referrerPolicy="no-referrer"
                   onError={() => setAvatarError(true)}
+                  unoptimized
                 />
               ) : (
                 <Settings className="h-4 w-4 text-muted-foreground" />

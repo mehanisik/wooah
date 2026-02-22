@@ -2,9 +2,9 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import type * as React from 'react'
 import {
   Children,
+  type ComponentProps,
   cloneElement,
   isValidElement,
-  type ComponentProps,
   type ReactElement,
 } from 'react'
 
@@ -22,15 +22,24 @@ function mergeProps(
     )
   }
   if (slotProps.style || childProps.style) {
-    merged.style = { ...(slotProps.style as object), ...(childProps.style as object) }
+    merged.style = {
+      ...(slotProps.style as object),
+      ...(childProps.style as object),
+    }
   }
   return merged
 }
 
-function Slot({ children, ...props }: Record<string, unknown> & { children?: React.ReactNode }) {
+function Slot({
+  children,
+  ...props
+}: Record<string, unknown> & { children?: React.ReactNode }) {
   const child = Children.only(children)
   if (!isValidElement(child)) return null
-  return cloneElement(child as ReactElement<Record<string, unknown>>, mergeProps(props, child.props as Record<string, unknown>))
+  return cloneElement(
+    child as ReactElement<Record<string, unknown>>,
+    mergeProps(props, child.props as Record<string, unknown>)
+  )
 }
 
 const buttonVariants = cva(

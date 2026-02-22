@@ -16,9 +16,7 @@ function SheetTrigger({
   return <SheetPrimitive.Trigger data-slot="sheet-trigger" {...props} />
 }
 
-function SheetClose({
-  ...props
-}: ComponentProps<typeof SheetPrimitive.Close>) {
+function SheetClose({ ...props }: ComponentProps<typeof SheetPrimitive.Close>) {
   return <SheetPrimitive.Close data-slot="sheet-close" {...props} />
 }
 
@@ -60,15 +58,15 @@ function SheetContent({
       <SheetPrimitive.Popup
         data-slot="sheet-content"
         className={cn(
-          'fixed z-50 flex flex-col gap-4 bg-background shadow-lg transition-transform ease-in-out duration-300 data-[starting-style]:duration-500',
+          'fixed z-50 flex flex-col gap-4 bg-background shadow-lg transition-transform duration-300 ease-in-out data-[starting-style]:duration-500',
           side === 'right' &&
-            'inset-y-0 right-0 h-full w-3/4 border-l sm:max-w-sm translate-x-0 data-[starting-style]:translate-x-full data-[ending-style]:translate-x-full',
+            'inset-y-0 right-0 h-full w-3/4 translate-x-0 border-l data-[ending-style]:translate-x-full data-[starting-style]:translate-x-full sm:max-w-sm',
           side === 'left' &&
-            'inset-y-0 left-0 h-full w-3/4 border-r sm:max-w-sm translate-x-0 data-[starting-style]:-translate-x-full data-[ending-style]:-translate-x-full',
+            'inset-y-0 left-0 h-full w-3/4 translate-x-0 border-r data-[ending-style]:-translate-x-full data-[starting-style]:-translate-x-full sm:max-w-sm',
           side === 'top' &&
-            'inset-x-0 top-0 h-auto border-b translate-y-0 data-[starting-style]:-translate-y-full data-[ending-style]:-translate-y-full',
+            'inset-x-0 top-0 h-auto translate-y-0 border-b data-[ending-style]:-translate-y-full data-[starting-style]:-translate-y-full',
           side === 'bottom' &&
-            'inset-x-0 bottom-0 h-auto border-t translate-y-0 data-[starting-style]:translate-y-full data-[ending-style]:translate-y-full',
+            'inset-x-0 bottom-0 h-auto translate-y-0 border-t data-[ending-style]:translate-y-full data-[starting-style]:translate-y-full',
           className
         )}
         {...props}

@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import { LoginPage } from '@/components/auth/login-page'
+import { WooahLogo } from '@/components/ui/wooah-logo'
 import { useAuth } from '@/hooks/use-auth'
 import { loadExerciseDb } from '@/lib/exercise-db'
 import { migrateFromV2 } from '@/lib/store/migration'
 import { useWorkoutStore } from '@/lib/store/use-workout-store'
-import { WooahLogo } from '@/components/ui/wooah-logo'
 import { Header } from './header'
 import { NavBar } from './nav-bar'
 import { UpdatePrompt } from './update-prompt'

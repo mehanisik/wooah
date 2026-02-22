@@ -13,7 +13,7 @@ export function RestPageClient() {
   )
 
   return (
-    <div className="flex flex-col items-center space-y-6 pb-8 pt-4 text-center">
+    <div className="flex flex-col items-center space-y-6 pt-4 pb-8 text-center">
       <Coffee className="h-12 w-12 text-primary" />
       <div>
         <h2 className="font-display text-3xl tracking-wider">REST DAY</h2>

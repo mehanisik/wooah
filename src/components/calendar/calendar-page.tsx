@@ -59,19 +59,19 @@ export function CalendarPage() {
     <div className="space-y-6 pb-4">
       <div className="flex items-baseline justify-center gap-6">
         <div className="text-center">
-          <div className="font-mono text-2xl font-bold tabular-nums">
+          <div className="font-bold font-mono text-2xl tabular-nums">
             {current}
           </div>
-          <div className="text-[10px] tracking-wide text-muted-foreground">
+          <div className="text-[10px] text-muted-foreground tracking-wide">
             STREAK
           </div>
         </div>
         <div className="h-6 w-px bg-border" />
         <div className="text-center">
-          <div className="font-mono text-2xl font-bold tabular-nums text-muted-foreground">
+          <div className="font-bold font-mono text-2xl text-muted-foreground tabular-nums">
             {longest}
           </div>
-          <div className="text-[10px] tracking-wide text-muted-foreground">
+          <div className="text-[10px] text-muted-foreground tracking-wide">
             BEST
           </div>
         </div>

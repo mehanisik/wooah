@@ -30,9 +30,7 @@ export function CalendarDetail({ date, onClose }: CalendarDetailProps) {
   dateMonday.setDate(dateMonday.getDate() - ((dateMonday.getDay() + 6) % 7))
   const week = Math.max(
     1,
-    Math.floor(
-      (dateMonday.getTime() - startMonday.getTime()) / msPerWeek
-    ) + 1
+    Math.floor((dateMonday.getTime() - startMonday.getTime()) / msPerWeek) + 1
   )
 
   const prog = getEffectiveProgram(dayIdx)
@@ -64,7 +62,7 @@ export function CalendarDetail({ date, onClose }: CalendarDetailProps) {
     <div className="rounded-lg border border-border/50 bg-card/50 px-4 py-3 backdrop-blur-sm">
       <div className="mb-3 flex items-center justify-between">
         <div>
-          <div className="font-mono text-xs font-semibold tracking-wide">
+          <div className="font-mono font-semibold text-xs tracking-wide">
             {prog.day} — {prog.name}
           </div>
           <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
@@ -88,7 +86,7 @@ export function CalendarDetail({ date, onClose }: CalendarDetailProps) {
           <div key={i} className="flex items-center gap-2 py-1">
             <span className="flex-1 truncate text-xs">{ex.name}</span>
             {ex.entry ? (
-              <span className="font-mono text-[10px] tabular-nums text-muted-foreground">
+              <span className="font-mono text-[10px] text-muted-foreground tabular-nums">
                 {ex.entry.weight}kg × {ex.entry.reps}
               </span>
             ) : (
@@ -100,7 +98,7 @@ export function CalendarDetail({ date, onClose }: CalendarDetailProps) {
       </div>
 
       {totalVolume > 0 && (
-        <div className="mt-2 border-t border-border/50 pt-2 text-right font-mono text-[10px] tabular-nums text-muted-foreground">
+        <div className="mt-2 border-border/50 border-t pt-2 text-right font-mono text-[10px] text-muted-foreground tabular-nums">
           {totalVolume.toLocaleString()}kg total
         </div>
       )}

@@ -52,16 +52,12 @@ export function CalendarMonth({
       startMonday.getDate() - ((startMonday.getDay() + 6) % 7)
     )
     const dateMonday = new Date(date)
-    dateMonday.setDate(
-      dateMonday.getDate() - ((dateMonday.getDay() + 6) % 7)
-    )
+    dateMonday.setDate(dateMonday.getDate() - ((dateMonday.getDay() + 6) % 7))
 
     if (dateMonday.getTime() < startMonday.getTime()) return null
 
     const week =
-      Math.floor(
-        (dateMonday.getTime() - startMonday.getTime()) / msPerWeek
-      ) + 1
+      Math.floor((dateMonday.getTime() - startMonday.getTime()) / msPerWeek) + 1
     const key = `w${week}-d${dayIdx}`
     if (!finishedDays[key]) return null
 
@@ -74,7 +70,7 @@ export function CalendarMonth({
 
   return (
     <div>
-      <div className="mb-2 px-1 font-mono text-[10px] uppercase tracking-widest text-muted-foreground/60">
+      <div className="mb-2 px-1 font-mono text-[10px] text-muted-foreground/60 uppercase tracking-widest">
         {formatMonthYear(month)}
       </div>
       <div className="grid grid-cols-7 gap-1">
@@ -101,8 +97,8 @@ export function CalendarMonth({
                 info
                   ? 'cursor-pointer font-medium'
                   : 'cursor-default text-muted-foreground/30',
-                isToday(day) && 'ring-1 ring-inset ring-foreground/30',
-                selected && info && 'ring-2 ring-inset ring-foreground'
+                isToday(day) && 'ring-1 ring-foreground/30 ring-inset',
+                selected && info && 'ring-2 ring-foreground ring-inset'
               )}
             >
               {info && (

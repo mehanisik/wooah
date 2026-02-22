@@ -4,11 +4,11 @@ import { ChevronDown, Plus, Trash2, X } from 'lucide-react'
 import Image from 'next/image'
 import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
-import { MUSCLE_MAP } from '@/lib/data/muscles'
-import type { MuscleGroup } from '@/lib/data/muscles'
-import { getMuscleMapping } from '@/lib/exercise-db'
 import { useExerciseGif } from '@/hooks/use-exercise-gif'
+import type { MuscleGroup } from '@/lib/data/muscles'
+import { MUSCLE_MAP } from '@/lib/data/muscles'
 import type { Exercise } from '@/lib/data/program'
+import { getMuscleMapping } from '@/lib/exercise-db'
 import {
   selectExtraSets,
   selectLog,
@@ -155,7 +155,7 @@ export function ExerciseCard({
                 <span
                   key={m}
                   className={cn(
-                    'rounded-full px-1.5 py-px text-[8px] font-semibold leading-tight',
+                    'rounded-full px-1.5 py-px font-semibold text-[8px] leading-tight',
                     MUSCLE_COLORS[m]
                   )}
                 >
@@ -192,29 +192,30 @@ export function ExerciseCard({
               unoptimized
             />
           </div>
-          {muscles && (muscles.primary.length > 0 || muscles.secondary.length > 0) && (
-            <div className="flex flex-wrap gap-1.5 border-t border-white/10 px-3 py-2">
-              {muscles.primary.map((m) => (
-                <span
-                  key={m}
-                  className={cn(
-                    'rounded-full px-2 py-0.5 text-[10px] font-semibold',
-                    MUSCLE_COLORS[m]
-                  )}
-                >
-                  {m}
-                </span>
-              ))}
-              {muscles.secondary.map((m) => (
-                <span
-                  key={m}
-                  className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] text-white/60"
-                >
-                  {m}
-                </span>
-              ))}
-            </div>
-          )}
+          {muscles &&
+            (muscles.primary.length > 0 || muscles.secondary.length > 0) && (
+              <div className="flex flex-wrap gap-1.5 border-white/10 border-t px-3 py-2">
+                {muscles.primary.map((m) => (
+                  <span
+                    key={m}
+                    className={cn(
+                      'rounded-full px-2 py-0.5 font-semibold text-[10px]',
+                      MUSCLE_COLORS[m]
+                    )}
+                  >
+                    {m}
+                  </span>
+                ))}
+                {muscles.secondary.map((m) => (
+                  <span
+                    key={m}
+                    className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] text-white/60"
+                  >
+                    {m}
+                  </span>
+                ))}
+              </div>
+            )}
           <button
             type="button"
             onClick={() => setShowGif(false)}
