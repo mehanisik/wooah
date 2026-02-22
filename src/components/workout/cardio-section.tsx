@@ -3,6 +3,7 @@
 import { Check, ChevronDown } from 'lucide-react'
 import { useState } from 'react'
 import type { CardioItem } from '@/lib/data/program'
+import { useT } from '@/lib/i18n'
 import { selectCardioLog } from '@/lib/store/selectors'
 import { useWorkoutStore } from '@/lib/store/use-workout-store'
 import { cn } from '@/lib/utils'
@@ -13,6 +14,7 @@ interface CardioSectionProps {
 }
 
 export function CardioSection({ dayIdx, items }: CardioSectionProps) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const setCardioLog = useWorkoutStore((s) => s.setCardioLog)
 
@@ -28,7 +30,9 @@ export function CardioSection({ dayIdx, items }: CardioSectionProps) {
         className="flex w-full items-center gap-3 px-3 py-2.5 text-left"
         aria-expanded={open}
       >
-        <span className="font-body font-semibold text-sm">Abs / Cardio</span>
+        <span className="font-body font-semibold text-sm">
+          {t('absCardio')}
+        </span>
         <span className="ml-auto font-mono text-[10px] text-muted-foreground">
           {completedCount}/{items.length}
         </span>

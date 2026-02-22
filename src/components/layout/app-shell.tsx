@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react'
 import { LoginPage } from '@/components/auth/login-page'
 import { WooahLogo } from '@/components/ui/wooah-logo'
-import { useAuth } from '@/hooks/use-auth'
+import { useAuth } from '@/hooks/auth-context'
 import { loadExerciseDb } from '@/lib/exercise-db'
+import { useT } from '@/lib/i18n'
 import { migrateFromV2 } from '@/lib/store/migration'
 import { useWorkoutStore } from '@/lib/store/use-workout-store'
 import { Header } from './header'
@@ -14,6 +15,7 @@ import { UpdatePrompt } from './update-prompt'
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false)
   const { user, loading: authLoading } = useAuth()
+  const t = useT()
   const initWeek = useWorkoutStore((s) => s.initWeek)
   const mergeState = useWorkoutStore((s) => s.mergeState)
 
@@ -34,7 +36,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="text-center">
           <WooahLogo className="text-4xl" />
           <p className="mt-2 font-body text-muted-foreground text-sm">
-            Loading...
+            {t('loading')}
           </p>
         </div>
       </div>
@@ -55,7 +57,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="text-center">
           <WooahLogo className="text-4xl" />
           <p className="mt-2 font-body text-muted-foreground text-sm">
-            Loading...
+            {t('loading')}
           </p>
         </div>
       </div>

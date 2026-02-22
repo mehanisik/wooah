@@ -2,6 +2,7 @@
 
 import { Trophy } from 'lucide-react'
 import { formatDateShort } from '@/lib/format'
+import { useLocale, useT } from '@/lib/i18n'
 import {
   getEffectiveProgram,
   useWorkoutStore,
@@ -15,6 +16,8 @@ const TROPHY_STYLES = [
 ] as const
 
 export function PersonalRecordsList() {
+  const t = useT()
+  const locale = useLocale()
   const records = useWorkoutStore((s) => s.personalRecords)
 
   const nameMap: Record<string, string> = {}
@@ -34,7 +37,7 @@ export function PersonalRecordsList() {
     .sort((a, b) => b.volume - a.volume)
 
   return (
-    <ChartCard title="PERSONAL RECORDS" empty={entries.length === 0}>
+    <ChartCard title={t('personalRecords')} empty={entries.length === 0}>
       <div className="space-y-1">
         {entries.slice(0, 15).map((pr, i) => (
           <div key={i} className="flex items-center gap-2 py-0.5">
@@ -48,7 +51,7 @@ export function PersonalRecordsList() {
               {pr.volume.toLocaleString()}kg
             </span>
             <span className="text-[9px] text-muted-foreground">
-              {formatDateShort(new Date(pr.date))}
+              {formatDateShort(new Date(pr.date), locale)}
             </span>
           </div>
         ))}

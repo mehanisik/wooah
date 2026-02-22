@@ -1,4 +1,7 @@
+'use client'
+
 import type { ReactNode } from 'react'
+import { useT } from '@/lib/i18n'
 
 interface ChartCardProps {
   title: string
@@ -21,6 +24,7 @@ export function ChartCard({
   children,
   empty,
 }: ChartCardProps) {
+  const t = useT()
   return (
     <div className="chart-card">
       <div className="mb-2 flex items-center justify-between">
@@ -49,7 +53,7 @@ export function ChartCard({
 
       {empty ? (
         <p className="py-6 text-center text-muted-foreground text-xs">
-          No data yet
+          {t('noDataYet')}
         </p>
       ) : (
         children

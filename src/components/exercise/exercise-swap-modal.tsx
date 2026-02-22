@@ -9,6 +9,7 @@ import {
   CommandList,
 } from '@/components/ui/command'
 import { MUSCLE_GROUPS, MUSCLE_MAP } from '@/lib/data/muscles'
+import { useT } from '@/lib/i18n'
 import { selectExerciseSwap } from '@/lib/store/selectors'
 import {
   getEffectiveProgram,
@@ -35,6 +36,8 @@ export function ExerciseSwapModal({
   )
   const currentName = currentSwap || ex?.name
 
+  const t = useT()
+
   if (!ex) return null
 
   const grouped: Record<string, string[]> = {}
@@ -52,9 +55,9 @@ export function ExerciseSwapModal({
 
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
-      <CommandInput placeholder="Search exercises..." />
+      <CommandInput placeholder={t('searchExercises')} />
       <CommandList>
-        <CommandEmpty>No exercises found.</CommandEmpty>
+        <CommandEmpty>{t('noExercisesFound')}</CommandEmpty>
         {MUSCLE_GROUPS.map((group) => {
           const exercises = grouped[group]
           if (!exercises.length) return null
@@ -69,7 +72,7 @@ export function ExerciseSwapModal({
                   <span className="flex-1">{name}</span>
                   {name === ex.name && (
                     <span className="text-[10px] text-muted-foreground">
-                      default
+                      {t('defaultLabel')}
                     </span>
                   )}
                 </CommandItem>

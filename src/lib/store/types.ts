@@ -1,4 +1,5 @@
 import type { Equipment } from '@/lib/data/program'
+import type { Locale } from '@/lib/i18n/types'
 
 export interface SetLog {
   weight: string
@@ -95,6 +96,7 @@ export interface WorkoutState {
   deloadDismissed: number | null
   programOverrides: Record<number, ProgramOverrideEntry[]>
   plateSettings: PlateSettings
+  locale: Locale
 }
 
 export interface WorkoutActions {
@@ -124,6 +126,7 @@ export interface WorkoutActions {
   addExerciseToDay: (dayIdx: number, entry: ProgramOverrideEntry) => void
   removeExerciseFromDay: (dayIdx: number, exIdx: number) => void
   addBodyweight: (weight: number) => void
+  setLocale: (locale: Locale) => void
   mergeState: (imported: Partial<WorkoutState>) => void
   overwriteState: (imported: WorkoutState) => void
   initWeek: () => void

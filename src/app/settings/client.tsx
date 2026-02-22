@@ -12,14 +12,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useAuth } from '@/hooks/use-auth'
+import { useAuth } from '@/hooks/auth-context'
+import { useT } from '@/lib/i18n'
+import type { Locale } from '@/lib/i18n/types'
 import { useWorkoutStore } from '@/lib/store/use-workout-store'
 import { signOut } from '@/lib/supabase/auth'
 
 export function SettingsPageClient() {
+  const t = useT()
   const { theme, setTheme } = useTheme()
   const { user } = useAuth()
   const plateSettings = useWorkoutStore((s) => s.plateSettings)
+  const locale = useWorkoutStore((s) => s.locale)
+  const setLocale = useWorkoutStore((s) => s.setLocale)
   const [barWeight, setBarWeight] = useState(String(plateSettings.barWeight))
 
   const handleBarWeightSave = () => {
@@ -67,10 +72,10 @@ export function SettingsPageClient() {
 
   return (
     <div className="space-y-4 pb-4">
-      <h2 className="font-display text-lg tracking-wider">SETTINGS</h2>
+      <h2 className="font-display text-lg tracking-wider">{t('settings')}</h2>
 
       <section className="space-y-3 rounded-lg border border-border bg-card px-4 py-3">
-        <h3 className="font-display text-sm tracking-wider">THEME</h3>
+        <h3 className="font-display text-sm tracking-wider">{t('theme')}</h3>
         <Select
           value={theme}
           onValueChange={(v) => setTheme(v as 'light' | 'dark' | 'system')}
@@ -80,13 +85,30 @@ export function SettingsPageClient() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="light" className="text-xs">
-              Light
+              {t('light')}
             </SelectItem>
             <SelectItem value="dark" className="text-xs">
-              Dark
+              {t('dark')}
             </SelectItem>
             <SelectItem value="system" className="text-xs">
-              System
+              {t('system')}
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </section>
+
+      <section className="space-y-3 rounded-lg border border-border bg-card px-4 py-3">
+        <h3 className="font-display text-sm tracking-wider">{t('language')}</h3>
+        <Select value={locale} onValueChange={(v) => setLocale(v as Locale)}>
+          <SelectTrigger className="h-8 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="en" className="text-xs">
+              English
+            </SelectItem>
+            <SelectItem value="pl" className="text-xs">
+              Polski
             </SelectItem>
           </SelectContent>
         </Select>
@@ -94,14 +116,14 @@ export function SettingsPageClient() {
 
       <section className="space-y-3 rounded-lg border border-border bg-card px-4 py-3">
         <h3 className="font-display text-sm tracking-wider">
-          PLATE CALCULATOR
+          {t('plateCalculator')}
         </h3>
         <div className="flex items-center gap-2">
           <label
             htmlFor="bar-weight"
             className="w-20 font-body text-muted-foreground text-xs"
           >
-            Bar Weight
+            {t('barWeight')}
           </label>
           <Input
             id="bar-weight"
@@ -118,7 +140,7 @@ export function SettingsPageClient() {
             htmlFor="plate-unit"
             className="w-20 font-body text-muted-foreground text-xs"
           >
-            Unit
+            {t('unitLabel')}
           </label>
           <Select value={plateSettings.unit} onValueChange={handleUnitChange}>
             <SelectTrigger id="plate-unit" className="h-8 w-20 text-xs">
@@ -139,7 +161,7 @@ export function SettingsPageClient() {
       <InstallPrompt />
 
       <section className="space-y-3 rounded-lg border border-border bg-card px-4 py-3">
-        <h3 className="font-display text-sm tracking-wider">DATA</h3>
+        <h3 className="font-display text-sm tracking-wider">{t('data')}</h3>
         <div className="flex gap-2">
           <Button
             variant="outline"
@@ -147,7 +169,7 @@ export function SettingsPageClient() {
             className="flex-1 text-xs"
             onClick={exportData}
           >
-            EXPORT
+            {t('exportData')}
           </Button>
           <Button
             variant="outline"
@@ -156,7 +178,7 @@ export function SettingsPageClient() {
             asChild
           >
             <label>
-              IMPORT
+              {t('importData')}
               <input
                 type="file"
                 accept=".json"
@@ -170,7 +192,9 @@ export function SettingsPageClient() {
 
       {user && (
         <section className="space-y-3 rounded-lg border border-border bg-card px-4 py-3">
-          <h3 className="font-display text-sm tracking-wider">ACCOUNT</h3>
+          <h3 className="font-display text-sm tracking-wider">
+            {t('account')}
+          </h3>
           <p className="truncate font-body text-muted-foreground text-xs">
             {user.email}
           </p>
@@ -180,7 +204,7 @@ export function SettingsPageClient() {
             className="w-full text-xs"
             onClick={() => signOut()}
           >
-            SIGN OUT
+            {t('signOut')}
           </Button>
         </section>
       )}

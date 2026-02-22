@@ -2,6 +2,7 @@
 
 import { PROGRAM } from '@/lib/data/program'
 import { formatMonthYear } from '@/lib/format'
+import { useLocale, useT } from '@/lib/i18n'
 import { useWorkoutStore } from '@/lib/store/use-workout-store'
 import { cn } from '@/lib/utils'
 
@@ -10,8 +11,6 @@ interface CalendarMonthProps {
   onSelectDate: (date: string) => void
   selectedDate: string | null
 }
-
-const DAY_HEADERS = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
 
 const typeColors: Record<string, string> = {
   push: 'bg-[var(--push-color)]',
@@ -24,8 +23,19 @@ export function CalendarMonth({
   onSelectDate,
   selectedDate,
 }: CalendarMonthProps) {
+  const t = useT()
+  const locale = useLocale()
   const finishedDays = useWorkoutStore((s) => s.finishedDays)
   const startDate = useWorkoutStore((s) => s.startDate)
+  const DAY_HEADERS = [
+    t('navMon'),
+    t('navTue'),
+    t('navWed'),
+    t('navThu'),
+    t('navFri'),
+    t('navSat'),
+    t('calSun'),
+  ]
 
   const year = month.getFullYear()
   const mo = month.getMonth()
@@ -71,7 +81,7 @@ export function CalendarMonth({
   return (
     <div>
       <div className="mb-2 px-1 font-mono text-[10px] text-muted-foreground/60 uppercase tracking-widest">
-        {formatMonthYear(month)}
+        {formatMonthYear(month, locale)}
       </div>
       <div className="grid grid-cols-7 gap-1">
         {DAY_HEADERS.map((d, i) => (
@@ -97,7 +107,7 @@ export function CalendarMonth({
                 info
                   ? 'cursor-pointer font-medium'
                   : 'cursor-default text-muted-foreground/30',
-                isToday(day) && 'ring-1 ring-foreground/30 ring-inset',
+                isToday(day) && 'ring-2 ring-primary ring-inset',
                 selected && info && 'ring-2 ring-foreground ring-inset'
               )}
             >

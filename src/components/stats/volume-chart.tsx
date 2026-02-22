@@ -9,6 +9,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import { useT } from '@/lib/i18n'
 import {
   getEffectiveProgram,
   useWorkoutStore,
@@ -23,6 +24,7 @@ import {
 } from './chart-theme'
 
 export function VolumeChart() {
+  const t = useT()
   const currentWeek = useWorkoutStore((s) => s.currentWeek)
   const history = useWorkoutStore((s) => s.history)
 
@@ -61,7 +63,7 @@ export function VolumeChart() {
 
   return (
     <ChartCard
-      title="WEEKLY VOLUME"
+      title={t('weeklyVolume')}
       headline={headlineStr}
       change={change}
       changeLabel="kg"
@@ -69,9 +71,9 @@ export function VolumeChart() {
       footer={
         <ChartLegend
           items={[
-            { color: CHART_COLORS.push, label: 'Push' },
-            { color: CHART_COLORS.pull, label: 'Pull' },
-            { color: CHART_COLORS.legs, label: 'Legs' },
+            { color: CHART_COLORS.push, label: t('push') },
+            { color: CHART_COLORS.pull, label: t('pull') },
+            { color: CHART_COLORS.legs, label: t('legs') },
           ]}
         />
       }

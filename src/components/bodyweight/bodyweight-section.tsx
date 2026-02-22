@@ -19,9 +19,12 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { formatDateCompact } from '@/lib/format'
+import { useLocale, useT } from '@/lib/i18n'
 import { useWorkoutStore } from '@/lib/store/use-workout-store'
 
 export function BodyweightSection() {
+  const t = useT()
+  const locale = useLocale()
   const entries = useWorkoutStore((s) => s.bodyweight)
   const addBodyweight = useWorkoutStore((s) => s.addBodyweight)
   const [value, setValue] = useState('')
@@ -33,7 +36,7 @@ export function BodyweightSection() {
 
   const last14 = entries.slice(-14)
   const data = last14.map((e, i) => ({
-    label: i % 3 === 0 ? formatDateCompact(new Date(e.date)) : '',
+    label: i % 3 === 0 ? formatDateCompact(new Date(e.date), locale) : '',
     weight: e.weight,
   }))
 
@@ -47,7 +50,7 @@ export function BodyweightSection() {
 
   return (
     <ChartCard
-      title="BODYWEIGHT"
+      title={t('bodyweight')}
       headline={latest ? `${latest.weight}kg` : '—'}
       change={change}
       changeLabel="kg"
@@ -65,7 +68,7 @@ export function BodyweightSection() {
           onKeyDown={(e) => e.key === 'Enter' && handleSave()}
         />
         <Button size="sm" className="h-8 text-xs" onClick={handleSave}>
-          <Scale className="mr-1 h-3 w-3" /> SAVE
+          <Scale className="mr-1 h-3 w-3" /> {t('save')}
         </Button>
       </div>
 

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useT } from '@/lib/i18n'
 import { useWorkoutStore } from '@/lib/store/use-workout-store'
 import { CalendarDetail } from './calendar-detail'
 import { CalendarMonth } from './calendar-month'
@@ -48,6 +49,7 @@ function getStreaks(
 }
 
 export function CalendarPage() {
+  const t = useT()
   const finishedDays = useWorkoutStore((s) => s.finishedDays)
   const currentWeek = useWorkoutStore((s) => s.currentWeek)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
@@ -63,7 +65,7 @@ export function CalendarPage() {
             {current}
           </div>
           <div className="text-[10px] text-muted-foreground tracking-wide">
-            STREAK
+            {t('streakLabel')}
           </div>
         </div>
         <div className="h-6 w-px bg-border" />
@@ -72,7 +74,7 @@ export function CalendarPage() {
             {longest}
           </div>
           <div className="text-[10px] text-muted-foreground tracking-wide">
-            BEST
+            {t('best')}
           </div>
         </div>
       </div>
@@ -89,15 +91,15 @@ export function CalendarPage() {
       <div className="flex justify-center gap-3 text-[9px] text-muted-foreground/60">
         <span className="flex items-center gap-1">
           <span className="h-2 w-2 rounded-[3px] bg-[var(--push-color)]" />
-          Push
+          {t('push')}
         </span>
         <span className="flex items-center gap-1">
           <span className="h-2 w-2 rounded-[3px] bg-[var(--pull-color)]" />
-          Pull
+          {t('pull')}
         </span>
         <span className="flex items-center gap-1">
           <span className="h-2 w-2 rounded-[3px] bg-[var(--legs-color)]" />
-          Legs
+          {t('legs')}
         </span>
       </div>
 

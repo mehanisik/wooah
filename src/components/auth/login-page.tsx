@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import { WooahLogo } from '@/components/ui/wooah-logo'
+import { useT } from '@/lib/i18n'
 import { signInWithGoogle, signInWithOtp, verifyOtp } from '@/lib/supabase/auth'
 
 const OTP_COOLDOWN_SEC = 60
@@ -34,6 +35,7 @@ function SubmitButton({
 }
 
 export function LoginPage() {
+  const t = useT()
   const [email, setEmail] = useState('')
   const [otpSent, setOtpSent] = useState(false)
   const [token, setToken] = useState('')
@@ -51,7 +53,7 @@ export function LoginPage() {
         setCooldown(OTP_COOLDOWN_SEC)
         return { error: null }
       } catch (e: unknown) {
-        return { error: e instanceof Error ? e.message : 'Failed to send code' }
+        return { error: e instanceof Error ? e.message : t('failedSendCode') }
       }
     },
     { error: null }
@@ -67,7 +69,7 @@ export function LoginPage() {
         await verifyOtp(email, token)
         return { error: null }
       } catch (e: unknown) {
-        return { error: e instanceof Error ? e.message : 'Invalid code' }
+        return { error: e instanceof Error ? e.message : t('invalidCode') }
       }
     },
     { error: null }
@@ -83,7 +85,7 @@ export function LoginPage() {
         return { error: null }
       } catch (e: unknown) {
         return {
-          error: e instanceof Error ? e.message : 'Google sign-in failed',
+          error: e instanceof Error ? e.message : t('googleSignInFailed'),
         }
       }
     },
@@ -103,7 +105,7 @@ export function LoginPage() {
     <div className="flex min-h-[60vh] flex-col items-center justify-center px-6">
       <WooahLogo className="mb-1 text-4xl" />
       <p className="mb-8 font-body text-muted-foreground text-xs">
-        Push Pull Legs Tracker
+        {t('pplTracker')}
       </p>
 
       <div className="w-full max-w-xs space-y-3">
@@ -115,14 +117,15 @@ export function LoginPage() {
                 name="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email address"
+                placeholder={t('emailPlaceholder')}
                 className="h-10 text-sm"
               />
               <SubmitButton disabled={!email || cooldown > 0}>
                 {(() => {
-                  if (sendPending) return 'SENDING...'
-                  if (cooldown > 0) return `WAIT ${cooldown}s`
-                  return 'SEND CODE'
+                  if (sendPending) return t('sending')
+                  if (cooldown > 0)
+                    return t('waitSeconds', { seconds: cooldown })
+                  return t('sendCode')
                 })()}
               </SubmitButton>
             </div>
@@ -131,7 +134,7 @@ export function LoginPage() {
           <form action={verifyAction}>
             <div className="space-y-3">
               <p className="text-center text-muted-foreground text-xs">
-                Code sent to {email}
+                {t('codeSentTo', { email })}
               </p>
               <Input
                 type="text"
@@ -140,11 +143,11 @@ export function LoginPage() {
                 maxLength={8}
                 value={token}
                 onChange={(e) => setToken(e.target.value.replace(/\D/g, ''))}
-                placeholder="Enter code"
+                placeholder={t('enterCode')}
                 className="h-10 text-center font-mono text-sm tracking-widest"
               />
               <SubmitButton disabled={token.length < 6}>
-                {verifyPending ? 'VERIFYING...' : 'VERIFY'}
+                {verifyPending ? t('verifying') : t('verify')}
               </SubmitButton>
               <button
                 type="button"
@@ -154,7 +157,7 @@ export function LoginPage() {
                   setToken('')
                 }}
               >
-                Use different email
+                {t('useDifferentEmail')}
               </button>
             </div>
           </form>
@@ -166,7 +169,7 @@ export function LoginPage() {
 
         <div className="my-2 flex items-center gap-3">
           <Separator className="flex-1" />
-          <span className="text-[10px] text-muted-foreground">OR</span>
+          <span className="text-[10px] text-muted-foreground">{t('or')}</span>
           <Separator className="flex-1" />
         </div>
 
@@ -177,7 +180,7 @@ export function LoginPage() {
             type="submit"
             disabled={loading}
           >
-            SIGN IN WITH GOOGLE
+            {t('signInWithGoogle')}
           </Button>
         </form>
       </div>

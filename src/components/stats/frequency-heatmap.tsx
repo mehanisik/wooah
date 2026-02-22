@@ -1,6 +1,7 @@
 'use client'
 
 import { MUSCLE_GROUPS, MUSCLE_MAP, VOLUME_LANDMARKS } from '@/lib/data/muscles'
+import { useT } from '@/lib/i18n'
 import {
   getEffectiveProgram,
   useWorkoutStore,
@@ -9,6 +10,7 @@ import { cn } from '@/lib/utils'
 import { ChartCard } from './chart-card'
 
 export function FrequencyHeatmap() {
+  const t = useT()
   const currentWeek = useWorkoutStore((s) => s.currentWeek)
   const logs = useWorkoutStore((s) => s.logs)
 
@@ -38,14 +40,21 @@ export function FrequencyHeatmap() {
     })
   }
 
-  const days = ['M', 'T', 'W', 'T', 'F', 'S']
+  const days = [
+    t('navMon'),
+    t('navTue'),
+    t('navWed'),
+    t('navThu'),
+    t('navFri'),
+    t('navSat'),
+  ]
   const maxCell = Math.max(
     ...MUSCLE_GROUPS.flatMap((g) => Object.values(grid[g])),
     1
   )
 
   return (
-    <ChartCard title="FREQUENCY">
+    <ChartCard title={t('frequency')}>
       <div className="overflow-x-auto">
         <table className="w-full text-[10px]">
           <thead>
@@ -60,7 +69,7 @@ export function FrequencyHeatmap() {
                 </th>
               ))}
               <th className="w-10 text-center font-mono text-muted-foreground">
-                TOT
+                {t('tot')}
               </th>
             </tr>
           </thead>

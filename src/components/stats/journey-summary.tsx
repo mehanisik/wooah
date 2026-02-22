@@ -1,11 +1,14 @@
 'use client'
 
 import { formatDate } from '@/lib/format'
+import { useLocale, useT } from '@/lib/i18n'
 import { useWorkoutStore } from '@/lib/store/use-workout-store'
 import { formatDuration } from '@/lib/workout/helpers'
 import { ChartCard } from './chart-card'
 
 export function JourneySummary() {
+  const t = useT()
+  const locale = useLocale()
   const totalSessions = useWorkoutStore((s) => s.totalSessions)
   const currentWeek = useWorkoutStore((s) => s.currentWeek)
   const startDate = useWorkoutStore((s) => s.startDate)
@@ -35,30 +38,34 @@ export function JourneySummary() {
   })
 
   const stats = [
-    { label: 'SESSIONS', value: totalSessions },
-    { label: 'WEEK', value: currentWeek },
-    { label: 'PRs', value: prCount },
+    { label: t('sessionsLabel'), value: totalSessions },
+    { label: t('weekLabel'), value: currentWeek },
+    { label: t('prs'), value: prCount },
     {
-      label: 'VOLUME',
+      label: t('volumeLabel'),
       value:
         totalVolume >= 1000
           ? `${(totalVolume / 1000).toFixed(1)}t`
           : `${totalVolume}kg`,
     },
     {
-      label: 'AVG TIME',
+      label: t('avgTime'),
       value: avgDuration > 0 ? formatDuration(avgDuration) : '—',
     },
     {
-      label: 'SINCE',
+      label: t('sinceLabel'),
       value: startDate
-        ? formatDate(new Date(startDate), { month: 'short', year: '2-digit' })
+        ? formatDate(
+            new Date(startDate),
+            { month: 'short', year: '2-digit' },
+            locale
+          )
         : '—',
     },
   ]
 
   return (
-    <ChartCard title="JOURNEY">
+    <ChartCard title={t('journey')}>
       <div className="grid grid-cols-3 gap-2">
         {stats.map((s) => (
           <div

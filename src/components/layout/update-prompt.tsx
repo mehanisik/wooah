@@ -3,8 +3,10 @@
 import { RefreshCw } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { useT } from '@/lib/i18n'
 
 export function UpdatePrompt() {
+  const t = useT()
   const [showUpdate, setShowUpdate] = useState(false)
 
   useEffect(() => {
@@ -32,14 +34,14 @@ export function UpdatePrompt() {
     <div className="fixed right-4 bottom-20 left-4 z-50 flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 shadow-lg">
       <RefreshCw className="h-4 w-4 flex-shrink-0 text-primary" />
       <span className="flex-1 font-body text-xs">
-        A new version is available
+        {t('newVersionAvailable')}
       </span>
       <Button
         size="sm"
         className="h-7 text-xs"
         onClick={() => window.location.reload()}
       >
-        UPDATE
+        {t('update')}
       </Button>
     </div>
   )

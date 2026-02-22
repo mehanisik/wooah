@@ -2,6 +2,7 @@
 
 import { Trophy, X } from 'lucide-react'
 import { formatDate, parseLocalDate } from '@/lib/format'
+import { useLocale, useT } from '@/lib/i18n'
 import {
   getEffectiveProgram,
   useWorkoutStore,
@@ -13,6 +14,8 @@ interface CalendarDetailProps {
 }
 
 export function CalendarDetail({ date, onClose }: CalendarDetailProps) {
+  const t = useT()
+  const locale = useLocale()
   const history = useWorkoutStore((s) => s.history)
   const personalRecords = useWorkoutStore((s) => s.personalRecords)
   const startDate = useWorkoutStore((s) => s.startDate)
@@ -52,11 +55,15 @@ export function CalendarDetail({ date, onClose }: CalendarDetailProps) {
     return vol + ex.entry.weight * ex.entry.reps
   }, 0)
 
-  const dateLabel = formatDate(d, {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-  })
+  const dateLabel = formatDate(
+    d,
+    {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+    },
+    locale
+  )
 
   return (
     <div className="rounded-lg border border-border/50 bg-card/50 px-4 py-3 backdrop-blur-sm">
@@ -99,7 +106,7 @@ export function CalendarDetail({ date, onClose }: CalendarDetailProps) {
 
       {totalVolume > 0 && (
         <div className="mt-2 border-border/50 border-t pt-2 text-right font-mono text-[10px] text-muted-foreground tabular-nums">
-          {totalVolume.toLocaleString()}kg total
+          {totalVolume.toLocaleString()}kg {t('total')}
         </div>
       )}
     </div>

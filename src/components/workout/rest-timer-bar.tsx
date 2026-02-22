@@ -1,6 +1,7 @@
 'use client'
 
 import { X } from 'lucide-react'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { formatDuration } from '@/lib/workout/helpers'
 
@@ -15,6 +16,7 @@ interface RestTimerBarProps {
 }
 
 export function RestTimerBar({ timer }: RestTimerBarProps) {
+  const t = useT()
   if (!timer.active && timer.remaining <= 0) return null
 
   const pct = timer.total > 0 ? (timer.remaining / timer.total) * 100 : 0
@@ -45,7 +47,11 @@ export function RestTimerBar({ timer }: RestTimerBarProps) {
                   !(isDone || isWarning) && 'text-foreground'
                 )}
               >
-                {isDone ? 'GO!' : formatDuration(timer.remaining)}
+                {isDone ? (
+                  <span className="animate-pulse">{t('go')}</span>
+                ) : (
+                  formatDuration(timer.remaining)
+                )}
               </span>
             </div>
             <div className="mt-1 h-1 overflow-hidden rounded-full bg-muted">
@@ -64,7 +70,7 @@ export function RestTimerBar({ timer }: RestTimerBarProps) {
             type="button"
             onClick={timer.stop}
             className="p-2 text-muted-foreground hover:text-foreground"
-            aria-label="Dismiss timer"
+            aria-label={t('dismissTimer')}
           >
             <X className="h-4 w-4" />
           </button>

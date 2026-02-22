@@ -3,6 +3,7 @@
 import { Pin, StickyNote } from 'lucide-react'
 import { useState } from 'react'
 import { Input } from '@/components/ui/input'
+import { useT } from '@/lib/i18n'
 import { selectExerciseNote, selectPinnedNote } from '@/lib/store/selectors'
 import { useWorkoutStore } from '@/lib/store/use-workout-store'
 import { cn } from '@/lib/utils'
@@ -13,6 +14,7 @@ interface ExerciseNoteProps {
 }
 
 export function ExerciseNote({ dayIdx, exIdx }: ExerciseNoteProps) {
+  const t = useT()
   const [editing, setEditing] = useState(false)
   const note = useWorkoutStore((s) => selectExerciseNote(s, dayIdx, exIdx))
   const setNote = useWorkoutStore((s) => s.setExerciseNote)
@@ -33,7 +35,7 @@ export function ExerciseNote({ dayIdx, exIdx }: ExerciseNoteProps) {
           <Input
             value={note}
             onChange={(e) => setNote(dayIdx, exIdx, e.target.value)}
-            placeholder="Add a note..."
+            placeholder={t('addANote')}
             className="h-7 text-xs"
             onBlur={() => setEditing(false)}
             autoFocus
@@ -49,7 +51,7 @@ export function ExerciseNote({ dayIdx, exIdx }: ExerciseNoteProps) {
                 ? 'text-warning'
                 : 'text-muted-foreground hover:text-foreground'
             )}
-            title="Pin note"
+            title={t('pinNote')}
           >
             <Pin className="h-3 w-3" />
           </button>
@@ -61,7 +63,7 @@ export function ExerciseNote({ dayIdx, exIdx }: ExerciseNoteProps) {
           className="flex items-center gap-1 font-body text-[10px] text-muted-foreground transition-colors hover:text-foreground"
         >
           <StickyNote className="h-3 w-3" />
-          {note || 'Add note'}
+          {note || t('addNote')}
         </button>
       )}
     </div>

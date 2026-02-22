@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { useT } from '@/lib/i18n'
 import {
   getEffectiveProgram,
   useWorkoutStore,
@@ -27,6 +28,7 @@ import { CHART_COLORS, TOOLTIP_STYLE } from './chart-theme'
 type Range = 'all' | '6m' | '3m' | '1m'
 
 export function ExerciseComparison() {
+  const t = useT()
   const oneRmHistory = useWorkoutStore((s) => s.oneRmHistory)
 
   const keys = Object.keys(oneRmHistory).filter(
@@ -67,7 +69,7 @@ export function ExerciseComparison() {
 
   return (
     <ChartCard
-      title="1RM COMPARE"
+      title={t('compare1rm')}
       action={
         <div className="flex gap-1">
           {ranges.map((r) => (
@@ -88,7 +90,7 @@ export function ExerciseComparison() {
       <div className="mb-2 flex gap-2">
         <Select value={exA} onValueChange={setExA}>
           <SelectTrigger className="h-7 flex-1 text-[10px]">
-            <SelectValue placeholder="Exercise A" />
+            <SelectValue placeholder={t('exerciseA')} />
           </SelectTrigger>
           <SelectContent>
             {keys.map((k) => (
@@ -100,7 +102,7 @@ export function ExerciseComparison() {
         </Select>
         <Select value={exB} onValueChange={setExB}>
           <SelectTrigger className="h-7 flex-1 text-[10px]">
-            <SelectValue placeholder="Exercise B" />
+            <SelectValue placeholder={t('exerciseB')} />
           </SelectTrigger>
           <SelectContent>
             {keys.map((k) => (

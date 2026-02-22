@@ -1,0 +1,75 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+
+language: "en-US"
+tone_instructions: "Be concise and direct. Focus on bugs, security, and performance. Skip nitpicks on formatting — biome handles that."
+early_access: true
+enable_free_tier: true
+
+reviews:
+  profile: "assertive"
+  request_changes_workflow: true
+  high_level_summary: true
+  high_level_summary_placeholder: "@coderabbitai summary"
+  review_status: true
+  commit_status: true
+  collapse_walkthrough: true
+  sequence_diagrams: true
+  changed_files_summary: true
+  poem: false
+
+  auto_review:
+    enabled: true
+    auto_incremental_review: true
+    drafts: false
+    ignore_title_keywords:
+      - "WIP"
+      - "DO NOT MERGE"
+
+  path_filters:
+    - "!**/node_modules/**"
+    - "!**/bun.lock"
+    - "!**/.next/**"
+    - "!**/public/fonts/**"
+    - "!**/public/icons/**"
+
+  path_instructions:
+    - path: "src/components/**/*.tsx"
+      instructions: |
+        React components using Next.js 16, Tailwind CSS 4, and shadcn/ui.
+        All user-facing strings must use the `useT()` hook from `@/lib/i18n`.
+        Ensure no nested interactive elements (e.g. button inside button).
+    - path: "src/lib/store/**"
+      instructions: |
+        Zustand store with persist middleware. State is saved to localStorage.
+        Exercise data access must go through `getEffectiveProgram(dayIdx)`.
+    - path: "src/lib/supabase/**"
+      instructions: |
+        Supabase client code. Never call `supabase.auth.getUser()` inside
+        `onAuthStateChange` callbacks — it causes navigator.locks deadlocks.
+        Use `getSession()` or pass the user from AuthProvider context instead.
+    - path: "src/lib/i18n/**"
+      instructions: |
+        i18n system with English and Polish. Exercise names, muscle groups,
+        and fitness abbreviations (RIR, AMRAP, 1RM) stay in English.
+        All translation keys must exist in both en.ts and pl.ts.
+
+  tools:
+    shellcheck:
+      enabled: true
+    semgrep:
+      enabled: true
+    ast-grep:
+      essential_rules: true
+
+chat:
+  auto_reply: true
+
+knowledge_base:
+  web_search:
+    enabled: true
+  learnings:
+    scope: "auto"
+  issues:
+    scope: "auto"
+  pull_requests:
+    scope: "auto"

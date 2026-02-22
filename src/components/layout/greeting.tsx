@@ -1,7 +1,8 @@
 'use client'
 
-import { MOTIVATIONAL, PROGRAM } from '@/lib/data/program'
+import { PROGRAM } from '@/lib/data/program'
 import { formatDateFull } from '@/lib/format'
+import { useLocale, useMotivational, useT } from '@/lib/i18n'
 import {
   selectCompletedThisWeek,
   selectIsDayFinished,
@@ -10,6 +11,9 @@ import { useWorkoutStore } from '@/lib/store/use-workout-store'
 import { getTodayDayIdx } from '@/lib/workout/helpers'
 
 export function Greeting() {
+  const t = useT()
+  const locale = useLocale()
+  const motivational = useMotivational()
   const todayIdx = getTodayDayIdx()
   const completedThisWeek = useWorkoutStore((s) => selectCompletedThisWeek(s))
   const todayFinished = useWorkoutStore((s) => selectIsDayFinished(s, todayIdx))
@@ -17,23 +21,29 @@ export function Greeting() {
 
   const hour = new Date().getHours()
   let timeGreeting: string
-  if (hour < 6) timeGreeting = 'LATE NIGHT GRIND'
-  else if (hour < 12) timeGreeting = 'GOOD MORNING'
-  else if (hour < 17) timeGreeting = 'GOOD AFTERNOON'
-  else if (hour < 21) timeGreeting = 'EVENING SESSION'
-  else timeGreeting = 'LATE NIGHT GRIND'
+  if (hour < 6) timeGreeting = t('greetingLateNight')
+  else if (hour < 12) timeGreeting = t('greetingMorning')
+  else if (hour < 17) timeGreeting = t('greetingAfternoon')
+  else if (hour < 21) timeGreeting = t('greetingEvening')
+  else timeGreeting = t('greetingLateNight')
 
-  const dateStr = formatDateFull(new Date())
+  const dateStr = formatDateFull(new Date(), locale)
 
-  const quote = MOTIVATIONAL[Math.floor(Math.random() * MOTIVATIONAL.length)]
+  const quote = motivational[Math.floor(Math.random() * motivational.length)]
 
   let todayMsg: string
   if (todayWorkout.type === 'rest') {
-    todayMsg = `Rest day. ${completedThisWeek}/6 sessions done this week.`
+    todayMsg = t('greetingRestDay', { completed: completedThisWeek })
   } else if (todayFinished) {
-    todayMsg = `Today's ${todayWorkout.name} is done. ${completedThisWeek}/6 this week.`
+    todayMsg = t('greetingDone', {
+      name: todayWorkout.name,
+      completed: completedThisWeek,
+    })
   } else {
-    todayMsg = `Today: ${todayWorkout.name} — ${todayWorkout.focus}`
+    todayMsg = t('greetingToday', {
+      name: todayWorkout.name,
+      focus: todayWorkout.focus,
+    })
   }
 
   return (

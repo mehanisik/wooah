@@ -3,6 +3,7 @@ import './globals.css'
 import { AppShell } from '@/components/layout/app-shell'
 import { ThemeProvider } from '@/components/providers/theme-provider'
 import { Toaster } from '@/components/ui/sonner'
+import { AuthProvider } from '@/hooks/auth-context'
 import { inter, jetbrainsMono } from '@/lib/fonts'
 
 export const metadata: Metadata = {
@@ -48,8 +49,10 @@ export default function RootLayout({
     >
       <body suppressHydrationWarning>
         <ThemeProvider>
-          <AppShell>{children}</AppShell>
-          <Toaster position="bottom-center" richColors />
+          <AuthProvider>
+            <AppShell>{children}</AppShell>
+            <Toaster position="bottom-center" richColors />
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

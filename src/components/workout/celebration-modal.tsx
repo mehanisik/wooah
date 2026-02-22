@@ -3,6 +3,7 @@
 import { Star, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { useT } from '@/lib/i18n'
 import { selectWorkoutTimer } from '@/lib/store/selectors'
 import {
   getEffectiveProgram,
@@ -22,6 +23,7 @@ export function CelebrationModal({
   open,
   onClose,
 }: CelebrationModalProps) {
+  const t = useT()
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [rating, setRating] = useState(0)
   const timer = useWorkoutStore((s) => selectWorkoutTimer(s, dayIdx))
@@ -124,7 +126,7 @@ export function CelebrationModal({
         </button>
 
         <div className="mb-1 font-display text-2xl tracking-wider">
-          WORKOUT DONE
+          {t('workoutDone')}
         </div>
         <div className="mb-4 font-body text-muted-foreground text-xs">
           {prog.day} — {prog.name}
@@ -135,11 +137,15 @@ export function CelebrationModal({
             <div className="font-mono font-semibold text-lg">
               {timer?.duration ? formatDuration(timer.duration) : '—'}
             </div>
-            <div className="text-[10px] text-muted-foreground">DURATION</div>
+            <div className="text-[10px] text-muted-foreground">
+              {t('durationLabel')}
+            </div>
           </div>
           <div>
             <div className="font-mono font-semibold text-lg">{totalSets}</div>
-            <div className="text-[10px] text-muted-foreground">SETS</div>
+            <div className="text-[10px] text-muted-foreground">
+              {t('setsLabel')}
+            </div>
           </div>
           <div>
             <div className="font-mono font-semibold text-lg">
@@ -147,13 +153,15 @@ export function CelebrationModal({
                 ? `${(totalVolume / 1000).toFixed(1)}t`
                 : `${totalVolume}kg`}
             </div>
-            <div className="text-[10px] text-muted-foreground">VOLUME</div>
+            <div className="text-[10px] text-muted-foreground">
+              {t('volumeLabel')}
+            </div>
           </div>
         </div>
 
         <div className="mb-4">
           <div className="mb-1 text-[10px] text-muted-foreground">
-            HOW WAS IT?
+            {t('howWasIt')}
           </div>
           <div className="flex justify-center gap-1">
             {[1, 2, 3, 4, 5].map((r) => (
@@ -177,7 +185,7 @@ export function CelebrationModal({
         </div>
 
         <Button className="w-full text-xs" onClick={onClose}>
-          CONTINUE
+          {t('continueLabel')}
         </Button>
       </div>
     </div>
