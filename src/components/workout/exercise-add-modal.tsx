@@ -20,6 +20,7 @@ import {
   mapApiEquipment,
   mapApiMuscle,
 } from '@/lib/exercise-db'
+import { useT } from '@/lib/i18n'
 import { useWorkoutStore } from '@/lib/store/use-workout-store'
 
 interface ExerciseAddModalProps {
@@ -33,6 +34,7 @@ export function ExerciseAddModal({
   open,
   onOpenChange,
 }: ExerciseAddModalProps) {
+  const t = useT()
   const { exercises, loading } = useExerciseDb()
   const addExerciseToDay = useWorkoutStore((s) => s.addExerciseToDay)
   const [search, setSearch] = useState('')
@@ -85,12 +87,12 @@ export function ExerciseAddModal({
     <CommandDialog
       open={open}
       onOpenChange={onOpenChange}
-      title="Add Exercise"
-      description="Search for an exercise to add"
+      title={t('addExerciseTitle')}
+      description={t('searchToAdd')}
       showCloseButton={false}
     >
       <CommandInput
-        placeholder="Search exercises..."
+        placeholder={t('searchExercises')}
         value={search}
         onValueChange={setSearch}
       />
@@ -101,7 +103,7 @@ export function ExerciseAddModal({
           </div>
         ) : (
           <>
-            <CommandEmpty>No exercises found.</CommandEmpty>
+            <CommandEmpty>{t('noExercisesFound')}</CommandEmpty>
             <CommandGroup>
               {filtered.map((entry) => (
                 <CommandItem

@@ -15,6 +15,7 @@ import { useRestTimer } from '@/hooks/use-rest-timer'
 import { useWakeLock } from '@/hooks/use-wake-lock'
 import { useWorkoutClock } from '@/hooks/use-workout-clock'
 import { PROGRAM } from '@/lib/data/program'
+import { useT } from '@/lib/i18n'
 import { selectIsDayFinished } from '@/lib/store/selectors'
 import {
   getEffectiveProgram,
@@ -34,6 +35,7 @@ interface WorkoutPageProps {
 }
 
 export function WorkoutPage({ dayIdx }: WorkoutPageProps) {
+  const t = useT()
   const day = getEffectiveProgram(dayIdx)
   const baseDay = PROGRAM[dayIdx]
   const finishDay = useWorkoutStore((s) => s.finishDay)
@@ -119,7 +121,7 @@ export function WorkoutPage({ dayIdx }: WorkoutPageProps) {
           className="flex w-full items-center justify-center gap-2 rounded-md border border-border border-dashed py-3 font-body text-muted-foreground text-sm transition-colors hover:border-foreground/30 hover:text-foreground"
         >
           <Plus className="h-4 w-4" />
-          ADD EXERCISE
+          {t('addExercise')}
         </button>
       )}
 
@@ -130,7 +132,7 @@ export function WorkoutPage({ dayIdx }: WorkoutPageProps) {
       {!finished && (
         <Button className="w-full gap-2" size="lg" onClick={handleFinish}>
           <Trophy className="h-4 w-4" />
-          FINISH WORKOUT
+          {t('finishWorkout')}
         </Button>
       )}
 
@@ -155,7 +157,7 @@ export function WorkoutPage({ dayIdx }: WorkoutPageProps) {
           showCloseButton={false}
         >
           <SheetHeader className="sr-only">
-            <SheetTitle>Edit Program</SheetTitle>
+            <SheetTitle>{t('editProgram')}</SheetTitle>
           </SheetHeader>
           <ProgramEditor dayIdx={dayIdx} onClose={() => setEditOpen(false)} />
         </SheetContent>

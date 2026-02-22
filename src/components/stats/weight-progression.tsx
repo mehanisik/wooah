@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { useT } from '@/lib/i18n'
 import {
   getEffectiveProgram,
   useWorkoutStore,
@@ -24,6 +25,7 @@ import { ChartCard } from './chart-card'
 import { AXIS_STYLE, CHART_COLORS, TOOLTIP_STYLE } from './chart-theme'
 
 export function WeightProgression() {
+  const t = useT()
   const history = useWorkoutStore((s) => s.history)
 
   const exerciseOptions: { key: string; name: string }[] = []
@@ -52,14 +54,14 @@ export function WeightProgression() {
 
   return (
     <ChartCard
-      title="PROGRESSION"
+      title={t('progression')}
       headline={latest ? `${latest.weight}kg` : '—'}
       change={change}
       changeLabel="kg"
       action={
         <Select value={selected} onValueChange={setSelected}>
           <SelectTrigger className="h-7 w-40 text-[10px]">
-            <SelectValue placeholder="Exercise" />
+            <SelectValue placeholder={t('exercise')} />
           </SelectTrigger>
           <SelectContent>
             {exerciseOptions.map((o) => (

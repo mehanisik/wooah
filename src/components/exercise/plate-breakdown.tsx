@@ -1,5 +1,6 @@
 'use client'
 
+import { useT } from '@/lib/i18n'
 import { useWorkoutStore } from '@/lib/store/use-workout-store'
 import { calcPlates, isBarbell, PLATE_COLORS } from '@/lib/workout/plate-calc'
 
@@ -9,6 +10,7 @@ interface PlateBreakdownProps {
 }
 
 export function PlateBreakdown({ weight, exerciseName }: PlateBreakdownProps) {
+  const t = useT()
   const barWeight = useWorkoutStore((s) => s.plateSettings.barWeight)
 
   if (!(weight && isBarbell(exerciseName))) return null
@@ -42,7 +44,9 @@ export function PlateBreakdown({ weight, exerciseName }: PlateBreakdownProps) {
             </span>
           )
         })}
-      <span className="font-body text-[9px] text-muted-foreground">/side</span>
+      <span className="font-body text-[9px] text-muted-foreground">
+        {t('perSide')}
+      </span>
       {result.remainder > 0 && (
         <span className="font-body text-[9px] text-warning">
           +{result.remainder}kg

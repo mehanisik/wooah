@@ -9,6 +9,7 @@ import type { MuscleGroup } from '@/lib/data/muscles'
 import { MUSCLE_MAP } from '@/lib/data/muscles'
 import type { Exercise } from '@/lib/data/program'
 import { getMuscleMapping } from '@/lib/exercise-db'
+import { useT } from '@/lib/i18n'
 import {
   selectExtraSets,
   selectLog,
@@ -17,7 +18,7 @@ import {
 import { useWorkoutStore } from '@/lib/store/use-workout-store'
 import { cn } from '@/lib/utils'
 import { formatRest } from '@/lib/workout/helpers'
-import { isSupersetExercise } from '@/lib/workout/superset'
+import { getSupersetPartner, isSupersetExercise } from '@/lib/workout/superset'
 import { SetRow } from './set-row'
 
 const MUSCLE_COLORS: Record<MuscleGroup, string> = {
@@ -53,6 +54,7 @@ export function ExerciseCard({
   onRemove,
   onStartRest,
 }: ExerciseCardProps) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const [showGif, setShowGif] = useState(false)
   const displayName = useDisplayName(dayIdx, exIdx)
@@ -62,6 +64,8 @@ export function ExerciseCard({
   const addExtraSet = useWorkoutStore((s) => s.addExtraSet)
   const totalSets = exercise.sets + extraSets
   const isSuperset = isSupersetExercise(dayIdx, exIdx)
+  const partnerIdx = isSuperset ? getSupersetPartner(dayIdx, exIdx) : null
+  const partnerName = useDisplayName(dayIdx, partnerIdx ?? exIdx)
 
   const allDone = useWorkoutStore((s) =>
     Array.from(
@@ -92,8 +96,10 @@ export function ExerciseCard({
         aria-expanded={open}
       >
         {gifUrl ? (
-          <button
-            type="button"
+          // biome-ignore lint/a11y/useSemanticElements: can't nest <button> inside <button>
+          <div
+            role="button"
+            tabIndex={0}
             onClick={(e) => {
               e.stopPropagation()
               setShowGif(!showGif)
@@ -106,7 +112,7 @@ export function ExerciseCard({
               }
             }}
             className="relative h-9 w-9 flex-shrink-0 cursor-pointer overflow-hidden rounded-full"
-            aria-label="Show exercise demo"
+            aria-label={t('showExerciseDemo')}
           >
             <Image
               src={gifUrl}
@@ -119,10 +125,10 @@ export function ExerciseCard({
             <span
               className={cn(
                 'absolute inset-0 rounded-full ring-2 ring-inset',
-                allDone ? 'ring-success' : 'ring-surface-2'
+                allDone ? 'ring-success' : 'ring-border'
               )}
             />
-          </button>
+          </div>
         ) : (
           <span
             className={cn(
@@ -141,12 +147,19 @@ export function ExerciseCard({
               {displayName}
             </span>
             {isSuperset && (
-              <Badge
-                variant="outline"
-                className="border-warning px-1 py-0 text-[9px] text-warning"
-              >
-                SS
-              </Badge>
+              <>
+                <Badge
+                  variant="outline"
+                  className="border-warning px-1 py-0 text-[9px] text-warning"
+                >
+                  {t('supersetBadge')}
+                </Badge>
+                {partnerIdx !== null && (
+                  <span className="truncate text-[9px] text-warning">
+                    {t('supersetWith', { name: partnerName })}
+                  </span>
+                )}
+              </>
             )}
           </div>
           {muscles && muscles.primary.length > 0 && (
@@ -220,7 +233,7 @@ export function ExerciseCard({
             type="button"
             onClick={() => setShowGif(false)}
             className="absolute top-1.5 right-1.5 rounded-full bg-black/50 p-1.5 backdrop-blur-sm"
-            aria-label="Close demo"
+            aria-label={t('closeDemo')}
           >
             <X className="h-3.5 w-3.5 text-white/70" />
           </button>
@@ -230,9 +243,9 @@ export function ExerciseCard({
       {open && (
         <div className="space-y-1.5 px-3 pb-3">
           <div className="grid grid-cols-[2rem_1fr_1fr_2.75rem] gap-1.5 px-1 font-mono text-[10px] text-muted-foreground uppercase tracking-wider">
-            <span>SET</span>
-            <span>KG</span>
-            <span>REPS</span>
+            <span>{t('setLabel')}</span>
+            <span>{t('kgLabel')}</span>
+            <span>{t('repsLabel')}</span>
             <span />
           </div>
 
@@ -256,7 +269,7 @@ export function ExerciseCard({
               className="flex items-center gap-1 font-body text-[10px] text-muted-foreground transition-colors hover:text-foreground"
             >
               <Plus className="h-3 w-3" />
-              ADD SET
+              {t('addSet')}
             </button>
             {isCustom && onRemove && (
               <button
@@ -265,7 +278,7 @@ export function ExerciseCard({
                 className="ml-auto flex items-center gap-1 font-body text-[10px] text-destructive transition-colors hover:text-destructive/80"
               >
                 <Trash2 className="h-3 w-3" />
-                REMOVE
+                {t('remove')}
               </button>
             )}
           </div>

@@ -6,6 +6,7 @@ import {
   type MuscleGroup,
   VOLUME_LANDMARKS,
 } from '@/lib/data/muscles'
+import { useT } from '@/lib/i18n'
 import {
   getEffectiveProgram,
   useWorkoutStore,
@@ -45,6 +46,7 @@ function getZone(sets: number, group: MuscleGroup) {
 }
 
 export function MuscleVolumeChart() {
+  const t = useT()
   const currentWeek = useWorkoutStore((s) => s.currentWeek)
   const logs = useWorkoutStore((s) => s.logs)
 
@@ -75,14 +77,14 @@ export function MuscleVolumeChart() {
 
   return (
     <ChartCard
-      title="MUSCLE VOLUME"
+      title={t('muscleVolume')}
       footer={
         <ChartLegend
           items={[
-            { color: 'hsl(var(--muted-foreground) / 0.3)', label: 'Under' },
-            { color: 'var(--green)', label: 'Optimal' },
-            { color: 'var(--yellow)', label: 'Pushing' },
-            { color: 'hsl(var(--destructive))', label: 'Over' },
+            { color: 'hsl(var(--muted-foreground) / 0.3)', label: t('under') },
+            { color: 'var(--green)', label: t('optimal') },
+            { color: 'var(--yellow)', label: t('pushing') },
+            { color: 'hsl(var(--destructive))', label: t('over') },
           ]}
         />
       }

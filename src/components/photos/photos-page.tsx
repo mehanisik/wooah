@@ -4,6 +4,8 @@ import { Camera, Loader2, Trash2, X } from 'lucide-react'
 import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { useAuth } from '@/hooks/auth-context'
+import { useT } from '@/lib/i18n'
 import { useWorkoutStore } from '@/lib/store/use-workout-store'
 import {
   deletePhoto,
@@ -13,6 +15,8 @@ import {
 } from '@/lib/supabase/photos'
 
 export function PhotosPage() {
+  const t = useT()
+  const { user } = useAuth()
   const [photos, setPhotos] = useState<PhotoMeta[]>([])
   const [fullscreen, setFullscreen] = useState<PhotoMeta | null>(null)
   const [loading, setLoading] = useState(true)
@@ -22,22 +26,40 @@ export function PhotosPage() {
   const currentWeek = useWorkoutStore((s) => s.currentWeek)
 
   useEffect(() => {
-    loadPhotos()
+    if (!user) {
+      setLoading(false)
+      return
+    }
+    loadPhotos(user.id)
       .then(setPhotos)
+      .catch(() => undefined)
       .finally(() => setLoading(false))
-  }, [])
+  }, [user])
 
   const handleAdd = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
     setUploading(true)
 
-    const dayIdx = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1
-    const photo = await uploadPhoto(file, currentWeek, dayIdx)
+    try {
+      const dayIdx = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1
+      const photo = await uploadPhoto(file, currentWeek, dayIdx, user?.id)
 
-    if (photo) {
-      setPhotos((prev) => [photo, ...prev])
-    } else {
+      if (photo) {
+        setPhotos((prev) => [photo, ...prev])
+      } else {
+        const localPhoto: PhotoMeta = {
+          id: `local-${Date.now()}`,
+          url: URL.createObjectURL(file),
+          date: new Date().toISOString(),
+          week: currentWeek,
+          dayIdx,
+          storagePath: '',
+        }
+        setPhotos((prev) => [localPhoto, ...prev])
+      }
+    } catch {
+      const dayIdx = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1
       const localPhoto: PhotoMeta = {
         id: `local-${Date.now()}`,
         url: URL.createObjectURL(file),
@@ -47,15 +69,15 @@ export function PhotosPage() {
         storagePath: '',
       }
       setPhotos((prev) => [localPhoto, ...prev])
+    } finally {
+      setUploading(false)
+      if (inputRef.current) inputRef.current.value = ''
     }
-
-    setUploading(false)
-    if (inputRef.current) inputRef.current.value = ''
   }
 
   const handleRemove = async (photo: PhotoMeta) => {
     setPhotos((prev) => prev.filter((p) => p.id !== photo.id))
-    if (photo.storagePath) await deletePhoto(photo)
+    if (photo.storagePath) await deletePhoto(photo, user?.id)
   }
 
   const grouped = photos.reduce<Record<string, PhotoMeta[]>>((acc, p) => {
@@ -68,7 +90,7 @@ export function PhotosPage() {
   return (
     <div className="space-y-3 pb-4">
       <div className="flex items-center justify-between">
-        <h2 className="font-display text-lg tracking-wider">PHOTOS</h2>
+        <h2 className="font-display text-lg tracking-wider">{t('photos')}</h2>
         <Button
           size="sm"
           className="text-xs"
@@ -80,7 +102,7 @@ export function PhotosPage() {
           ) : (
             <Camera className="mr-1 h-3 w-3" />
           )}
-          {uploading ? 'UPLOADING...' : 'NEW PHOTO'}
+          {uploading ? t('uploading') : t('newPhoto')}
         </Button>
         <input
           ref={inputRef}
@@ -101,11 +123,9 @@ export function PhotosPage() {
       {!loading && photos.length === 0 && (
         <div className="rounded-lg border border-border border-dashed bg-card px-4 py-8 text-center">
           <Camera className="mx-auto mb-2 h-8 w-8 text-muted-foreground/40" />
-          <p className="text-muted-foreground text-xs">
-            No progress photos yet
-          </p>
+          <p className="text-muted-foreground text-xs">{t('noPhotosYet')}</p>
           <p className="mt-0.5 text-[10px] text-muted-foreground/60">
-            Take photos to track your visual progress
+            {t('trackVisualProgress')}
           </p>
         </div>
       )}
@@ -155,7 +175,7 @@ export function PhotosPage() {
             type="button"
             className="absolute inset-0"
             onClick={() => setFullscreen(null)}
-            aria-label="Close fullscreen"
+            aria-label={t('closeFullscreen')}
           />
           <button
             type="button"

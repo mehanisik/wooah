@@ -3,6 +3,7 @@
 import { Download, Share } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { useT } from '@/lib/i18n'
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>
@@ -10,6 +11,7 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export function InstallPrompt() {
+  const t = useT()
   const [isIOS, setIsIOS] = useState(false)
   const [isStandalone, setIsStandalone] = useState(true)
   const [deferredPrompt, setDeferredPrompt] =
@@ -41,7 +43,7 @@ export function InstallPrompt() {
 
   return (
     <section className="space-y-3 rounded-lg border border-border bg-card px-4 py-3">
-      <h3 className="font-display text-sm tracking-wider">INSTALL APP</h3>
+      <h3 className="font-display text-sm tracking-wider">{t('installApp')}</h3>
       {deferredPrompt && (
         <Button
           variant="outline"
@@ -50,19 +52,19 @@ export function InstallPrompt() {
           onClick={handleInstall}
         >
           <Download className="mr-1.5 h-3.5 w-3.5" />
-          ADD TO HOME SCREEN
+          {t('addToHomeScreen')}
         </Button>
       )}
       {!deferredPrompt && isIOS && (
         <p className="font-body text-muted-foreground text-xs leading-relaxed">
-          Tap <Share className="inline h-3.5 w-3.5 align-text-bottom" /> then
-          &ldquo;Add to Home Screen&rdquo; to install.
+          {t('iosInstallTap')}{' '}
+          <Share className="inline h-3.5 w-3.5 align-text-bottom" />{' '}
+          {t('iosInstallThen')}
         </p>
       )}
       {!(deferredPrompt || isIOS) && (
         <p className="font-body text-muted-foreground text-xs">
-          Open your browser menu and select &ldquo;Install app&rdquo; or
-          &ldquo;Add to Home Screen&rdquo;.
+          {t('browserInstallHint')}
         </p>
       )}
     </section>

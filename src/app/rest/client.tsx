@@ -2,23 +2,25 @@
 
 import { Coffee } from 'lucide-react'
 import { useState } from 'react'
-import { REST_QUOTES } from '@/lib/data/program'
+import { useRestQuotes, useT } from '@/lib/i18n'
 import { selectCompletedThisWeek } from '@/lib/store/selectors'
 import { useWorkoutStore } from '@/lib/store/use-workout-store'
 
 export function RestPageClient() {
+  const t = useT()
+  const restQuotes = useRestQuotes()
   const completedThisWeek = useWorkoutStore((s) => selectCompletedThisWeek(s))
   const [quote] = useState(
-    () => REST_QUOTES[Math.floor(Math.random() * REST_QUOTES.length)]
+    () => restQuotes[Math.floor(Math.random() * restQuotes.length)]
   )
 
   return (
     <div className="flex flex-col items-center space-y-6 pt-4 pb-8 text-center">
       <Coffee className="h-12 w-12 text-primary" />
       <div>
-        <h2 className="font-display text-3xl tracking-wider">REST DAY</h2>
+        <h2 className="font-display text-3xl tracking-wider">{t('restDay')}</h2>
         <p className="mt-1 font-body text-muted-foreground text-sm">
-          Sunday — Full Recovery
+          {t('sundayRecovery')}
         </p>
       </div>
       <div className="max-w-xs">
@@ -31,7 +33,7 @@ export function RestPageClient() {
           {completedThisWeek}
         </span>
         <span className="ml-1 font-body text-muted-foreground text-sm">
-          / 6 this week
+          {t('thisWeek')}
         </span>
       </div>
     </div>

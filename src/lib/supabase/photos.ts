@@ -31,13 +31,12 @@ const MAX_PHOTO_SIZE = 20 * 1024 * 1024 // 20MB
 export async function uploadPhoto(
   file: File,
   week: number,
-  dayIdx: number
+  dayIdx: number,
+  userId?: string
 ): Promise<PhotoMeta | null> {
   const supabase = getSupabaseClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return null
+  const uid = userId ?? (await supabase.auth.getSession()).data.session?.user.id
+  if (!uid) return null
 
   if (!ALLOWED_MIME_TYPES.has(file.type)) return null
   if (file.size > MAX_PHOTO_SIZE) return null
@@ -47,7 +46,7 @@ export async function uploadPhoto(
     .replace(/[^a-z]/g, '')
   const ext = ALLOWED_EXTENSIONS.has(rawExt) ? rawExt : 'jpg'
   const filename = `${Date.now()}.${ext}`
-  const path = `${user.id}/${filename}`
+  const path = `${uid}/${filename}`
 
   const { error: uploadErr } = await supabase.storage
     .from('photos')
@@ -55,11 +54,11 @@ export async function uploadPhoto(
   if (uploadErr) return null
 
   const { data: urlData } = supabase.storage.from('photos').getPublicUrl(path)
-  const now = new Date().toISOString()
-  const key = `${user.id}-${Date.now()}`
+  const now = Date.now()
+  const key = `${uid}-${now}`
 
   const { error: metaErr } = await supabase.from('photo_metadata').insert({
-    user_id: user.id,
+    user_id: uid,
     key,
     week,
     day_idx: dayIdx,
@@ -71,24 +70,23 @@ export async function uploadPhoto(
   return {
     id: key,
     url: urlData.publicUrl,
-    date: now,
+    date: new Date(now).toISOString(),
     week,
     dayIdx,
     storagePath: path,
   }
 }
 
-export async function loadPhotos(): Promise<PhotoMeta[]> {
+export async function loadPhotos(userId?: string): Promise<PhotoMeta[]> {
   const supabase = getSupabaseClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return []
+
+  const uid = userId ?? (await supabase.auth.getSession()).data.session?.user.id
+  if (!uid) return []
 
   const { data, error } = await supabase
     .from('photo_metadata')
     .select('*')
-    .eq('user_id', user.id)
+    .eq('user_id', uid)
     .order('timestamp', { ascending: false })
 
   if (error || !data) return []
@@ -97,7 +95,7 @@ export async function loadPhotos(): Promise<PhotoMeta[]> {
     (row: {
       key: string
       storage_path: string
-      timestamp: string
+      timestamp: number
       week: number
       day_idx: number
     }) => {
@@ -107,7 +105,7 @@ export async function loadPhotos(): Promise<PhotoMeta[]> {
       return {
         id: row.key,
         url: urlData.publicUrl,
-        date: row.timestamp,
+        date: new Date(row.timestamp).toISOString(),
         week: row.week,
         dayIdx: row.day_idx,
         storagePath: row.storage_path,
@@ -116,20 +114,21 @@ export async function loadPhotos(): Promise<PhotoMeta[]> {
   )
 }
 
-export async function deletePhoto(photo: PhotoMeta): Promise<boolean> {
+export async function deletePhoto(
+  photo: PhotoMeta,
+  userId?: string
+): Promise<boolean> {
   const supabase = getSupabaseClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return false
+  const uid = userId ?? (await supabase.auth.getSession()).data.session?.user.id
+  if (!uid) return false
 
-  if (!photo.storagePath.startsWith(`${user.id}/`)) return false
+  if (!photo.storagePath.startsWith(`${uid}/`)) return false
 
   await supabase.storage.from('photos').remove([photo.storagePath])
   await supabase
     .from('photo_metadata')
     .delete()
     .eq('key', photo.id)
-    .eq('user_id', user.id)
+    .eq('user_id', uid)
   return true
 }

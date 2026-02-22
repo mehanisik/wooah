@@ -1,20 +1,42 @@
 'use client'
 
+import { type MessageKey, useT } from '@/lib/i18n'
 import { selectSessionNotes } from '@/lib/store/selectors'
 import type { SessionNotes } from '@/lib/store/types'
 import { useWorkoutStore } from '@/lib/store/use-workout-store'
 import { cn } from '@/lib/utils'
 
-const ENERGY_OPTIONS = ['Low', 'Normal', 'High', 'Peak']
-const SLEEP_OPTIONS = ['<5h', '5-6h', '7-8h', '8+h']
-const MOOD_OPTIONS = ['Rough', 'Meh', 'Good', 'Great']
-const SORENESS_OPTIONS = ['Very Sore', 'Moderate', 'Mild', 'None']
+const ENERGY_OPTIONS = [
+  { value: 'Low', key: 'energyLow' as const },
+  { value: 'Normal', key: 'energyNormal' as const },
+  { value: 'High', key: 'energyHigh' as const },
+  { value: 'Peak', key: 'energyPeak' as const },
+]
+const SLEEP_OPTIONS = [
+  { value: '<5h', key: 'sleepUnder5' as const },
+  { value: '5-6h', key: 'sleep56' as const },
+  { value: '7-8h', key: 'sleep78' as const },
+  { value: '8+h', key: 'sleepOver8' as const },
+]
+const MOOD_OPTIONS = [
+  { value: 'Rough', key: 'moodRough' as const },
+  { value: 'Meh', key: 'moodMeh' as const },
+  { value: 'Good', key: 'moodGood' as const },
+  { value: 'Great', key: 'moodGreat' as const },
+]
+const SORENESS_OPTIONS = [
+  { value: 'Very Sore', key: 'sorenessVerySore' as const },
+  { value: 'Moderate', key: 'sorenessModerate' as const },
+  { value: 'Mild', key: 'sorenessMild' as const },
+  { value: 'None', key: 'sorenessNone' as const },
+]
 
 interface SessionStripProps {
   dayIdx: number
 }
 
 export function SessionStrip({ dayIdx }: SessionStripProps) {
+  const t = useT()
   const notes = useWorkoutStore((s) => selectSessionNotes(s, dayIdx))
   const setNotes = useWorkoutStore((s) => s.setSessionNotes)
 
@@ -25,28 +47,32 @@ export function SessionStrip({ dayIdx }: SessionStripProps) {
   return (
     <div className="space-y-2">
       <PillRow
-        label="Energy"
+        label={t('energy')}
         options={ENERGY_OPTIONS}
         value={notes.energy}
         onChange={(v) => update('energy', v)}
+        t={t}
       />
       <PillRow
-        label="Sleep"
+        label={t('sleep')}
         options={SLEEP_OPTIONS}
         value={notes.sleep}
         onChange={(v) => update('sleep', v)}
+        t={t}
       />
       <PillRow
-        label="Mood"
+        label={t('mood')}
         options={MOOD_OPTIONS}
         value={notes.mood}
         onChange={(v) => update('mood', v)}
+        t={t}
       />
       <PillRow
-        label="Soreness"
+        label={t('sorenessLabel')}
         options={SORENESS_OPTIONS}
         value={notes.soreness}
         onChange={(v) => update('soreness', v)}
+        t={t}
       />
     </div>
   )
@@ -57,11 +83,13 @@ function PillRow({
   options,
   value,
   onChange,
+  t,
 }: {
   label: string
-  options: string[]
+  options: { value: string; key: MessageKey }[]
   value?: string
   onChange: (v: string) => void
+  t: (key: MessageKey, params?: Record<string, string | number>) => string
 }) {
   return (
     <div className="flex items-center gap-2">
@@ -71,17 +99,17 @@ function PillRow({
       <div className="flex flex-wrap gap-1">
         {options.map((opt) => (
           <button
-            key={opt}
+            key={opt.value}
             type="button"
-            onClick={() => onChange(opt)}
+            onClick={() => onChange(opt.value)}
             className={cn(
-              'rounded-full border px-2.5 py-1 font-body text-[10px] transition-colors',
-              value === opt
+              'rounded-full border px-2.5 py-1 font-body text-[10px] transition-all active:scale-95',
+              value === opt.value
                 ? 'border-primary bg-primary text-primary-foreground'
                 : 'border-border text-muted-foreground hover:text-foreground'
             )}
           >
-            {opt}
+            {t(opt.key)}
           </button>
         ))}
       </div>

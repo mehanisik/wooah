@@ -1,5 +1,6 @@
 'use client'
 
+import { useT } from '@/lib/i18n'
 import { selectLog } from '@/lib/store/selectors'
 import {
   getEffectiveProgram,
@@ -13,6 +14,7 @@ interface OneRmDisplayProps {
 }
 
 export function OneRmDisplay({ dayIdx, exIdx }: OneRmDisplayProps) {
+  const t = useT()
   const ex = getEffectiveProgram(dayIdx).exercises[exIdx]
   const amrapSetIdx = ex ? ex.sets - 1 : 0
   const log = useWorkoutStore((s) => selectLog(s, dayIdx, exIdx, amrapSetIdx))
@@ -27,7 +29,7 @@ export function OneRmDisplay({ dayIdx, exIdx }: OneRmDisplayProps) {
 
   return (
     <div className="font-mono text-[10px] text-primary">
-      Est. 1RM: <strong>{oneRM} kg</strong>
+      {t('est1rm')} <strong>{oneRM} kg</strong>
     </div>
   )
 }

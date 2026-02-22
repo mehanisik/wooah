@@ -11,11 +11,10 @@ import {
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { PROGRAM } from '@/lib/data/program'
+import { useT } from '@/lib/i18n'
 import { useWorkoutStore } from '@/lib/store/use-workout-store'
 import { cn } from '@/lib/utils'
-import { getWeekDates } from '@/lib/workout/helpers'
-
-const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S']
+import { getTodayDayIdx, getWeekDates } from '@/lib/workout/helpers'
 
 const TYPE_COLORS: Record<string, string> = {
   push: 'bg-push',
@@ -30,17 +29,28 @@ const TYPE_CHECK_COLORS: Record<string, string> = {
   legs: 'text-legs',
 }
 
-const UTILITY_TABS = [
-  { href: '/rest', label: 'SUN', icon: Coffee },
-  { href: '/info', label: 'INFO', icon: Info },
-  { href: '/stats', label: 'STATS', icon: BarChart3 },
-  { href: '/calendar', label: 'CAL', icon: CalendarDays },
-  { href: '/photos', label: 'PICS', icon: Camera },
-]
-
 export function NavBar() {
+  const t = useT()
+  const DAY_LABELS = [
+    t('navMon'),
+    t('navTue'),
+    t('navWed'),
+    t('navThu'),
+    t('navFri'),
+    t('navSat'),
+  ]
+
+  const UTILITY_TABS = [
+    { href: '/rest', label: t('navSun'), icon: Coffee },
+    { href: '/info', label: t('navInfo'), icon: Info },
+    { href: '/stats', label: t('navStats'), icon: BarChart3 },
+    { href: '/calendar', label: t('navCal'), icon: CalendarDays },
+    { href: '/photos', label: t('navPics'), icon: Camera },
+  ]
+
   const pathname = usePathname()
   const dates = getWeekDates()
+  const todayIdx = getTodayDayIdx()
   const finishedDays = useWorkoutStore((s) => s.finishedDays)
   const currentWeek = useWorkoutStore((s) => s.currentWeek)
 
@@ -52,6 +62,7 @@ export function NavBar() {
             const day = PROGRAM[i]
             const href = `/workout/${i}`
             const isActive = pathname === href
+            const isToday = i === todayIdx
             const finished = !!finishedDays[`w${currentWeek}-d${i}`]
 
             return (
@@ -77,7 +88,16 @@ export function NavBar() {
                     strokeWidth={3}
                   />
                 ) : (
-                  <span className="font-mono text-xs tabular-nums">
+                  <span
+                    className={cn(
+                      'flex h-5 w-5 items-center justify-center rounded-full font-mono text-xs tabular-nums',
+                      isToday &&
+                        cn(
+                          'font-semibold text-white',
+                          TYPE_COLORS[day.type] || 'bg-primary'
+                        )
+                    )}
+                  >
                     {dates[i]}
                   </span>
                 )}
@@ -97,6 +117,7 @@ export function NavBar() {
 
           {UTILITY_TABS.map(({ href, label, icon: Icon }) => {
             const isActive = pathname === href
+            const isSundayToday = href === '/rest' && todayIdx === 6
             return (
               <Link
                 key={href}
@@ -108,12 +129,19 @@ export function NavBar() {
                     : 'text-muted-foreground hover:text-foreground'
                 )}
               >
-                <Icon className="h-3.5 w-3.5" />
+                <span
+                  className={cn(
+                    'flex h-5 w-5 items-center justify-center rounded-full',
+                    isSundayToday && 'bg-rest text-white'
+                  )}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                </span>
                 <span className="mt-0.5 font-body font-semibold text-[10px] uppercase tracking-wider">
                   {label}
                 </span>
                 {isActive && (
-                  <span className="absolute right-1/4 bottom-0 left-1/4 h-0.5 rounded-full bg-warning" />
+                  <span className="absolute right-1/4 bottom-0 left-1/4 h-0.5 rounded-full bg-rest" />
                 )}
               </Link>
             )

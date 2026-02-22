@@ -19,6 +19,7 @@ import { Plus, Save, X } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { PROGRAM } from '@/lib/data/program'
+import { useT } from '@/lib/i18n'
 import type { ProgramOverrideEntry } from '@/lib/store/types'
 import { useWorkoutStore } from '@/lib/store/use-workout-store'
 import { ExerciseEditCard } from './exercise-edit-card'
@@ -30,6 +31,7 @@ interface ProgramEditorProps {
 }
 
 export function ProgramEditor({ dayIdx, onClose }: ProgramEditorProps) {
+  const t = useT()
   const base = PROGRAM[dayIdx]
   const existingOverrides = useWorkoutStore((s) => s.programOverrides[dayIdx])
   const [pickerOpen, setPickerOpen] = useState(false)
@@ -86,7 +88,7 @@ export function ProgramEditor({ dayIdx, onClose }: ProgramEditorProps) {
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h3 className="font-display text-lg tracking-wider">
-          EDIT {base.day} — {base.name}
+          {t('editDayTitle', { day: base.day, name: base.name })}
         </h3>
         <button type="button" onClick={onClose} className="p-1">
           <X className="h-5 w-5 text-muted-foreground" />
@@ -149,16 +151,16 @@ export function ProgramEditor({ dayIdx, onClose }: ProgramEditorProps) {
         onClick={() => setPickerOpen(true)}
       >
         <Plus className="mr-1 h-3 w-3" />
-        ADD EXERCISE
+        {t('addExercise')}
       </Button>
 
       <div className="flex gap-2">
         <Button size="sm" className="flex-1 text-xs" onClick={save}>
           <Save className="mr-1 h-3 w-3" />
-          SAVE
+          {t('save')}
         </Button>
         <Button variant="outline" size="sm" className="text-xs" onClick={reset}>
-          RESET
+          {t('resetLabel')}
         </Button>
       </div>
 

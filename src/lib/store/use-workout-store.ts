@@ -95,6 +95,7 @@ const initialState: WorkoutState = {
   swapFrequency: {},
   programOverrides: {},
   plateSettings: { barWeight: 20, unit: 'kg' },
+  locale: 'en',
 }
 
 export const useWorkoutStore = create<WorkoutState & WorkoutActions>()(
@@ -314,6 +315,8 @@ export const useWorkoutStore = create<WorkoutState & WorkoutActions>()(
         })
       },
 
+      setLocale: (locale) => set({ locale }),
+
       addBodyweight: (weight) => {
         const date = new Date().toISOString().split('T')[0]
         set((s) => {
@@ -458,6 +461,7 @@ export const useWorkoutStore = create<WorkoutState & WorkoutActions>()(
           setExerciseNote,
           getPinnedNote,
           setPinnedNote,
+          setLocale,
           addBodyweight,
           mergeState,
           overwriteState,

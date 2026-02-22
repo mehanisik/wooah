@@ -1,5 +1,6 @@
 'use client'
 
+import { useT } from '@/lib/i18n'
 import { selectLastSession } from '@/lib/store/selectors'
 import { useWorkoutStore } from '@/lib/store/use-workout-store'
 import { calcPlates } from '@/lib/workout/plate-calc'
@@ -12,6 +13,7 @@ interface WarmupTableProps {
 }
 
 export function WarmupTable({ dayIdx, exIdx, exerciseName }: WarmupTableProps) {
+  const t = useT()
   const lastSession = useWorkoutStore((s) =>
     selectLastSession(s, dayIdx, exIdx)
   )
@@ -27,16 +29,16 @@ export function WarmupTable({ dayIdx, exIdx, exerciseName }: WarmupTableProps) {
   return (
     <div className="mt-2 space-y-1">
       <div className="font-body text-[10px] text-muted-foreground uppercase tracking-wider">
-        Warm-up (based on {workingWeight}kg)
+        {t('warmupBased', { weight: workingWeight })}
       </div>
       <table className="w-full font-mono text-[10px]">
         <thead>
           <tr className="text-muted-foreground">
             <th className="w-6 text-left">#</th>
-            <th className="text-left">KG</th>
-            <th className="text-left">REPS</th>
-            <th className="text-left">%</th>
-            <th className="text-left">PLATES</th>
+            <th className="text-left">{t('kgLabel')}</th>
+            <th className="text-left">{t('repsLabel')}</th>
+            <th className="text-left">{t('warmupPercent')}</th>
+            <th className="text-left">{t('warmupPlates')}</th>
           </tr>
         </thead>
         <tbody>
@@ -44,13 +46,13 @@ export function WarmupTable({ dayIdx, exIdx, exerciseName }: WarmupTableProps) {
             const plates = calcPlates(s.weight, exerciseName)
             const plateStr = plates?.plates.length
               ? plates.plates.join('+')
-              : 'bar'
+              : t('warmupBar')
             return (
               <tr key={i} className="text-foreground/80">
                 <td>{i + 1}</td>
                 <td>{s.weight}kg</td>
                 <td>x{s.reps}</td>
-                <td>{s.pct ? `${s.pct}%` : 'Bar'}</td>
+                <td>{s.pct ? `${s.pct}%` : t('warmupBarLabel')}</td>
                 <td className="text-muted-foreground">{plateStr}</td>
               </tr>
             )
@@ -58,7 +60,7 @@ export function WarmupTable({ dayIdx, exIdx, exerciseName }: WarmupTableProps) {
         </tbody>
       </table>
       <div className="font-body text-[9px] text-muted-foreground">
-        Rest 45s between warmup sets
+        {t('warmupRest')}
       </div>
     </div>
   )

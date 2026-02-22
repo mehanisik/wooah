@@ -3,6 +3,7 @@
 import { Check } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { useHaptic } from '@/hooks/use-haptic'
+import { useT } from '@/lib/i18n'
 import { selectLastSession, selectLog } from '@/lib/store/selectors'
 import { useWorkoutStore } from '@/lib/store/use-workout-store'
 import { cn } from '@/lib/utils'
@@ -26,6 +27,7 @@ export function SetRow({
   exerciseName,
   onStartRest,
 }: SetRowProps) {
+  const t = useT()
   const log = useWorkoutStore((s) => selectLog(s, dayIdx, exIdx, setIdx))
   const setLog = useWorkoutStore((s) => s.setLog)
   const lastSession = useWorkoutStore((s) =>
@@ -68,24 +70,28 @@ export function SetRow({
       <Input
         type="number"
         inputMode="decimal"
-        placeholder={previousSet ? String(previousSet.weight) : 'kg'}
+        placeholder={
+          previousSet ? String(previousSet.weight) : t('kgPlaceholder')
+        }
         value={log.weight}
         onChange={(e) =>
           setLog(dayIdx, exIdx, setIdx, { ...log, weight: e.target.value })
         }
-        className="h-8 px-1 text-center font-mono text-sm"
+        className="h-8 px-1 text-center font-mono text-sm placeholder:text-muted-foreground/50 placeholder:italic"
         disabled={log.done}
       />
 
       <Input
         type="number"
         inputMode="numeric"
-        placeholder={previousSet ? String(previousSet.reps) : 'reps'}
+        placeholder={
+          previousSet ? String(previousSet.reps) : t('repsPlaceholder')
+        }
         value={log.reps}
         onChange={(e) =>
           setLog(dayIdx, exIdx, setIdx, { ...log, reps: e.target.value })
         }
-        className="h-8 px-1 text-center font-mono text-sm"
+        className="h-8 px-1 text-center font-mono text-sm placeholder:text-muted-foreground/50 placeholder:italic"
         disabled={log.done}
       />
 
@@ -98,7 +104,7 @@ export function SetRow({
             ? 'border-success bg-success-dim text-success'
             : 'border-border text-muted-foreground hover:border-foreground'
         )}
-        aria-label={log.done ? 'Undo set' : 'Complete set'}
+        aria-label={log.done ? t('undoSet') : t('completeSet')}
       >
         <Check className="h-4 w-4" />
       </button>
