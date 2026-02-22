@@ -8,6 +8,7 @@ import {
 } from '@/lib/data/muscles'
 import { useT } from '@/lib/i18n'
 import {
+  getActiveDayCount,
   getEffectiveProgram,
   useWorkoutStore,
 } from '@/lib/store/use-workout-store'
@@ -53,7 +54,9 @@ export function MuscleVolumeChart() {
   const weeklyVolume: Record<string, number> = {}
   for (const group of MUSCLE_GROUPS) weeklyVolume[group] = 0
 
-  for (let d = 0; d < 6; d++) {
+  const dayCount = useWorkoutStore((s) => getActiveDayCount(s))
+
+  for (let d = 0; d < dayCount; d++) {
     const prog = getEffectiveProgram(d)
     prog.exercises.forEach((ex, eIdx) => {
       let doneSets = 0

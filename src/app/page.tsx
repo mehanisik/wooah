@@ -2,23 +2,21 @@
 
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
-
-function getTodayDayIdx(): number {
-  const day = new Date().getDay()
-  return day === 0 ? 6 : day - 1
-}
+import { useWorkoutStore } from '@/lib/store/use-workout-store'
+import { getTodayDayIdx } from '@/lib/workout/helpers'
 
 export default function Home() {
   const router = useRouter()
+  const trainingDays = useWorkoutStore((s) => s.trainingDays)
 
   useEffect(() => {
-    const idx = getTodayDayIdx()
-    if (idx === 6) {
+    const idx = getTodayDayIdx(trainingDays)
+    if (idx === null) {
       router.replace('/rest')
     } else {
       router.replace(`/workout/${idx}`)
     }
-  }, [router])
+  }, [router, trainingDays])
 
   return (
     <div className="flex items-center justify-center py-16">

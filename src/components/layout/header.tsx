@@ -12,12 +12,16 @@ import {
   usePRCount,
   useStreak,
 } from '@/lib/store/selectors'
-import { useWorkoutStore } from '@/lib/store/use-workout-store'
+import {
+  getActiveDayCount,
+  useWorkoutStore,
+} from '@/lib/store/use-workout-store'
 import { getMesoWeek, isDeloadWeek } from '@/lib/workout/mesocycle'
 
 export function Header() {
   const t = useT()
   const completed = useWorkoutStore((s) => selectCompletedThisWeek(s))
+  const dayCount = useWorkoutStore((s) => getActiveDayCount(s))
   const streak = useStreak()
   const prs = usePRCount()
   const { user } = useAuth()
@@ -48,7 +52,7 @@ export function Header() {
                   {completed}
                 </span>
                 <span className="text-[10px] text-muted-foreground">
-                  {t('of6')}
+                  {t('ofN', { total: dayCount })}
                 </span>
               </div>
               <div className="flex items-center gap-1.5">

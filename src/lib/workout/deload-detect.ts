@@ -4,6 +4,7 @@ import type {
   SessionNotes,
   WorkoutState,
 } from '@/lib/store/types'
+import { getActiveDayCount } from '@/lib/store/use-workout-store'
 import { getMesoWeek, isDeloadWeek } from './mesocycle'
 
 export interface DeloadSignal {
@@ -37,11 +38,12 @@ function getWeeksSinceDeload(
 
 function getRecentFatigue(
   sessionNotes: Record<string, SessionNotes>,
-  currentWeek: number
+  currentWeek: number,
+  dayCount: number
 ): number {
   let fatigueCount = 0
   for (let offset = 0; offset < 3; offset++) {
-    for (let d = 0; d < 6; d++) {
+    for (let d = 0; d < dayCount; d++) {
       const key = `w${currentWeek - offset}-d${d}`
       const notes = sessionNotes[key]
       if (!notes) continue
@@ -61,7 +63,11 @@ export function checkDeloadSignals(state: WorkoutState): DeloadSignal | null {
     state.mesocycleConfig,
     state.currentWeek
   )
-  const fatigueCount = getRecentFatigue(state.sessionNotes, state.currentWeek)
+  const fatigueCount = getRecentFatigue(
+    state.sessionNotes,
+    state.currentWeek,
+    getActiveDayCount(state)
+  )
 
   if (oneRMDrops >= 2) {
     return {

@@ -3,6 +3,7 @@
 import { MUSCLE_GROUPS, MUSCLE_MAP, VOLUME_LANDMARKS } from '@/lib/data/muscles'
 import { useT } from '@/lib/i18n'
 import {
+  getActiveDayCount,
   getEffectiveProgram,
   useWorkoutStore,
 } from '@/lib/store/use-workout-store'
@@ -14,13 +15,15 @@ export function FrequencyHeatmap() {
   const currentWeek = useWorkoutStore((s) => s.currentWeek)
   const logs = useWorkoutStore((s) => s.logs)
 
+  const dayCount = useWorkoutStore((s) => getActiveDayCount(s))
+
   const grid: Record<string, Record<number, number>> = {}
   for (const g of MUSCLE_GROUPS) {
     grid[g] = {}
-    for (let d = 0; d < 6; d++) grid[g][d] = 0
+    for (let d = 0; d < dayCount; d++) grid[g][d] = 0
   }
 
-  for (let d = 0; d < 6; d++) {
+  for (let d = 0; d < dayCount; d++) {
     const prog = getEffectiveProgram(d)
     prog.exercises.forEach((ex, eIdx) => {
       let doneSets = 0
@@ -40,14 +43,18 @@ export function FrequencyHeatmap() {
     })
   }
 
-  const days = [
+  const ALL_DAY_LABELS = [
     t('navMon'),
     t('navTue'),
     t('navWed'),
     t('navThu'),
     t('navFri'),
     t('navSat'),
+    t('calSun'),
   ]
+  const trainingDays = useWorkoutStore((s) => s.trainingDays)
+  const sortedDays = [...trainingDays].sort((a, b) => a - b)
+  const days = sortedDays.map((d) => ALL_DAY_LABELS[d])
   const maxCell = Math.max(
     ...MUSCLE_GROUPS.flatMap((g) => Object.values(grid[g])),
     1

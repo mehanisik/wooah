@@ -97,6 +97,8 @@ export interface WorkoutState {
   programOverrides: Record<number, ProgramOverrideEntry[]>
   plateSettings: PlateSettings
   locale: Locale
+  activeProgramId: string
+  trainingDays: number[]
 }
 
 export interface WorkoutActions {
@@ -127,6 +129,8 @@ export interface WorkoutActions {
   removeExerciseFromDay: (dayIdx: number, exIdx: number) => void
   addBodyweight: (weight: number) => void
   setLocale: (locale: Locale) => void
+  switchProgram: (programId: string, trainingDays: number[]) => void
+  setTrainingDays: (days: number[]) => void
   mergeState: (imported: Partial<WorkoutState>) => void
   overwriteState: (imported: WorkoutState) => void
   initWeek: () => void

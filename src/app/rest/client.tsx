@@ -4,12 +4,16 @@ import { Coffee } from 'lucide-react'
 import { useState } from 'react'
 import { useRestQuotes, useT } from '@/lib/i18n'
 import { selectCompletedThisWeek } from '@/lib/store/selectors'
-import { useWorkoutStore } from '@/lib/store/use-workout-store'
+import {
+  getActiveDayCount,
+  useWorkoutStore,
+} from '@/lib/store/use-workout-store'
 
 export function RestPageClient() {
   const t = useT()
   const restQuotes = useRestQuotes()
   const completedThisWeek = useWorkoutStore((s) => selectCompletedThisWeek(s))
+  const dayCount = useWorkoutStore((s) => getActiveDayCount(s))
   const [quote] = useState(
     () => restQuotes[Math.floor(Math.random() * restQuotes.length)]
   )
@@ -33,7 +37,7 @@ export function RestPageClient() {
           {completedThisWeek}
         </span>
         <span className="ml-1 font-body text-muted-foreground text-sm">
-          {t('thisWeek')}
+          {t('thisWeek', { total: dayCount })}
         </span>
       </div>
     </div>

@@ -11,6 +11,7 @@ import {
 } from 'recharts'
 import { useT } from '@/lib/i18n'
 import {
+  getActiveDayCount,
   getEffectiveProgram,
   useWorkoutStore,
 } from '@/lib/store/use-workout-store'
@@ -27,6 +28,7 @@ export function VolumeChart() {
   const t = useT()
   const currentWeek = useWorkoutStore((s) => s.currentWeek)
   const history = useWorkoutStore((s) => s.history)
+  const dayCount = useWorkoutStore((s) => getActiveDayCount(s))
 
   const weeks: { label: string; push: number; pull: number; legs: number }[] =
     []
@@ -34,7 +36,7 @@ export function VolumeChart() {
 
   for (let w = startWeek; w <= currentWeek; w++) {
     const row = { label: `W${w}`, push: 0, pull: 0, legs: 0 }
-    for (let d = 0; d < 6; d++) {
+    for (let d = 0; d < dayCount; d++) {
       const prog = getEffectiveProgram(d)
       const type = prog.type as 'push' | 'pull' | 'legs'
       prog.exercises.forEach((_, eIdx) => {

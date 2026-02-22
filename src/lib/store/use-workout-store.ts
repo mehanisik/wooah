@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { PROGRAM } from '@/lib/data/program'
+import { getTemplateOrDefault } from '@/lib/data/programs/registry'
 import type {
   HistoryEntry,
   SessionNotes,
@@ -34,13 +34,17 @@ function calcCurrentWeek(startDate: string | null): number {
   )
 }
 
+export function getActiveDayCount(state: WorkoutState): number {
+  return getTemplateOrDefault(state.activeProgramId).days.length
+}
+
 export function getEffectiveProgramForState(
   state: WorkoutState,
   dayIdx: number
 ) {
-  if (!state.programOverrides?.[dayIdx]) return PROGRAM[dayIdx]
+  const base = getTemplateOrDefault(state.activeProgramId).days[dayIdx]
+  if (!state.programOverrides?.[dayIdx]) return base
 
-  const base = PROGRAM[dayIdx]
   const list = state.programOverrides[dayIdx]
   const exercises = list
     .map((entry) => {
@@ -96,6 +100,8 @@ const initialState: WorkoutState = {
   programOverrides: {},
   plateSettings: { barWeight: 20, unit: 'kg' },
   locale: 'en',
+  activeProgramId: 'wooah-ppl',
+  trainingDays: [0, 1, 2, 3, 4, 5],
 }
 
 export const useWorkoutStore = create<WorkoutState & WorkoutActions>()(
@@ -146,8 +152,9 @@ export const useWorkoutStore = create<WorkoutState & WorkoutActions>()(
 
       getCompletedThisWeek: () => {
         const state = get()
+        const dayCount = getActiveDayCount(state)
         let count = 0
-        for (let d = 0; d < 6; d++) {
+        for (let d = 0; d < dayCount; d++) {
           if (state.finishedDays[`w${state.currentWeek}-d${d}`]) count++
         }
         return count
@@ -284,7 +291,8 @@ export const useWorkoutStore = create<WorkoutState & WorkoutActions>()(
         set((s) => {
           const overrides = { ...s.programOverrides }
           if (!overrides[dayIdx]) {
-            const base = PROGRAM[dayIdx].exercises
+            const base = getTemplateOrDefault(s.activeProgramId).days[dayIdx]
+              .exercises
             overrides[dayIdx] = base.map((_, i) => ({ originalIdx: i }))
           } else {
             overrides[dayIdx] = [...overrides[dayIdx]]
@@ -301,7 +309,8 @@ export const useWorkoutStore = create<WorkoutState & WorkoutActions>()(
           const list = [...overrides[dayIdx]]
           list.splice(exIdx, 1)
 
-          const base = PROGRAM[dayIdx].exercises
+          const base = getTemplateOrDefault(s.activeProgramId).days[dayIdx]
+            .exercises
           const isBaseProgram =
             list.length === base.length &&
             list.every((e, i) => !e.custom && e.originalIdx === i)
@@ -316,6 +325,14 @@ export const useWorkoutStore = create<WorkoutState & WorkoutActions>()(
       },
 
       setLocale: (locale) => set({ locale }),
+
+      switchProgram: (programId, trainingDays) => {
+        set({ activeProgramId: programId, trainingDays, programOverrides: {} })
+      },
+
+      setTrainingDays: (days) => {
+        set({ trainingDays: days })
+      },
 
       addBodyweight: (weight) => {
         const date = new Date().toISOString().split('T')[0]
@@ -462,6 +479,8 @@ export const useWorkoutStore = create<WorkoutState & WorkoutActions>()(
           getPinnedNote,
           setPinnedNote,
           setLocale,
+          switchProgram,
+          setTrainingDays,
           addBodyweight,
           mergeState,
           overwriteState,

@@ -2,7 +2,10 @@
 
 import { useState } from 'react'
 import { useT } from '@/lib/i18n'
-import { useWorkoutStore } from '@/lib/store/use-workout-store'
+import {
+  getActiveDayCount,
+  useWorkoutStore,
+} from '@/lib/store/use-workout-store'
 import { CalendarDetail } from './calendar-detail'
 import { CalendarMonth } from './calendar-month'
 
@@ -17,14 +20,15 @@ function getMonthsToShow(): Date[] {
 
 function getStreaks(
   finishedDays: Record<string, boolean>,
-  currentWeek: number
+  currentWeek: number,
+  dayCount: number
 ) {
   let current = 0
   let longest = 0
   let streak = 0
 
   for (let w = 1; w <= currentWeek; w++) {
-    for (let d = 0; d < 6; d++) {
+    for (let d = 0; d < dayCount; d++) {
       if (finishedDays[`w${w}-d${d}`]) {
         streak++
         if (streak > longest) longest = streak
@@ -36,7 +40,7 @@ function getStreaks(
 
   streak = 0
   outer: for (let w = currentWeek; w >= 1; w--) {
-    for (let d = 5; d >= 0; d--) {
+    for (let d = dayCount - 1; d >= 0; d--) {
       if (finishedDays[`w${w}-d${d}`]) {
         streak++
       } else if (streak > 0) {
@@ -54,8 +58,9 @@ export function CalendarPage() {
   const currentWeek = useWorkoutStore((s) => s.currentWeek)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
 
+  const dayCount = useWorkoutStore((s) => getActiveDayCount(s))
   const months = getMonthsToShow()
-  const { current, longest } = getStreaks(finishedDays, currentWeek)
+  const { current, longest } = getStreaks(finishedDays, currentWeek, dayCount)
 
   return (
     <div className="space-y-6 pb-4">

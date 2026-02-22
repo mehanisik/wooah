@@ -4,6 +4,7 @@ import { Trophy } from 'lucide-react'
 import { formatDateShort } from '@/lib/format'
 import { useLocale, useT } from '@/lib/i18n'
 import {
+  getActiveDayCount,
   getEffectiveProgram,
   useWorkoutStore,
 } from '@/lib/store/use-workout-store'
@@ -20,8 +21,10 @@ export function PersonalRecordsList() {
   const locale = useLocale()
   const records = useWorkoutStore((s) => s.personalRecords)
 
+  const dayCount = useWorkoutStore((s) => getActiveDayCount(s))
+
   const nameMap: Record<string, string> = {}
-  for (let d = 0; d < 6; d++) {
+  for (let d = 0; d < dayCount; d++) {
     const prog = getEffectiveProgram(d)
     prog.exercises.forEach((ex, eIdx) => {
       nameMap[`d${d}-e${eIdx}`] = ex.name

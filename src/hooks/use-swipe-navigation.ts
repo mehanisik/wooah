@@ -1,21 +1,13 @@
 'use client'
 
 import { usePathname, useRouter } from 'next/navigation'
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
+import {
+  getActiveDayCount,
+  useWorkoutStore,
+} from '@/lib/store/use-workout-store'
 
-const ROUTES = [
-  '/workout/0',
-  '/workout/1',
-  '/workout/2',
-  '/workout/3',
-  '/workout/4',
-  '/workout/5',
-  '/rest',
-  '/info',
-  '/stats',
-  '/calendar',
-  '/photos',
-]
+const UTILITY_ROUTES = ['/rest', '/info', '/stats', '/calendar', '/photos']
 
 const SWIPE_THRESHOLD = 50
 
@@ -23,6 +15,11 @@ export function useSwipeNavigation() {
   const router = useRouter()
   const pathname = usePathname()
   const touchStart = useRef<{ x: number; y: number } | null>(null)
+  const dayCount = useWorkoutStore((s) => getActiveDayCount(s))
+  const ROUTES = useMemo(() => {
+    const workout = Array.from({ length: dayCount }, (_, i) => `/workout/${i}`)
+    return [...workout, ...UTILITY_ROUTES]
+  }, [dayCount])
 
   useEffect(() => {
     const onTouchStart = (e: TouchEvent) => {
@@ -57,5 +54,5 @@ export function useSwipeNavigation() {
       document.removeEventListener('touchstart', onTouchStart)
       document.removeEventListener('touchend', onTouchEnd)
     }
-  }, [router, pathname])
+  }, [router, pathname, ROUTES])
 }

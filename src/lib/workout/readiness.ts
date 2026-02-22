@@ -1,5 +1,8 @@
 import type { SessionNotes, WorkoutState } from '@/lib/store/types'
-import { getEffectiveProgram } from '@/lib/store/use-workout-store'
+import {
+  getActiveDayCount,
+  getEffectiveProgram,
+} from '@/lib/store/use-workout-store'
 
 const ENERGY_SCORES: Record<string, number> = {
   Low: 25,
@@ -67,8 +70,9 @@ function calcVolumeLoad(
 }
 
 function getWeeklyVolumeLoad(state: WorkoutState, week: number): number {
+  const dayCount = getActiveDayCount(state)
   let total = 0
-  for (let d = 0; d < 6; d++) total += calcVolumeLoad(state, week, d)
+  for (let d = 0; d < dayCount; d++) total += calcVolumeLoad(state, week, d)
   return total
 }
 

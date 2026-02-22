@@ -3,6 +3,7 @@ import {
   formatDuration,
   formatRest,
   getTodayDayIdx,
+  getTodayWeekdayIdx,
   parseRepRange,
 } from '../helpers'
 
@@ -55,10 +56,28 @@ describe('formatDuration', () => {
   })
 })
 
-describe('getTodayDayIdx', () => {
+describe('getTodayWeekdayIdx', () => {
   it('returns 0-6', () => {
-    const idx = getTodayDayIdx()
+    const idx = getTodayWeekdayIdx()
     expect(idx).toBeGreaterThanOrEqual(0)
     expect(idx).toBeLessThanOrEqual(6)
+  })
+})
+
+describe('getTodayDayIdx', () => {
+  it('returns program day index or null', () => {
+    const allDays = [0, 1, 2, 3, 4, 5]
+    const idx = getTodayDayIdx(allDays)
+    const weekday = getTodayWeekdayIdx()
+    if (weekday === 6) {
+      expect(idx).toBeNull()
+    } else {
+      expect(idx).toBe(weekday)
+    }
+  })
+
+  it('returns null for non-training day', () => {
+    const idx = getTodayDayIdx([])
+    expect(idx).toBeNull()
   })
 })

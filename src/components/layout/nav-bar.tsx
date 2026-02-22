@@ -10,7 +10,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { PROGRAM } from '@/lib/data/program'
+import { getTemplateOrDefault } from '@/lib/data/programs/registry'
 import { useT } from '@/lib/i18n'
 import { useWorkoutStore } from '@/lib/store/use-workout-store'
 import { cn } from '@/lib/utils'
@@ -21,12 +21,26 @@ const TYPE_COLORS: Record<string, string> = {
   pull: 'bg-pull',
   legs: 'bg-legs',
   rest: 'bg-rest',
+  upper: 'bg-upper',
+  lower: 'bg-lower',
+  full: 'bg-full',
+  chest: 'bg-chest',
+  back: 'bg-back',
+  shoulders: 'bg-shoulders',
+  arms: 'bg-arms',
 }
 
 const TYPE_CHECK_COLORS: Record<string, string> = {
   push: 'text-push',
   pull: 'text-pull',
   legs: 'text-legs',
+  upper: 'text-upper',
+  lower: 'text-lower',
+  full: 'text-full',
+  chest: 'text-chest',
+  back: 'text-back',
+  shoulders: 'text-shoulders',
+  arms: 'text-arms',
 }
 
 export function NavBar() {
@@ -50,16 +64,19 @@ export function NavBar() {
 
   const pathname = usePathname()
   const dates = getWeekDates()
-  const todayIdx = getTodayDayIdx()
+  const trainingDays = useWorkoutStore((s) => s.trainingDays)
+  const activeProgramId = useWorkoutStore((s) => s.activeProgramId)
+  const todayIdx = getTodayDayIdx(trainingDays)
   const finishedDays = useWorkoutStore((s) => s.finishedDays)
   const currentWeek = useWorkoutStore((s) => s.currentWeek)
+  const template = getTemplateOrDefault(activeProgramId)
 
   return (
     <nav className="safe-area-pb fixed right-0 bottom-0 left-0 z-40 border-border border-t bg-background/95 backdrop-blur-sm">
       <div className="mx-auto max-w-lg">
         <div className="scrollbar-none flex overflow-x-auto">
           {DAY_LABELS.map((label, i) => {
-            const day = PROGRAM[i]
+            const day = template.days[i]
             const href = `/workout/${i}`
             const isActive = pathname === href
             const isToday = i === todayIdx
@@ -117,7 +134,7 @@ export function NavBar() {
 
           {UTILITY_TABS.map(({ href, label, icon: Icon }) => {
             const isActive = pathname === href
-            const isSundayToday = href === '/rest' && todayIdx === 6
+            const isSundayToday = href === '/rest' && todayIdx === null
             return (
               <Link
                 key={href}
