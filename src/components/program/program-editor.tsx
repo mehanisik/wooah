@@ -18,7 +18,7 @@ import {
 import { Plus, Save, X } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { PROGRAM } from '@/lib/data/program'
+import { getTemplateOrDefault } from '@/lib/data/programs/registry'
 import { useT } from '@/lib/i18n'
 import type { ProgramOverrideEntry } from '@/lib/store/types'
 import { useWorkoutStore } from '@/lib/store/use-workout-store'
@@ -32,7 +32,8 @@ interface ProgramEditorProps {
 
 export function ProgramEditor({ dayIdx, onClose }: ProgramEditorProps) {
   const t = useT()
-  const base = PROGRAM[dayIdx]
+  const activeProgramId = useWorkoutStore((s) => s.activeProgramId)
+  const base = getTemplateOrDefault(activeProgramId).days[dayIdx]
   const existingOverrides = useWorkoutStore((s) => s.programOverrides[dayIdx])
   const [pickerOpen, setPickerOpen] = useState(false)
 

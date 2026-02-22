@@ -129,6 +129,12 @@ export const MUSCLE_MAP: Record<string, MuscleMapping> = {
   'French Press': { primary: ['Triceps'], secondary: [] },
   'Cable Overhead Extension': { primary: ['Triceps'], secondary: [] },
   'Skull Crusher': { primary: ['Triceps'], secondary: [] },
+  'Rope Pushdown': { primary: ['Triceps'], secondary: [] },
+  'Dips (weighted)': {
+    primary: ['Chest', 'Triceps'],
+    secondary: ['Front Delts'],
+  },
+  'Hip Thrust': { primary: ['Glutes'], secondary: ['Hamstrings'] },
 
   'Lateral Raises': { primary: ['Side Delts'], secondary: [] },
   'Cable Lateral Raise': { primary: ['Side Delts'], secondary: [] },

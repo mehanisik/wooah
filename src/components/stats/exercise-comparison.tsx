@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/select'
 import { useT } from '@/lib/i18n'
 import {
+  getActiveDayCount,
   getEffectiveProgram,
   useWorkoutStore,
 } from '@/lib/store/use-workout-store'
@@ -38,8 +39,10 @@ export function ExerciseComparison() {
   const [exB, setExB] = useState(keys[1] || '')
   const [range, setRange] = useState<Range>('all')
 
+  const dayCount = useWorkoutStore((s) => getActiveDayCount(s))
+
   const nameMap: Record<string, string> = {}
-  for (let d = 0; d < 6; d++) {
+  for (let d = 0; d < dayCount; d++) {
     const prog = getEffectiveProgram(d)
     prog.exercises.forEach((ex, eIdx) => {
       nameMap[`d${d}-e${eIdx}`] = ex.name

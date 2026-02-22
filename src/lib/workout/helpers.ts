@@ -7,16 +7,23 @@ export function parseRepRange(reps: string): { low: number; high: number } {
   }
 }
 
-export function getTodayDayIdx(): number {
+export function getTodayWeekdayIdx(): number {
   const jsDay = new Date().getDay()
   return jsDay === 0 ? 6 : jsDay - 1
 }
 
+export function getTodayDayIdx(trainingDays: number[]): number | null {
+  const weekday = getTodayWeekdayIdx()
+  const sorted = [...trainingDays].sort((a, b) => a - b)
+  const idx = sorted.indexOf(weekday)
+  return idx === -1 ? null : idx
+}
+
 export function getWeekDates(): number[] {
   const today = new Date()
-  const todayIdx = getTodayDayIdx()
+  const weekdayIdx = getTodayWeekdayIdx()
   const monday = new Date(today)
-  monday.setDate(today.getDate() - todayIdx)
+  monday.setDate(today.getDate() - weekdayIdx)
   return Array.from({ length: 7 }, (_, i) => {
     const d = new Date(monday)
     d.setDate(monday.getDate() + i)

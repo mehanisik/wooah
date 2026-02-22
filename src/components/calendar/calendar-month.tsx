@@ -1,6 +1,6 @@
 'use client'
 
-import { PROGRAM } from '@/lib/data/program'
+import { getTemplateOrDefault } from '@/lib/data/programs/registry'
 import { formatMonthYear } from '@/lib/format'
 import { useLocale, useT } from '@/lib/i18n'
 import { useWorkoutStore } from '@/lib/store/use-workout-store'
@@ -16,6 +16,13 @@ const typeColors: Record<string, string> = {
   push: 'bg-[var(--push-color)]',
   pull: 'bg-[var(--pull-color)]',
   legs: 'bg-[var(--legs-color)]',
+  upper: 'bg-[var(--upper-color)]',
+  lower: 'bg-[var(--lower-color)]',
+  full: 'bg-[var(--full-color)]',
+  chest: 'bg-[var(--chest-color)]',
+  back: 'bg-[var(--back-color)]',
+  shoulders: 'bg-[var(--shoulders-color)]',
+  arms: 'bg-[var(--arms-color)]',
 }
 
 export function CalendarMonth({
@@ -27,6 +34,10 @@ export function CalendarMonth({
   const locale = useLocale()
   const finishedDays = useWorkoutStore((s) => s.finishedDays)
   const startDate = useWorkoutStore((s) => s.startDate)
+  const activeProgramId = useWorkoutStore((s) => s.activeProgramId)
+  const trainingDays = useWorkoutStore((s) => s.trainingDays)
+  const template = getTemplateOrDefault(activeProgramId)
+  const sortedTrainingDays = [...trainingDays].sort((a, b) => a - b)
   const DAY_HEADERS = [
     t('navMon'),
     t('navTue'),
@@ -53,8 +64,9 @@ export function CalendarMonth({
     if (!startDate) return null
     const date = new Date(year, mo, day)
     const dow = date.getDay()
-    const dayIdx = dow === 0 ? 6 : dow - 1
-    if (dayIdx >= 6) return null
+    const weekdayIdx = dow === 0 ? 6 : dow - 1
+    const dayIdx = sortedTrainingDays.indexOf(weekdayIdx)
+    if (dayIdx === -1) return null
 
     const msPerWeek = 7 * 24 * 60 * 60 * 1000
     const startMonday = new Date(startDate)
@@ -71,7 +83,7 @@ export function CalendarMonth({
     const key = `w${week}-d${dayIdx}`
     if (!finishedDays[key]) return null
 
-    return { type: PROGRAM[dayIdx].type, dayIdx, week, key }
+    return { type: template.days[dayIdx]?.type ?? 'rest', dayIdx, week, key }
   }
 
   const cells: (number | null)[] = []

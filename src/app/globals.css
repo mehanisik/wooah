@@ -53,6 +53,13 @@
   --color-pull: var(--pull-color);
   --color-legs: var(--legs-color);
   --color-rest: var(--rest-color);
+  --color-upper: var(--upper-color);
+  --color-lower: var(--lower-color);
+  --color-full: var(--full-color);
+  --color-chest: var(--chest-color);
+  --color-back: var(--back-color);
+  --color-shoulders: var(--shoulders-color);
+  --color-arms: var(--arms-color);
   --color-success: var(--green);
   --color-success-dim: var(--green-dim);
   --color-warning: var(--yellow);
@@ -71,6 +78,13 @@
   --pull-color: #7c3aed;
   --legs-color: #00a758;
   --rest-color: #777;
+  --upper-color: #2563eb;
+  --lower-color: #dc2626;
+  --full-color: #0891b2;
+  --chest-color: #c43e00;
+  --back-color: #7c3aed;
+  --shoulders-color: #d97706;
+  --arms-color: #ec4899;
 
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -116,6 +130,13 @@
   --pull-color: #7c3aed;
   --legs-color: #00e676;
   --rest-color: #555;
+  --upper-color: #3b82f6;
+  --lower-color: #ef4444;
+  --full-color: #06b6d4;
+  --chest-color: #ff6b35;
+  --back-color: #7c3aed;
+  --shoulders-color: #f59e0b;
+  --arms-color: #f472b6;
 
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
@@ -161,6 +182,13 @@
     --pull-color: #7c3aed;
     --legs-color: #00e676;
     --rest-color: #555;
+    --upper-color: #3b82f6;
+    --lower-color: #ef4444;
+    --full-color: #06b6d4;
+    --chest-color: #ff6b35;
+    --back-color: #7c3aed;
+    --shoulders-color: #f59e0b;
+    --arms-color: #f472b6;
 
     --background: oklch(0.145 0 0);
     --foreground: oklch(0.985 0 0);

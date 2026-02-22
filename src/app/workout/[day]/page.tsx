@@ -3,14 +3,7 @@ import { PROGRAM } from '@/lib/data/program'
 import { WorkoutPageClient } from './client'
 
 export function generateStaticParams() {
-  return [
-    { day: '0' },
-    { day: '1' },
-    { day: '2' },
-    { day: '3' },
-    { day: '4' },
-    { day: '5' },
-  ]
+  return Array.from({ length: 7 }, (_, i) => ({ day: String(i) }))
 }
 
 export async function generateMetadata({

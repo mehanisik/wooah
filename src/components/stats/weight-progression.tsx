@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/select'
 import { useT } from '@/lib/i18n'
 import {
+  getActiveDayCount,
   getEffectiveProgram,
   useWorkoutStore,
 } from '@/lib/store/use-workout-store'
@@ -27,9 +28,10 @@ import { AXIS_STYLE, CHART_COLORS, TOOLTIP_STYLE } from './chart-theme'
 export function WeightProgression() {
   const t = useT()
   const history = useWorkoutStore((s) => s.history)
+  const dayCount = useWorkoutStore((s) => getActiveDayCount(s))
 
   const exerciseOptions: { key: string; name: string }[] = []
-  for (let d = 0; d < 6; d++) {
+  for (let d = 0; d < dayCount; d++) {
     const prog = getEffectiveProgram(d)
     prog.exercises.forEach((ex, eIdx) => {
       const hKey = `d${d}-e${eIdx}`

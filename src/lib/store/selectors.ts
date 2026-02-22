@@ -6,6 +6,7 @@ import type {
   WorkoutTimer,
 } from './types'
 import {
+  getActiveDayCount,
   getEffectiveProgramForState,
   useWorkoutStore,
 } from './use-workout-store'
@@ -87,8 +88,9 @@ export function selectPinnedNote(s: S, dayIdx: number, exIdx: number): string {
 }
 
 export function selectCompletedThisWeek(s: S): number {
+  const dayCount = getActiveDayCount(s)
   let count = 0
-  for (let d = 0; d < 6; d++) {
+  for (let d = 0; d < dayCount; d++) {
     if (s.finishedDays[`w${s.currentWeek}-d${d}`]) count++
   }
   return count
@@ -125,9 +127,10 @@ export function useCompletedThisWeek() {
 
 export function useStreak() {
   return useWorkoutStore((s) => {
+    const dayCount = getActiveDayCount(s)
     let streak = 0
     for (let w = s.currentWeek; w >= 1; w--) {
-      for (let d = 5; d >= 0; d--) {
+      for (let d = dayCount - 1; d >= 0; d--) {
         if (s.finishedDays[`w${w}-d${d}`]) {
           streak++
         } else if (streak > 0) {

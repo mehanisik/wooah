@@ -10,7 +10,7 @@ const pl: Messages = {
   streak: 'seria',
   prs: 'Rekordy',
   settingsAriaLabel: 'Ustawienia',
-  of6: '/6',
+  ofN: '/{total}',
 
   // Nav
   navMon: 'P',
@@ -31,8 +31,10 @@ const pl: Messages = {
   greetingMorning: 'DZIEŃ DOBRY',
   greetingAfternoon: 'DOBRE POPOŁUDNIE',
   greetingEvening: 'WIECZORNY TRENING',
-  greetingRestDay: 'Dzień odpoczynku. {completed}/6 treningów w tym tygodniu.',
-  greetingDone: 'Dzisiejszy {name} ukończony. {completed}/6 w tym tygodniu.',
+  greetingRestDay:
+    'Dzień odpoczynku. {completed}/{total} treningów w tym tygodniu.',
+  greetingDone:
+    'Dzisiejszy {name} ukończony. {completed}/{total} w tym tygodniu.',
   greetingToday: 'Dziś: {name} — {focus}',
 
   // Workout
@@ -210,7 +212,7 @@ const pl: Messages = {
   // Rest Day
   restDay: 'DZIEŃ ODPOCZYNKU',
   sundayRecovery: 'Niedziela — Pełna regeneracja',
-  thisWeek: '/ 6 w tym tygodniu',
+  thisWeek: '/ {total} w tym tygodniu',
 
   // Photos
   photos: 'ZDJĘCIA',
@@ -261,6 +263,33 @@ const pl: Messages = {
   editDayTitle: 'EDYTUJ {day} — {name}',
   save: 'ZAPISZ',
   resetLabel: 'RESETUJ',
+
+  // Program Picker
+  programLabel: 'PROGRAM',
+  changeProgram: 'ZMIEŃ PROGRAM',
+  selectProgram: 'WYBIERZ PROGRAM',
+  currentProgram: 'Aktualny: {name}',
+  daysPerWeek: '{count} dni/tydzień',
+  programSwitchWarning: 'Zmiana programu zresetuje twoje dostosowania ćwiczeń.',
+  confirmSwitch: 'POTWIERDŹ',
+  cancel: 'ANULUJ',
+  allFilter: 'Wszystkie',
+  beginnerFilter: 'Początkujący',
+  intermediateFilter: 'Średniozaaw.',
+  advancedFilter: 'Zaawansowany',
+  womensFilter: 'Damskie',
+  selectTrainingDays: 'WYBIERZ DNI TRENINGOWE',
+  trainingDaysHelper: 'Wybierz {count} dni, w których chcesz trenować',
+  trainingDays: 'Dni treningowe',
+  daysSelected: '{selected}/{required} wybranych',
+  monday: 'Poniedziałek',
+  tuesday: 'Wtorek',
+  wednesday: 'Środa',
+  thursday: 'Czwartek',
+  friday: 'Piątek',
+  saturday: 'Sobota',
+  sunday: 'Niedziela',
+  dayPreview: 'Dzień {n}: {name}',
 
   // Settings
   settings: 'USTAWIENIA',

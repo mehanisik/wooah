@@ -8,7 +8,7 @@ const en = {
   streak: 'streak',
   prs: 'PRs',
   settingsAriaLabel: 'Settings',
-  of6: '/6',
+  ofN: '/{total}',
 
   // Nav
   navMon: 'M',
@@ -29,8 +29,8 @@ const en = {
   greetingMorning: 'GOOD MORNING',
   greetingAfternoon: 'GOOD AFTERNOON',
   greetingEvening: 'EVENING SESSION',
-  greetingRestDay: 'Rest day. {completed}/6 sessions done this week.',
-  greetingDone: "Today's {name} is done. {completed}/6 this week.",
+  greetingRestDay: 'Rest day. {completed}/{total} sessions done this week.',
+  greetingDone: "Today's {name} is done. {completed}/{total} this week.",
   greetingToday: 'Today: {name} — {focus}',
 
   // Workout
@@ -206,7 +206,7 @@ const en = {
   // Rest Day
   restDay: 'REST DAY',
   sundayRecovery: 'Sunday — Full Recovery',
-  thisWeek: '/ 6 this week',
+  thisWeek: '/ {total} this week',
 
   // Photos
   photos: 'PHOTOS',
@@ -257,6 +257,34 @@ const en = {
   editDayTitle: 'EDIT {day} — {name}',
   save: 'SAVE',
   resetLabel: 'RESET',
+
+  // Program Picker
+  programLabel: 'PROGRAM',
+  changeProgram: 'CHANGE PROGRAM',
+  selectProgram: 'SELECT PROGRAM',
+  currentProgram: 'Current: {name}',
+  daysPerWeek: '{count} days/week',
+  programSwitchWarning:
+    'Switching programs will reset your exercise customizations.',
+  confirmSwitch: 'CONFIRM',
+  cancel: 'CANCEL',
+  allFilter: 'All',
+  beginnerFilter: 'Beginner',
+  intermediateFilter: 'Intermediate',
+  advancedFilter: 'Advanced',
+  womensFilter: "Women's",
+  selectTrainingDays: 'SELECT TRAINING DAYS',
+  trainingDaysHelper: 'Pick {count} days you want to train',
+  trainingDays: 'Training Days',
+  daysSelected: '{selected}/{required} selected',
+  monday: 'Monday',
+  tuesday: 'Tuesday',
+  wednesday: 'Wednesday',
+  thursday: 'Thursday',
+  friday: 'Friday',
+  saturday: 'Saturday',
+  sunday: 'Sunday',
+  dayPreview: 'Day {n}: {name}',
 
   // Settings
   settings: 'SETTINGS',

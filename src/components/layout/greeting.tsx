@@ -1,23 +1,30 @@
 'use client'
 
-import { PROGRAM } from '@/lib/data/program'
 import { formatDateFull } from '@/lib/format'
 import { useLocale, useMotivational, useT } from '@/lib/i18n'
 import {
   selectCompletedThisWeek,
   selectIsDayFinished,
 } from '@/lib/store/selectors'
-import { useWorkoutStore } from '@/lib/store/use-workout-store'
+import {
+  getActiveDayCount,
+  getEffectiveProgram,
+  useWorkoutStore,
+} from '@/lib/store/use-workout-store'
 import { getTodayDayIdx } from '@/lib/workout/helpers'
 
 export function Greeting() {
   const t = useT()
   const locale = useLocale()
   const motivational = useMotivational()
-  const todayIdx = getTodayDayIdx()
+  const trainingDays = useWorkoutStore((s) => s.trainingDays)
+  const todayIdx = getTodayDayIdx(trainingDays)
+  const dayCount = useWorkoutStore((s) => getActiveDayCount(s))
   const completedThisWeek = useWorkoutStore((s) => selectCompletedThisWeek(s))
-  const todayFinished = useWorkoutStore((s) => selectIsDayFinished(s, todayIdx))
-  const todayWorkout = PROGRAM[todayIdx]
+  const todayFinished = useWorkoutStore((s) =>
+    todayIdx !== null ? selectIsDayFinished(s, todayIdx) : false
+  )
+  const todayWorkout = todayIdx !== null ? getEffectiveProgram(todayIdx) : null
 
   const hour = new Date().getHours()
   let timeGreeting: string
@@ -32,12 +39,16 @@ export function Greeting() {
   const quote = motivational[Math.floor(Math.random() * motivational.length)]
 
   let todayMsg: string
-  if (todayWorkout.type === 'rest') {
-    todayMsg = t('greetingRestDay', { completed: completedThisWeek })
+  if (!todayWorkout || todayWorkout.type === 'rest') {
+    todayMsg = t('greetingRestDay', {
+      completed: completedThisWeek,
+      total: dayCount,
+    })
   } else if (todayFinished) {
     todayMsg = t('greetingDone', {
       name: todayWorkout.name,
       completed: completedThisWeek,
+      total: dayCount,
     })
   } else {
     todayMsg = t('greetingToday', {
