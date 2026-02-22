@@ -5,6 +5,7 @@ import { useFormStatus } from 'react-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
+import { WooahLogo } from '@/components/ui/wooah-logo'
 import { signInWithGoogle, signInWithOtp, verifyOtp } from '@/lib/supabase/auth'
 
 const OTP_COOLDOWN_SEC = 60
@@ -100,7 +101,7 @@ export function LoginPage() {
 
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center px-6">
-      <h1 className="mb-1 font-display text-4xl tracking-wider">IRON PPL</h1>
+      <WooahLogo className="mb-1 text-4xl" />
       <p className="mb-8 font-body text-muted-foreground text-xs">
         Push Pull Legs Tracker
       </p>

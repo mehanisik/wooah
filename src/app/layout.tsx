@@ -6,7 +6,7 @@ import { Toaster } from '@/components/ui/sonner'
 import { inter, jetbrainsMono } from '@/lib/fonts'
 
 export const metadata: Metadata = {
-  title: 'IRON PPL — Hypertrophy Tracker',
+  title: 'Wooah! — Hypertrophy Tracker',
   description:
     '6-day Push/Pull/Legs hypertrophy tracker with progressive overload, volume science, and mesocycle management.',
   icons: {
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'IRON PPL',
+    title: 'Wooah!',
   },
 }
 
@@ -31,7 +31,7 @@ export const viewport: Viewport = {
   viewportFit: 'cover',
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-    { media: '(prefers-color-scheme: dark)', color: '#151716' },
+    { media: '(prefers-color-scheme: dark)', color: '#222222' },
   ],
 }
 
@@ -46,7 +46,7 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${inter.variable} ${jetbrainsMono.variable}`}
     >
-      <body>
+      <body suppressHydrationWarning>
         <ThemeProvider>
           <AppShell>{children}</AppShell>
           <Toaster position="bottom-center" richColors />

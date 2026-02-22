@@ -20,7 +20,7 @@ export default function ErrorPage({
       <button
         type="button"
         onClick={reset}
-        className="font-body text-brand text-sm underline underline-offset-4"
+        className="font-body text-primary text-sm underline underline-offset-4"
       >
         Try again
       </button>

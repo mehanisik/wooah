@@ -55,11 +55,11 @@ export function SetRow({
   }
 
   return (
-    <div className="grid grid-cols-[2rem_1fr_1fr_2.5rem] items-center gap-1.5">
+    <div className="grid grid-cols-[2rem_1fr_1fr_2.75rem] items-center gap-1.5">
       <span
         className={cn(
           'text-center font-mono text-xs',
-          isAmrap ? 'font-bold text-brand' : 'text-muted-foreground'
+          isAmrap ? 'font-bold text-primary' : 'text-muted-foreground'
         )}
       >
         {isAmrap ? 'A' : setIdx + 1}
@@ -93,7 +93,7 @@ export function SetRow({
         type="button"
         onClick={toggleDone}
         className={cn(
-          'flex h-8 w-8 items-center justify-center rounded-md border transition-all active:scale-95',
+          'flex h-9 w-9 items-center justify-center rounded-md border transition-all active:scale-95',
           log.done
             ? 'border-success bg-success-dim text-success'
             : 'border-border text-muted-foreground hover:border-foreground'

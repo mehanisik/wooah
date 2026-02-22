@@ -21,7 +21,7 @@ export async function generateMetadata({
   const { day } = await params
   const idx = Number(day)
   const dayData = PROGRAM[idx]
-  const title = dayData ? `${dayData.name} — IRON PPL` : 'Workout — IRON PPL'
+  const title = dayData ? `${dayData.name} — Wooah!` : 'Workout — Wooah!'
   return { title }
 }
 

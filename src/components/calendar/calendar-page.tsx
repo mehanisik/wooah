@@ -1,6 +1,5 @@
 'use client'
 
-import { Flame } from 'lucide-react'
 import { useState } from 'react'
 import { useWorkoutStore } from '@/lib/store/use-workout-store'
 import { CalendarDetail } from './calendar-detail'
@@ -10,8 +9,7 @@ function getMonthsToShow(): Date[] {
   const now = new Date()
   const months: Date[] = []
   for (let i = 2; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-    months.push(d)
+    months.push(new Date(now.getFullYear(), now.getMonth() - i, 1))
   }
   return months
 }
@@ -58,37 +56,25 @@ export function CalendarPage() {
   const { current, longest } = getStreaks(finishedDays, currentWeek)
 
   return (
-    <div className="space-y-3 pb-4">
-      <div className="flex justify-center gap-4">
-        <div className="flex items-center gap-1.5">
-          <Flame className="h-4 w-4 text-warning" />
-          <div>
-            <div className="font-mono font-semibold text-sm">{current}</div>
-            <div className="text-[9px] text-muted-foreground">CURRENT</div>
+    <div className="space-y-6 pb-4">
+      <div className="flex items-baseline justify-center gap-6">
+        <div className="text-center">
+          <div className="font-mono text-2xl font-bold tabular-nums">
+            {current}
+          </div>
+          <div className="text-[10px] tracking-wide text-muted-foreground">
+            STREAK
           </div>
         </div>
-        <div className="flex items-center gap-1.5">
-          <Flame className="h-4 w-4 text-destructive" />
-          <div>
-            <div className="font-mono font-semibold text-sm">{longest}</div>
-            <div className="text-[9px] text-muted-foreground">LONGEST</div>
+        <div className="h-6 w-px bg-border" />
+        <div className="text-center">
+          <div className="font-mono text-2xl font-bold tabular-nums text-muted-foreground">
+            {longest}
+          </div>
+          <div className="text-[10px] tracking-wide text-muted-foreground">
+            BEST
           </div>
         </div>
-      </div>
-
-      <div className="flex justify-center gap-2 text-[9px] text-muted-foreground">
-        <span className="flex items-center gap-1">
-          <span className="h-2.5 w-2.5 rounded-sm bg-[var(--push-color)]" />{' '}
-          Push
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="h-2.5 w-2.5 rounded-sm bg-[var(--pull-color)]" />{' '}
-          Pull
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="h-2.5 w-2.5 rounded-sm bg-[var(--legs-color)]" />{' '}
-          Legs
-        </span>
       </div>
 
       {months.map((month) => (
@@ -99,6 +85,21 @@ export function CalendarPage() {
           selectedDate={selectedDate}
         />
       ))}
+
+      <div className="flex justify-center gap-3 text-[9px] text-muted-foreground/60">
+        <span className="flex items-center gap-1">
+          <span className="h-2 w-2 rounded-[3px] bg-[var(--push-color)]" />
+          Push
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="h-2 w-2 rounded-[3px] bg-[var(--pull-color)]" />
+          Pull
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="h-2 w-2 rounded-[3px] bg-[var(--legs-color)]" />
+          Legs
+        </span>
+      </div>
 
       {selectedDate && (
         <CalendarDetail

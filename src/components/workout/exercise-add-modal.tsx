@@ -94,7 +94,7 @@ export function ExerciseAddModal({
         value={search}
         onValueChange={setSearch}
       />
-      <CommandList className="max-h-[60vh]">
+      <CommandList className="max-h-[70vh]">
         {loading ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -114,14 +114,14 @@ export function ExerciseAddModal({
                     <Image
                       src={entry.gifUrl}
                       alt=""
-                      className="h-10 w-10 flex-shrink-0 rounded bg-surface-2 object-cover"
+                      className="h-10 w-10 flex-shrink-0 rounded bg-muted object-cover"
                       width={40}
                       height={40}
                       loading="lazy"
                       unoptimized
                     />
                   ) : (
-                    <div className="h-10 w-10 flex-shrink-0 rounded bg-surface-2" />
+                    <div className="h-10 w-10 flex-shrink-0 rounded bg-muted" />
                   )}
                   <div className="min-w-0 flex-1">
                     <div className="truncate font-body text-sm capitalize">

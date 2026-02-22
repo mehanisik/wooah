@@ -59,7 +59,7 @@ export function NavBar() {
                 key={i}
                 href={href}
                 className={cn(
-                  'relative flex min-w-[42px] flex-1 flex-col items-center py-2 transition-colors',
+                  'relative flex min-w-[44px] flex-1 flex-col items-center py-2.5 transition-colors',
                   isActive
                     ? 'text-foreground'
                     : 'text-muted-foreground hover:text-foreground'
@@ -85,7 +85,7 @@ export function NavBar() {
                   <span
                     className={cn(
                       'absolute right-1/4 bottom-0 left-1/4 h-0.5 rounded-full',
-                      TYPE_COLORS[day.type] || 'bg-brand'
+                      TYPE_COLORS[day.type] || 'bg-primary'
                     )}
                   />
                 )}
@@ -102,14 +102,14 @@ export function NavBar() {
                 key={href}
                 href={href}
                 className={cn(
-                  'relative flex min-w-[42px] flex-1 flex-col items-center py-2 transition-colors',
+                  'relative flex min-w-[44px] flex-1 flex-col items-center py-2.5 transition-colors',
                   isActive
                     ? 'text-foreground'
                     : 'text-muted-foreground hover:text-foreground'
                 )}
               >
                 <Icon className="h-3.5 w-3.5" />
-                <span className="mt-0.5 font-body font-semibold text-[9px] uppercase tracking-wider">
+                <span className="mt-0.5 font-body font-semibold text-[10px] uppercase tracking-wider">
                   {label}
                 </span>
                 {isActive && (

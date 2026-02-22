@@ -60,7 +60,7 @@ export function WorkoutPage({ dayIdx }: WorkoutPageProps) {
   }
 
   return (
-    <div className="space-y-4 py-4">
+    <div className="space-y-4 pb-4">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="font-display text-2xl tracking-wider">

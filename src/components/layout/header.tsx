@@ -4,6 +4,7 @@ import { Flame, Settings, Trophy, Zap } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
 import { useAuth } from '@/hooks/use-auth'
+import { WooahLogo } from '@/components/ui/wooah-logo'
 import {
   selectCompletedThisWeek,
   usePRCount,
@@ -20,13 +21,11 @@ export function Header() {
   const [avatarError, setAvatarError] = useState(false)
 
   return (
-    <header className="sticky top-0 z-40 border-border border-b bg-background/95 backdrop-blur-sm">
-      <div className="mx-auto max-w-lg px-3">
+    <header className="safe-area-pt sticky top-0 z-40 border-border border-b bg-background/95 backdrop-blur-sm">
+      <div className="mx-auto max-w-lg px-4">
         <div className="flex h-12 items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <h1 className="font-display text-brand text-xl tracking-wider">
-              IRON PPL
-            </h1>
+            <WooahLogo className="text-xl" />
           </Link>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-4">

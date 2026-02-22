@@ -117,11 +117,11 @@ export function PhotosPage() {
             <h3 className="mb-1.5 font-display text-muted-foreground text-xs tracking-wider">
               {week}
             </h3>
-            <div className="flex gap-2 overflow-x-auto pb-1">
+            <div className="grid grid-cols-3 gap-2">
               {weekPhotos.map((photo) => (
                 <div
                   key={photo.id}
-                  className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-md"
+                  className="relative aspect-square overflow-hidden rounded-md"
                 >
                   <button
                     type="button"
@@ -138,7 +138,7 @@ export function PhotosPage() {
                   </button>
                   <button
                     type="button"
-                    className="absolute top-1 right-1 rounded-full bg-black/50 p-0.5"
+                    className="absolute top-1 right-1 rounded-full bg-black/50 p-1.5"
                     onClick={() => handleRemove(photo)}
                   >
                     <Trash2 className="h-3 w-3 text-white" />
@@ -159,7 +159,7 @@ export function PhotosPage() {
           />
           <button
             type="button"
-            className="absolute top-4 right-4 z-10 p-2"
+            className="absolute top-6 right-4 z-10 p-2"
             onClick={() => setFullscreen(null)}
           >
             <X className="h-6 w-6 text-white" />

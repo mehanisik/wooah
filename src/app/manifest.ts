@@ -4,13 +4,13 @@ export const dynamic = 'force-static'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'IRON PPL',
-    short_name: 'IRON PPL',
-    description: 'Push Pull Legs Workout Tracker',
+    name: 'Wooah!',
+    short_name: 'Wooah!',
+    description: 'Push Pull Legs Hypertrophy Tracker',
     start_url: '/',
     display: 'standalone',
     background_color: '#0f0f0f',
-    theme_color: '#DCCFFF',
+    theme_color: '#7c3aed',
     orientation: 'portrait',
     icons: [
       {

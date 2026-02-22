@@ -75,9 +75,9 @@ function PillRow({
             type="button"
             onClick={() => onChange(opt)}
             className={cn(
-              'rounded-full border px-2 py-0.5 font-body text-[10px] transition-colors',
+              'rounded-full border px-2.5 py-1 font-body text-[10px] transition-colors',
               value === opt
-                ? 'border-brand bg-brand text-white'
+                ? 'border-primary bg-primary text-primary-foreground'
                 : 'border-border text-muted-foreground hover:text-foreground'
             )}
           >

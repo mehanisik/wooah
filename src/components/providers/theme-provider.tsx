@@ -10,7 +10,7 @@ function ThemeColorSync() {
   const { resolvedTheme } = useNextTheme()
 
   useEffect(() => {
-    const color = resolvedTheme === 'dark' ? '#151716' : '#ffffff'
+    const color = resolvedTheme === 'dark' ? '#222222' : '#ffffff'
     document
       .querySelector('meta[name="theme-color"]')
       ?.setAttribute('content', color)

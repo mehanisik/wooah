@@ -1,8 +1,37 @@
 import { cva, type VariantProps } from 'class-variance-authority'
-import { Slot } from 'radix-ui'
 import type * as React from 'react'
+import {
+  Children,
+  cloneElement,
+  isValidElement,
+  type ComponentProps,
+  type ReactElement,
+} from 'react'
 
 import { cn } from '@/lib/utils'
+
+function mergeProps(
+  slotProps: Record<string, unknown>,
+  childProps: Record<string, unknown>
+) {
+  const merged: Record<string, unknown> = { ...slotProps, ...childProps }
+  if (slotProps.className || childProps.className) {
+    merged.className = cn(
+      slotProps.className as string,
+      childProps.className as string
+    )
+  }
+  if (slotProps.style || childProps.style) {
+    merged.style = { ...(slotProps.style as object), ...(childProps.style as object) }
+  }
+  return merged
+}
+
+function Slot({ children, ...props }: Record<string, unknown> & { children?: React.ReactNode }) {
+  const child = Children.only(children)
+  if (!isValidElement(child)) return null
+  return cloneElement(child as ReactElement<Record<string, unknown>>, mergeProps(props, child.props as Record<string, unknown>))
+}
 
 const buttonVariants = cva(
   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
@@ -44,11 +73,11 @@ function Button({
   size = 'default',
   asChild = false,
   ...props
-}: React.ComponentProps<'button'> &
+}: ComponentProps<'button'> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean
   }) {
-  const Comp = asChild ? Slot.Root : 'button'
+  const Comp = asChild ? Slot : 'button'
 
   return (
     <Comp

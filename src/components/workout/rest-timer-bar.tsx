@@ -48,13 +48,13 @@ export function RestTimerBar({ timer }: RestTimerBarProps) {
                 {isDone ? 'GO!' : formatDuration(timer.remaining)}
               </span>
             </div>
-            <div className="mt-1 h-1 overflow-hidden rounded-full bg-surface-2">
+            <div className="mt-1 h-1 overflow-hidden rounded-full bg-muted">
               <div
                 className={cn(
                   'h-full rounded-full transition-all',
                   isDone && 'bg-success',
                   !isDone && isWarning && 'bg-warning',
-                  !(isDone || isWarning) && 'bg-brand'
+                  !(isDone || isWarning) && 'bg-primary'
                 )}
                 style={{ width: `${isDone ? 100 : 100 - pct}%` }}
               />
@@ -63,7 +63,7 @@ export function RestTimerBar({ timer }: RestTimerBarProps) {
           <button
             type="button"
             onClick={timer.stop}
-            className="p-1 text-muted-foreground hover:text-foreground"
+            className="p-2 text-muted-foreground hover:text-foreground"
             aria-label="Dismiss timer"
           >
             <X className="h-4 w-4" />

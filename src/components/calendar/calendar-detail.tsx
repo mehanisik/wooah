@@ -30,7 +30,9 @@ export function CalendarDetail({ date, onClose }: CalendarDetailProps) {
   dateMonday.setDate(dateMonday.getDate() - ((dateMonday.getDay() + 6) % 7))
   const week = Math.max(
     1,
-    Math.floor((dateMonday.getTime() - startMonday.getTime()) / msPerWeek) + 1
+    Math.floor(
+      (dateMonday.getTime() - startMonday.getTime()) / msPerWeek
+    ) + 1
   )
 
   const prog = getEffectiveProgram(dayIdx)
@@ -59,38 +61,38 @@ export function CalendarDetail({ date, onClose }: CalendarDetailProps) {
   })
 
   return (
-    <div className="rounded-lg border border-border bg-card px-4 py-3">
-      <div className="mb-2 flex items-center justify-between">
+    <div className="rounded-lg border border-border/50 bg-card/50 px-4 py-3 backdrop-blur-sm">
+      <div className="mb-3 flex items-center justify-between">
         <div>
-          <span className="font-display text-sm tracking-wider">
+          <div className="font-mono text-xs font-semibold tracking-wide">
             {prog.day} — {prog.name}
-          </span>
-          <span className="ml-2 text-[10px] text-muted-foreground">
-            {dateLabel}
-          </span>
+          </div>
+          <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+            <span>{dateLabel}</span>
+            {timer && timer.duration > 0 && (
+              <span>{Math.round(timer.duration / 60)}min</span>
+            )}
+          </div>
         </div>
-        <button type="button" onClick={onClose} className="p-1">
-          <X className="h-4 w-4 text-muted-foreground" />
+        <button
+          type="button"
+          onClick={onClose}
+          className="rounded-md p-1 transition-colors hover:bg-muted"
+        >
+          <X className="h-3.5 w-3.5 text-muted-foreground" />
         </button>
       </div>
 
-      {timer && (
-        <div className="mb-2 text-[10px] text-muted-foreground">
-          Duration:{' '}
-          {timer.duration > 0 ? `${Math.round(timer.duration / 60)}min` : '—'}
-        </div>
-      )}
-
-      <div className="space-y-1">
+      <div className="space-y-0.5">
         {exercises.map((ex, i) => (
-          <div key={i} className="flex items-center gap-2 py-0.5">
-            <span className="flex-1 truncate font-body text-xs">{ex.name}</span>
+          <div key={i} className="flex items-center gap-2 py-1">
+            <span className="flex-1 truncate text-xs">{ex.name}</span>
             {ex.entry ? (
-              <span className="font-mono text-[10px] text-muted-foreground">
+              <span className="font-mono text-[10px] tabular-nums text-muted-foreground">
                 {ex.entry.weight}kg × {ex.entry.reps}
               </span>
             ) : (
-              <span className="text-[10px] text-muted-foreground/50">—</span>
+              <span className="text-[10px] text-muted-foreground/30">—</span>
             )}
             {ex.hasPR && <Trophy className="h-3 w-3 text-warning" />}
           </div>
@@ -98,8 +100,8 @@ export function CalendarDetail({ date, onClose }: CalendarDetailProps) {
       </div>
 
       {totalVolume > 0 && (
-        <div className="mt-2 text-right font-mono text-[10px] text-muted-foreground">
-          Total: {totalVolume.toLocaleString()}kg
+        <div className="mt-2 border-t border-border/50 pt-2 text-right font-mono text-[10px] tabular-nums text-muted-foreground">
+          {totalVolume.toLocaleString()}kg total
         </div>
       )}
     </div>

@@ -34,15 +34,15 @@ export function MesoBanner() {
   return (
     <div className="rounded-lg border border-border bg-card px-3 py-2">
       <div className="flex items-center gap-2 font-body font-semibold text-sm">
-        <TrendingUp className="h-4 w-4 text-brand" />
+        <TrendingUp className="h-4 w-4 text-primary" />
         MESO WEEK {week}/{config.length}
       </div>
       <p className="mt-0.5 font-body text-[10px] text-muted-foreground">
         Target RIR: {rir} · Ramp +{config.rampRate} sets/muscle
       </p>
-      <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-surface-2">
+      <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-muted">
         <div
-          className="h-full rounded-full bg-brand transition-all"
+          className="h-full rounded-full bg-primary transition-all"
           style={{ width: `${pct}%` }}
         />
       </div>

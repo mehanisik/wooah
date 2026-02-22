@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/use-auth'
 import { loadExerciseDb } from '@/lib/exercise-db'
 import { migrateFromV2 } from '@/lib/store/migration'
 import { useWorkoutStore } from '@/lib/store/use-workout-store'
+import { WooahLogo } from '@/components/ui/wooah-logo'
 import { Header } from './header'
 import { NavBar } from './nav-bar'
 import { UpdatePrompt } from './update-prompt'
@@ -31,9 +32,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return (
       <div className="flex h-dvh items-center justify-center bg-background">
         <div className="text-center">
-          <h1 className="font-display text-4xl text-brand tracking-wider">
-            IRON PPL
-          </h1>
+          <WooahLogo className="text-4xl" />
           <p className="mt-2 font-body text-muted-foreground text-sm">
             Loading...
           </p>
@@ -54,9 +53,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return (
       <div className="flex h-dvh items-center justify-center bg-background">
         <div className="text-center">
-          <h1 className="font-display text-4xl text-brand tracking-wider">
-            IRON PPL
-          </h1>
+          <WooahLogo className="text-4xl" />
           <p className="mt-2 font-body text-muted-foreground text-sm">
             Loading...
           </p>
@@ -68,7 +65,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-dvh flex-col bg-background">
       <Header />
-      <main className="safe-area-mb mx-auto w-full max-w-lg flex-1 px-4 pb-20">
+      <main className="safe-area-mb mx-auto w-full max-w-lg flex-1 px-4 pt-4 pb-[5.5rem]">
         {children}
       </main>
       <NavBar />

@@ -26,7 +26,7 @@ export function OneRmDisplay({ dayIdx, exIdx }: OneRmDisplayProps) {
   const oneRM = calcOneRM(w, r)
 
   return (
-    <div className="font-mono text-[10px] text-brand">
+    <div className="font-mono text-[10px] text-primary">
       Est. 1RM: <strong>{oneRM} kg</strong>
     </div>
   )

@@ -13,8 +13,8 @@ export function RestPageClient() {
   )
 
   return (
-    <div className="flex flex-col items-center space-y-6 py-8 text-center">
-      <Coffee className="h-12 w-12 text-brand" />
+    <div className="flex flex-col items-center space-y-6 pb-8 pt-4 text-center">
+      <Coffee className="h-12 w-12 text-primary" />
       <div>
         <h2 className="font-display text-3xl tracking-wider">REST DAY</h2>
         <p className="mt-1 font-body text-muted-foreground text-sm">
@@ -27,7 +27,7 @@ export function RestPageClient() {
         </p>
       </div>
       <div className="rounded-lg border border-border bg-card px-6 py-4">
-        <span className="font-display text-3xl text-brand">
+        <span className="font-display text-3xl text-primary">
           {completedThisWeek}
         </span>
         <span className="ml-1 font-body text-muted-foreground text-sm">

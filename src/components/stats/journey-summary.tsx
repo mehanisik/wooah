@@ -66,7 +66,7 @@ export function JourneySummary() {
             className="rounded-md bg-muted/50 px-2 py-1.5 text-center dark:bg-white/[0.03]"
           >
             <div className="font-mono font-semibold text-lg">{s.value}</div>
-            <div className="text-[9px] text-muted-foreground tracking-wide">
+            <div className="text-[10px] text-muted-foreground tracking-wide">
               {s.label}
             </div>
           </div>

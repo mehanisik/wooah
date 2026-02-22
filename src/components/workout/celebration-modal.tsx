@@ -64,7 +64,7 @@ export function CelebrationModal({
       size: number
       life: number
     }[] = []
-    const colors = ['#ff6b35', '#448aff', '#00e676', '#DCCFFF', '#FFD700']
+    const colors = ['#ff6b35', '#8b5cf6', '#00e676', '#7c3aed', '#FFD700']
 
     for (let i = 0; i < 60; i++) {
       particles.push({
@@ -118,7 +118,7 @@ export function CelebrationModal({
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-3 right-3 p-1"
+          className="absolute top-3 right-3 p-1.5"
         >
           <X className="h-4 w-4 text-muted-foreground" />
         </button>
@@ -135,11 +135,11 @@ export function CelebrationModal({
             <div className="font-mono font-semibold text-lg">
               {timer?.duration ? formatDuration(timer.duration) : '—'}
             </div>
-            <div className="text-[9px] text-muted-foreground">DURATION</div>
+            <div className="text-[10px] text-muted-foreground">DURATION</div>
           </div>
           <div>
             <div className="font-mono font-semibold text-lg">{totalSets}</div>
-            <div className="text-[9px] text-muted-foreground">SETS</div>
+            <div className="text-[10px] text-muted-foreground">SETS</div>
           </div>
           <div>
             <div className="font-mono font-semibold text-lg">
@@ -147,7 +147,7 @@ export function CelebrationModal({
                 ? `${(totalVolume / 1000).toFixed(1)}t`
                 : `${totalVolume}kg`}
             </div>
-            <div className="text-[9px] text-muted-foreground">VOLUME</div>
+            <div className="text-[10px] text-muted-foreground">VOLUME</div>
           </div>
         </div>
 
@@ -161,7 +161,7 @@ export function CelebrationModal({
                 key={r}
                 type="button"
                 onClick={() => handleRate(r)}
-                className="p-0.5"
+                className="p-1.5"
               >
                 <Star
                   className={cn(

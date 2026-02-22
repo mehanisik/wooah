@@ -31,9 +31,9 @@ export function SettingsPageClient() {
     }
   }
 
-  const handleUnitChange = (unit: 'kg' | 'lbs') => {
+  const handleUnitChange = (unit: string) => {
     useWorkoutStore.setState((s) => ({
-      plateSettings: { ...s.plateSettings, unit },
+      plateSettings: { ...s.plateSettings, unit: unit as 'kg' | 'lbs' },
     }))
   }
 
