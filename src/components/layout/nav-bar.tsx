@@ -45,13 +45,14 @@ const TYPE_CHECK_COLORS: Record<string, string> = {
 
 export function NavBar() {
   const t = useT()
-  const DAY_LABELS = [
+  const WEEKDAY_LABELS = [
     t('navMon'),
     t('navTue'),
     t('navWed'),
     t('navThu'),
     t('navFri'),
     t('navSat'),
+    t('navSun'),
   ]
 
   const UTILITY_TABS = [
@@ -70,21 +71,23 @@ export function NavBar() {
   const finishedDays = useWorkoutStore((s) => s.finishedDays)
   const currentWeek = useWorkoutStore((s) => s.currentWeek)
   const template = getTemplateOrDefault(activeProgramId)
+  const sortedTrainingDays = [...trainingDays].sort((a, b) => a - b)
 
   return (
     <nav className="safe-area-pb fixed right-0 bottom-0 left-0 z-40 border-border border-t bg-background/95 backdrop-blur-sm">
       <div className="mx-auto max-w-lg">
         <div className="scrollbar-none flex overflow-x-auto">
-          {DAY_LABELS.map((label, i) => {
-            const day = template.days[i]
-            const href = `/workout/${i}`
+          {sortedTrainingDays.map((weekday, programDayIdx) => {
+            const day = template.days[programDayIdx]
+            if (!day) return null
+            const href = `/workout/${programDayIdx}`
             const isActive = pathname === href
-            const isToday = i === todayIdx
-            const finished = !!finishedDays[`w${currentWeek}-d${i}`]
+            const isToday = programDayIdx === todayIdx
+            const finished = !!finishedDays[`w${currentWeek}-d${programDayIdx}`]
 
             return (
               <Link
-                key={i}
+                key={weekday}
                 href={href}
                 className={cn(
                   'relative flex min-w-[44px] flex-1 flex-col items-center py-2.5 transition-colors',
@@ -94,7 +97,7 @@ export function NavBar() {
                 )}
               >
                 <span className="font-body font-semibold text-[10px] uppercase tracking-wider">
-                  {label}
+                  {WEEKDAY_LABELS[weekday]}
                 </span>
                 {finished ? (
                   <Check
@@ -115,7 +118,7 @@ export function NavBar() {
                         )
                     )}
                   >
-                    {dates[i]}
+                    {dates[weekday]}
                   </span>
                 )}
                 {isActive && (
