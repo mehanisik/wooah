@@ -31,7 +31,6 @@ bun run dev
 |---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase public anon key |
-| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Google OAuth client ID |
 
 ## Scripts
 
