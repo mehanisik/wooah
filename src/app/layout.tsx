@@ -1,9 +1,9 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { AppShell } from '@/components/layout/app-shell'
+import { ConvexClientProvider } from '@/components/providers/convex-provider'
 import { ThemeProvider } from '@/components/providers/theme-provider'
 import { Toaster } from '@/components/ui/sonner'
-import { AuthProvider } from '@/hooks/auth-context'
 import { inter, jetbrainsMono } from '@/lib/fonts'
 
 export const metadata: Metadata = {
@@ -48,12 +48,12 @@ export default function RootLayout({
       className={`${inter.variable} ${jetbrainsMono.variable}`}
     >
       <body suppressHydrationWarning>
-        <ThemeProvider>
-          <AuthProvider>
+        <ConvexClientProvider>
+          <ThemeProvider>
             <AppShell>{children}</AppShell>
             <Toaster position="bottom-center" richColors />
-          </AuthProvider>
-        </ThemeProvider>
+          </ThemeProvider>
+        </ConvexClientProvider>
       </body>
     </html>
   )
