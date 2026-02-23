@@ -45,10 +45,7 @@ const serwist = new Serwist({
       matcher: /^https:\/\/.*\.supabase\.co\/(auth|rest|storage)\/.*/i,
       handler: new NetworkOnly(),
     },
-    {
-      matcher: /^https:\/\/accounts\.google\.com\/.*/i,
-      handler: new NetworkOnly(),
-    },
+
     ...defaultCache,
   ],
 })
