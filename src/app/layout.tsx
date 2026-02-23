@@ -7,6 +7,7 @@ import { Toaster } from '@/components/ui/sonner'
 import { inter, jetbrainsMono } from '@/lib/fonts'
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://wooah.vercel.app'),
   title: 'Wooah! — Hypertrophy Tracker',
   description:
     '6-day Push/Pull/Legs hypertrophy tracker with progressive overload, volume science, and mesocycle management.',
@@ -21,6 +22,30 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: 'black-translucent',
     title: 'Wooah!',
+  },
+  openGraph: {
+    title: 'Wooah! — Hypertrophy Tracker',
+    description:
+      'Push/Pull/Legs hypertrophy tracker with progressive overload, volume tracking, and mesocycle management.',
+    url: 'https://wooah.vercel.app',
+    siteName: 'Wooah!',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Wooah! — Push/Pull/Legs Hypertrophy Tracker',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Wooah! — Hypertrophy Tracker',
+    description:
+      'Push/Pull/Legs hypertrophy tracker with progressive overload, volume tracking, and mesocycle management.',
+    images: ['/og-image.png'],
   },
 }
 
