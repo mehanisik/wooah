@@ -1,6 +1,6 @@
 'use client'
 
-import { formatDate } from '@/lib/format'
+import { formatDate, parseLocalDate } from '@/lib/format'
 import { useLocale, useT } from '@/lib/i18n'
 import { useWorkoutStore } from '@/lib/store/use-workout-store'
 import { formatDuration } from '@/lib/workout/helpers'
@@ -56,7 +56,7 @@ export function JourneySummary() {
       label: t('sinceLabel'),
       value: startDate
         ? formatDate(
-            new Date(startDate),
+            parseLocalDate(startDate),
             { month: 'short', year: '2-digit' },
             locale
           )
