@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
+    "dev:convex": "bunx convex dev",
     "build": "next build --webpack",
     "start": "next start",
     "lint": "bunx biome check ./src",
