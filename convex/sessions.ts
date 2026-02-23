@@ -150,7 +150,8 @@ export const setNotes = mutation({
       .unique()
 
     if (existing) {
-      await ctx.db.patch(existing._id, { notes })
+      const merged = { ...(existing.notes ?? {}), ...notes }
+      await ctx.db.patch(existing._id, { notes: merged })
       return existing._id
     }
 

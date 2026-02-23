@@ -30,6 +30,7 @@ export function VolumeChart() {
   const prefs = useQuery(api.preferences.get)
   const historyEntries = useQuery(api.history.getAll)
 
+  const unit = prefs?.plateSettings?.unit ?? 'kg'
   const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
   const template = getTemplateOrDefault(activeProgramId)
   const dayCount = template.days.length
@@ -87,7 +88,9 @@ export function VolumeChart() {
   const prevTotal = prevWeek ? prevWeek.push + prevWeek.pull + prevWeek.legs : 0
   const change = prevTotal > 0 ? Math.round(thisTotal - prevTotal) : 0
   const headlineStr =
-    thisTotal >= 1000 ? `${(thisTotal / 1000).toFixed(1)}t` : `${thisTotal}kg`
+    thisTotal >= 1000
+      ? `${(thisTotal / 1000).toFixed(1)}t`
+      : `${thisTotal}${unit}`
 
   const hasData = weeks.some((w) => w.push + w.pull + w.legs > 0)
 
@@ -96,7 +99,7 @@ export function VolumeChart() {
       title={t('weeklyVolume')}
       headline={headlineStr}
       change={change}
-      changeLabel="kg"
+      changeLabel={unit}
       empty={!hasData}
       footer={
         <ChartLegend
@@ -121,7 +124,7 @@ export function VolumeChart() {
           <Tooltip
             {...TOOLTIP_STYLE}
             formatter={(val: number) =>
-              val >= 1000 ? `${(val / 1000).toFixed(1)}t` : `${val}kg`
+              val >= 1000 ? `${(val / 1000).toFixed(1)}t` : `${val}${unit}`
             }
           />
           <Bar

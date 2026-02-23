@@ -60,6 +60,14 @@ export function FrequencyHeatmap() {
     return g
   }, [currentWeek, dayCount, template, logsMap])
 
+  if (prefs === undefined || setsData === undefined) {
+    return (
+      <ChartCard title={t('frequency')}>
+        <div className="h-32 animate-pulse rounded bg-muted" />
+      </ChartCard>
+    )
+  }
+
   const ALL_DAY_LABELS = [
     t('navMon'),
     t('navTue'),

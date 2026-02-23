@@ -166,6 +166,7 @@ export function WorkoutPage({ dayIdx }: WorkoutPageProps) {
 
       <ExerciseAddModal
         dayIdx={dayIdx}
+        activeProgramId={activeProgramId}
         open={addModalOpen}
         onOpenChange={setAddModalOpen}
         onAddExercise={handleAddExercise}

@@ -17,7 +17,7 @@ import {
 } from '@dnd-kit/sortable'
 import { useMutation, useQuery } from 'convex/react'
 import { Plus, Save, X } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { getTemplateOrDefault } from '@/lib/data/programs/registry'
 import { useT } from '@/lib/i18n'
@@ -50,6 +50,13 @@ export function ProgramEditor({ dayIdx, onClose }: ProgramEditorProps) {
     return base.exercises.map((_, i) => ({ originalIdx: i }))
   })
 
+  useEffect(() => {
+    if (!prefs) return
+    const overrides = programOverrides[dayIdx]
+    if (overrides) setItems([...overrides])
+    else setItems(base.exercises.map((_, i) => ({ originalIdx: i })))
+  }, [prefs, dayIdx])
+
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -77,17 +84,25 @@ export function ProgramEditor({ dayIdx, onClose }: ProgramEditorProps) {
     setPickerOpen(false)
   }
 
-  const save = () => {
+  const save = async () => {
     const updated = { ...programOverrides, [dayIdx]: items }
-    upsertPrefs({ programOverrides: updated })
-    onClose()
+    try {
+      await upsertPrefs({ programOverrides: updated })
+      onClose()
+    } catch {
+      // mutation failed, keep editor open
+    }
   }
 
-  const reset = () => {
+  const reset = async () => {
     const updated = { ...programOverrides }
     delete updated[dayIdx]
-    upsertPrefs({ programOverrides: updated })
-    onClose()
+    try {
+      await upsertPrefs({ programOverrides: updated })
+      onClose()
+    } catch {
+      // mutation failed, keep editor open
+    }
   }
 
   return (

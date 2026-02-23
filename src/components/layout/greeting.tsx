@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from 'convex/react'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useAuth } from '@/hooks/auth-context'
 import { useCurrentWeek } from '@/hooks/use-current-week'
 import { getTemplateOrDefault } from '@/lib/data/programs/registry'
@@ -54,7 +54,9 @@ export function Greeting() {
 
   const dateStr = formatDateFull(new Date(), locale)
 
-  const quote = motivational[Math.floor(Math.random() * motivational.length)]
+  const [quote] = useState(
+    () => motivational[Math.floor(Math.random() * motivational.length)]
+  )
 
   let todayMsg: string
   if (!todayWorkout || todayWorkout.type === 'rest') {

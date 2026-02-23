@@ -36,9 +36,31 @@ export const upsert = mutation({
         rampRate: v.number(),
       })
     ),
-    exerciseSwaps: v.optional(v.any()),
-    swapFrequency: v.optional(v.any()),
-    programOverrides: v.optional(v.any()),
+    exerciseSwaps: v.optional(v.record(v.string(), v.string())),
+    swapFrequency: v.optional(v.record(v.string(), v.number())),
+    programOverrides: v.optional(
+      v.record(
+        v.string(),
+        v.array(
+          v.object({
+            originalIdx: v.optional(v.number()),
+            custom: v.optional(v.boolean()),
+            name: v.optional(v.string()),
+            equipment: v.optional(v.string()),
+            sets: v.optional(v.number()),
+            reps: v.optional(v.string()),
+            rest: v.optional(v.number()),
+            rir: v.optional(v.string()),
+            compound: v.optional(v.boolean()),
+            amrap: v.optional(v.boolean()),
+            notes: v.optional(v.string()),
+            alternatives: v.optional(
+              v.array(v.object({ name: v.string(), equipment: v.string() }))
+            ),
+          })
+        )
+      )
+    ),
     deloadDismissed: v.optional(v.union(v.number(), v.null())),
   },
   handler: async (ctx, args) => {

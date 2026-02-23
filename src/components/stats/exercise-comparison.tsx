@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from 'convex/react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   Bar,
   BarChart,
@@ -32,6 +32,7 @@ export function ExerciseComparison() {
   const oneRmEntries = useQuery(api.oneRm.getAll)
 
   const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
+  const unit = prefs?.plateSettings?.unit ?? 'kg'
   const template = getTemplateOrDefault(activeProgramId)
   const dayCount = template.days.length
 
@@ -47,12 +48,18 @@ export function ExerciseComparison() {
     return map
   }, [oneRmEntries])
 
-  const keys = Object.keys(oneRmHistory).filter(
-    (k) => oneRmHistory[k].length > 0
+  const keys = useMemo(
+    () => Object.keys(oneRmHistory).filter((k) => oneRmHistory[k].length > 0),
+    [oneRmHistory]
   )
-  const [exA, setExA] = useState(keys[0] || '')
-  const [exB, setExB] = useState(keys[1] || '')
+  const [exA, setExA] = useState('')
+  const [exB, setExB] = useState('')
   const [range, setRange] = useState<Range>('all')
+
+  useEffect(() => {
+    if (keys.length > 0 && !exA) setExA(keys[0])
+    if (keys.length > 1 && !exB) setExB(keys[1])
+  }, [keys, exA, exB])
 
   const nameMap = useMemo(() => {
     const map: Record<string, string> = {}
@@ -65,6 +72,14 @@ export function ExerciseComparison() {
     }
     return map
   }, [dayCount, template])
+
+  if (prefs === undefined || oneRmEntries === undefined) {
+    return (
+      <ChartCard title={t('compare1rm')} empty>
+        {null}
+      </ChartCard>
+    )
+  }
 
   const filterByRange = (entries: { date: string; value: number }[]) => {
     if (range === 'all') return entries
@@ -144,7 +159,7 @@ export function ExerciseComparison() {
               <YAxis hide />
               <Tooltip
                 {...TOOLTIP_STYLE}
-                formatter={(val: number) => [`${val}kg`, '1RM']}
+                formatter={(val: number) => [`${val}${unit}`, '1RM']}
                 labelFormatter={() => ''}
               />
               <Bar
@@ -166,7 +181,7 @@ export function ExerciseComparison() {
               <YAxis hide />
               <Tooltip
                 {...TOOLTIP_STYLE}
-                formatter={(val: number) => [`${val}kg`, '1RM']}
+                formatter={(val: number) => [`${val}${unit}`, '1RM']}
                 labelFormatter={() => ''}
               />
               <Bar

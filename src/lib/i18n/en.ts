@@ -215,6 +215,7 @@ const en = {
   noPhotosYet: 'No progress photos yet',
   trackVisualProgress: 'Take photos to track your visual progress',
   closeFullscreen: 'Close fullscreen',
+  confirmDeletePhoto: 'Delete this photo?',
 
   // Auth
   pplTracker: 'Push Pull Legs Tracker',
@@ -301,6 +302,35 @@ const en = {
   account: 'ACCOUNT',
   signOut: 'SIGN OUT',
   language: 'LANGUAGE',
+
+  // Mesocycle
+  deloadWeek: 'DELOAD WEEK',
+  deloadReduce: 'Reduce volume to 60%, focus on recovery. RIR {rir}',
+  mesoWeek: 'MESO WEEK {week}/{total}',
+  mesoTargetRir: 'Target RIR: {rir} · Ramp +{rate} sets/muscle',
+  mesocycle: 'MESOCYCLE',
+  mesoStartDesc: 'Start a {length}+{deload} mesocycle for progressive overload',
+  startMesocycle: 'START MESOCYCLE',
+  dismiss: 'DISMISS',
+
+  // Readiness
+  readinessRest: 'Rest',
+  readinessLight: 'Light day',
+  readinessNormal: 'Train normally',
+  readinessPush: 'Push hard',
+
+  // Circuit
+  circuitGetReady: 'GET READY',
+  circuitWork: 'WORK',
+  circuitRest: 'REST',
+  circuitComplete: 'CIRCUIT COMPLETE',
+  circuitUpNext: 'Up next',
+  circuitNext: 'Next',
+  circuitLast: 'Last exercise!',
+
+  // Misc
+  redirecting: 'Redirecting…',
+  invalidDay: 'Invalid day',
 } as const
 
 export type Messages = { [K in keyof typeof en]: string }

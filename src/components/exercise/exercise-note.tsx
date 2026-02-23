@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery } from 'convex/react'
 import { Pin, StickyNote } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { useCurrentWeek } from '@/hooks/use-current-week'
 import { useT } from '@/lib/i18n'
@@ -35,6 +35,12 @@ export function ExerciseNote({ dayIdx, exIdx }: ExerciseNoteProps) {
   const note = noteDoc?.note ?? ''
   const pinnedNote = pinnedDoc?.note ?? ''
 
+  const [draft, setDraft] = useState(note)
+
+  useEffect(() => {
+    if (!editing) setDraft(note)
+  }, [note, editing])
+
   return (
     <div className="space-y-1">
       {pinnedNote && (
@@ -47,28 +53,31 @@ export function ExerciseNote({ dayIdx, exIdx }: ExerciseNoteProps) {
       {editing ? (
         <div className="flex gap-1">
           <Input
-            value={note}
-            onChange={(e) =>
-              setExerciseNote({
-                week,
-                dayIndex: dayIdx,
-                exerciseIndex: exIdx,
-                note: e.target.value,
-              })
-            }
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
             placeholder={t('addANote')}
             className="h-7 text-xs"
-            onBlur={() => setEditing(false)}
+            onBlur={() => {
+              if (draft !== note) {
+                setExerciseNote({
+                  week,
+                  dayIndex: dayIdx,
+                  exerciseIndex: exIdx,
+                  note: draft,
+                })
+              }
+              setEditing(false)
+            }}
             autoFocus
           />
           <button
             type="button"
             onClick={() => {
-              if (note)
+              if (draft)
                 setPinnedNoteMut({
                   dayIndex: dayIdx,
                   exerciseIndex: exIdx,
-                  note,
+                  note: draft,
                 })
             }}
             className={cn(

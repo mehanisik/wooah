@@ -5,6 +5,7 @@ import { AlertTriangle } from 'lucide-react'
 import { useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { useCurrentWeek } from '@/hooks/use-current-week'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { checkDeloadSignals } from '@/lib/workout/deload-detect'
 import { api } from '../../../convex/_generated/api'
@@ -17,6 +18,7 @@ const DEFAULT_MESO = {
 }
 
 export function DeloadBanner() {
+  const t = useT()
   const prefs = useQuery(api.preferences.get)
   const currentWeek = useCurrentWeek()
   const upsertPrefs = useMutation(api.preferences.upsert)
@@ -43,7 +45,7 @@ export function DeloadBanner() {
     upsertPrefs({
       mesocycleConfig: {
         ...config,
-        startWeek: currentWeek - config.length,
+        startWeek: Math.max(1, currentWeek - config.length + 1),
       },
     })
   }
@@ -79,7 +81,7 @@ export function DeloadBanner() {
           className="h-7 text-xs"
           onClick={acceptDeload}
         >
-          DELOAD
+          {t('deload')}
         </Button>
         <Button
           variant="ghost"
@@ -87,7 +89,7 @@ export function DeloadBanner() {
           className="h-7 text-xs"
           onClick={dismiss}
         >
-          DISMISS
+          {t('dismiss')}
         </Button>
       </div>
     </div>

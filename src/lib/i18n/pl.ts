@@ -221,6 +221,7 @@ const pl: Messages = {
   noPhotosYet: 'Brak zdjęć postępów',
   trackVisualProgress: 'Rób zdjęcia, aby śledzić swoje postępy',
   closeFullscreen: 'Zamknij pełny ekran',
+  confirmDeletePhoto: 'Usunąć to zdjęcie?',
 
   // Auth
   pplTracker: 'Push Pull Legs Tracker',
@@ -306,6 +307,36 @@ const pl: Messages = {
   account: 'KONTO',
   signOut: 'WYLOGUJ SIĘ',
   language: 'JĘZYK',
+
+  // Mesocycle
+  deloadWeek: 'TYDZIEŃ DELOAD',
+  deloadReduce: 'Zmniejsz objętość do 60%, skup się na regeneracji. RIR {rir}',
+  mesoWeek: 'MEZO TYDZIEŃ {week}/{total}',
+  mesoTargetRir: 'Docelowy RIR: {rir} · Rampa +{rate} serii/mięsień',
+  mesocycle: 'MESOCYKL',
+  mesoStartDesc:
+    'Rozpocznij {length}+{deload} mesocykl progresywnego przeciążania',
+  startMesocycle: 'ROZPOCZNIJ MESOCYKL',
+  dismiss: 'ODRZUĆ',
+
+  // Readiness
+  readinessRest: 'Odpoczynek',
+  readinessLight: 'Lekki dzień',
+  readinessNormal: 'Trenuj normalnie',
+  readinessPush: 'Daj z siebie więcej',
+
+  // Circuit
+  circuitGetReady: 'PRZYGOTUJ SIĘ',
+  circuitWork: 'PRACA',
+  circuitRest: 'ODPOCZYNEK',
+  circuitComplete: 'OBWÓD UKOŃCZONY',
+  circuitUpNext: 'Następnie',
+  circuitNext: 'Dalej',
+  circuitLast: 'Ostatnie ćwiczenie!',
+
+  // Misc
+  redirecting: 'Przekierowywanie…',
+  invalidDay: 'Nieprawidłowy dzień',
 }
 
 export default pl

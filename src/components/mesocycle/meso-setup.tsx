@@ -3,6 +3,7 @@
 import { useMutation, useQuery } from 'convex/react'
 import { Button } from '@/components/ui/button'
 import { useCurrentWeek } from '@/hooks/use-current-week'
+import { useT } from '@/lib/i18n'
 import { api } from '../../../convex/_generated/api'
 
 const DEFAULT_MESO = {
@@ -13,6 +14,7 @@ const DEFAULT_MESO = {
 }
 
 export function MesoSetup() {
+  const t = useT()
   const prefs = useQuery(api.preferences.get)
   const currentWeek = useCurrentWeek()
   const upsertPrefs = useMutation(api.preferences.upsert)
@@ -30,10 +32,12 @@ export function MesoSetup() {
 
   return (
     <div className="rounded-lg border border-border bg-card px-4 py-3 text-center">
-      <div className="font-body font-semibold text-sm">MESOCYCLE</div>
+      <div className="font-body font-semibold text-sm">{t('mesocycle')}</div>
       <p className="mt-0.5 font-body text-[10px] text-muted-foreground">
-        Start a {config.length}+{config.deloadLength} mesocycle for progressive
-        overload
+        {t('mesoStartDesc', {
+          length: config.length,
+          deload: config.deloadLength,
+        })}
       </p>
       <Button
         variant="outline"
@@ -41,7 +45,7 @@ export function MesoSetup() {
         className="mt-2 text-xs"
         onClick={startMesocycle}
       >
-        START MESOCYCLE
+        {t('startMesocycle')}
       </Button>
     </div>
   )

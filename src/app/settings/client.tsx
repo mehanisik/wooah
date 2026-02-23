@@ -150,7 +150,9 @@ export function SettingsPageClient() {
             onBlur={handleBarWeightSave}
             className="h-8 w-20 font-mono text-xs"
           />
-          <span className="text-muted-foreground text-xs">kg</span>
+          <span className="text-muted-foreground text-xs">
+            {plateSettings.unit}
+          </span>
         </div>
         <div className="flex items-center gap-2">
           <label

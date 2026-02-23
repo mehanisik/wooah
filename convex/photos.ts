@@ -10,7 +10,8 @@ export const getAll = query({
     const photos = await ctx.db
       .query('photos')
       .withIndex('by_user', (q) => q.eq('userId', userId))
-      .collect()
+      .order('desc')
+      .take(100)
 
     return Promise.all(
       photos.map(async (photo) => ({
@@ -60,7 +61,7 @@ export const remove = mutation({
     const photo = await ctx.db.get(photoId)
     if (!photo || photo.userId !== userId) throw new Error('Not found')
 
-    await ctx.storage.delete(photo.storageId)
     await ctx.db.delete(photoId)
+    await ctx.storage.delete(photo.storageId)
   },
 })

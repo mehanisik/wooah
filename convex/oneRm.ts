@@ -10,7 +10,8 @@ export const getAll = query({
     return ctx.db
       .query('oneRmHistory')
       .withIndex('by_user', (q) => q.eq('userId', userId))
-      .collect()
+      .order('desc')
+      .take(500)
   },
 })
 

@@ -20,6 +20,8 @@ export function OneRmDisplay({
   activeProgramId,
 }: OneRmDisplayProps) {
   const t = useT()
+  const prefs = useQuery(api.preferences.get)
+  const unit = prefs?.plateSettings?.unit ?? 'kg'
   const week = useCurrentWeek()
   const ex =
     getTemplateOrDefault(activeProgramId).days[dayIdx]?.exercises[exIdx]
@@ -52,7 +54,10 @@ export function OneRmDisplay({
 
   return (
     <div className="font-mono text-[10px] text-primary">
-      {t('est1rm')} <strong>{oneRM} kg</strong>
+      {t('est1rm')}{' '}
+      <strong>
+        {oneRM} {unit}
+      </strong>
     </div>
   )
 }

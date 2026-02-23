@@ -47,6 +47,31 @@ export const add = mutation({
     const userId = await getAuthUserId(ctx)
     if (!userId) throw new Error('Not authenticated')
 
+    const existing = await ctx.db
+      .query('history')
+      .withIndex('by_user_day_exercise', (q) =>
+        q
+          .eq('userId', userId)
+          .eq('dayIndex', args.dayIndex)
+          .eq('exerciseIndex', args.exerciseIndex)
+      )
+      .filter((q) =>
+        q.and(
+          q.eq(q.field('week'), args.week),
+          q.eq(q.field('date'), args.date)
+        )
+      )
+      .first()
+
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        weight: args.weight,
+        reps: args.reps,
+        detailedSets: args.detailedSets,
+      })
+      return existing._id
+    }
+
     return ctx.db.insert('history', {
       userId,
       dayIndex: args.dayIndex,

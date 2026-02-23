@@ -1,8 +1,8 @@
 'use client'
 
 import { useQuery } from 'convex/react'
-import { useMemo } from 'react'
 import { useCurrentWeek } from '@/hooks/use-current-week'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { api } from '../../../convex/_generated/api'
 
@@ -11,17 +11,13 @@ interface ReadinessBadgeProps {
 }
 
 export function ReadinessBadge({ dayIdx }: ReadinessBadgeProps) {
+  const t = useT()
   const currentWeek = useCurrentWeek()
-  const sessions = useQuery(api.sessions.getAll)
-
-  const notes = useMemo(() => {
-    if (!sessions) return null
-    const session = sessions.find(
-      (s) => s.week === currentWeek && s.dayIndex === dayIdx
-    )
-    if (!session) return null
-    return session.notes ?? null
-  }, [sessions, currentWeek, dayIdx])
+  const session = useQuery(api.sessions.getByWeekAndDay, {
+    week: currentWeek,
+    dayIndex: dayIdx,
+  })
+  const notes = session?.notes ?? null
 
   if (!notes) return null
 
@@ -61,24 +57,26 @@ export function ReadinessBadge({ dayIdx }: ReadinessBadgeProps) {
   const slScore = SLEEP_SCORES[sleep ?? ''] ?? 50
   const mScore = MOOD_SCORES[mood ?? ''] ?? 50
   const soScore = SORENESS_SCORES[soreness ?? ''] ?? 50
+  const totalWeight = 0.25 + 0.25 + 0.2 + 0.2
   const score = Math.round(
-    eScore * 0.25 + slScore * 0.25 + mScore * 0.2 + soScore * 0.2
+    (eScore * 0.25 + slScore * 0.25 + mScore * 0.2 + soScore * 0.2) /
+      totalWeight
   )
 
   let zone: string
   let label: string
   if (score <= 40) {
     zone = 'rest'
-    label = 'Rest'
+    label = t('readinessRest')
   } else if (score <= 60) {
     zone = 'light'
-    label = 'Light day'
+    label = t('readinessLight')
   } else if (score <= 80) {
     zone = 'normal'
-    label = 'Train normally'
+    label = t('readinessNormal')
   } else {
     zone = 'push'
-    label = 'Push hard'
+    label = t('readinessPush')
   }
 
   const zoneStyles: Record<string, string> = {

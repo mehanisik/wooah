@@ -15,6 +15,8 @@ interface WarmupTableProps {
 
 export function WarmupTable({ dayIdx, exIdx, exerciseName }: WarmupTableProps) {
   const t = useT()
+  const prefs = useQuery(api.preferences.get)
+  const unit = prefs?.plateSettings?.unit ?? 'kg'
   const history = useQuery(api.history.getByDayAndExercise, {
     dayIndex: dayIdx,
     exerciseIndex: exIdx,
@@ -59,7 +61,10 @@ export function WarmupTable({ dayIdx, exIdx, exerciseName }: WarmupTableProps) {
             return (
               <tr key={i} className="text-foreground/80">
                 <td>{i + 1}</td>
-                <td>{s.weight}kg</td>
+                <td>
+                  {s.weight}
+                  {unit}
+                </td>
                 <td>x{s.reps}</td>
                 <td>{s.pct ? `${s.pct}%` : t('warmupBarLabel')}</td>
                 <td className="text-muted-foreground">{plateStr}</td>

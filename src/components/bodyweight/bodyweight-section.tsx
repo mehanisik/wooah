@@ -26,6 +26,8 @@ import { api } from '../../../convex/_generated/api'
 export function BodyweightSection() {
   const t = useT()
   const locale = useLocale()
+  const prefs = useQuery(api.preferences.get)
+  const unit = prefs?.plateSettings?.unit ?? 'kg'
   const entries = useQuery(api.bodyweight.getAll) ?? []
   const addBodyweightMut = useMutation(api.bodyweight.add)
   const [value, setValue] = useState('')
@@ -52,9 +54,9 @@ export function BodyweightSection() {
   return (
     <ChartCard
       title={t('bodyweight')}
-      headline={latest ? `${latest.weight}kg` : '—'}
+      headline={latest ? `${latest.weight}${unit}` : '—'}
       change={change}
-      changeLabel="kg"
+      changeLabel={unit}
     >
       <div className="mb-3 flex gap-2">
         <Input
@@ -64,7 +66,7 @@ export function BodyweightSection() {
           step={0.1}
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          placeholder={latest ? `${latest.weight}` : 'kg'}
+          placeholder={latest ? `${latest.weight}` : unit}
           className="h-8 flex-1 font-mono text-xs"
           onKeyDown={(e) => e.key === 'Enter' && handleSave()}
         />
@@ -100,7 +102,7 @@ export function BodyweightSection() {
             <YAxis hide domain={['dataMin - 1', 'dataMax + 1']} />
             <Tooltip
               {...TOOLTIP_STYLE}
-              formatter={(val: number) => [`${val}kg`, 'Weight']}
+              formatter={(val: number) => [`${val}${unit}`, t('bodyweight')]}
               labelFormatter={() => ''}
             />
             <Area

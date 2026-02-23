@@ -2,10 +2,11 @@
 
 import { useMutation, useQuery } from 'convex/react'
 import { Pause, Play, SkipBack, SkipForward, X } from 'lucide-react'
-import { useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
 import { type CircuitPhase, useCircuitTimer } from '@/hooks/use-circuit-timer'
 import { useCurrentWeek } from '@/hooks/use-current-week'
 import type { Day } from '@/lib/data/program'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { api } from '../../../convex/_generated/api'
 
@@ -25,19 +26,13 @@ const phaseColors: Record<CircuitPhase, string> = {
   done: 'text-success',
 }
 
-const phaseLabels: Record<CircuitPhase, string> = {
-  prepare: 'GET READY',
-  work: 'WORK',
-  rest: 'REST',
-  done: 'CIRCUIT COMPLETE',
-}
-
 export function CircuitOverlay({
   dayIdx,
   day,
   open,
   onClose,
 }: CircuitOverlayProps) {
+  const t = useT()
   const week = useCurrentWeek()
   const setCardioMut = useMutation(api.cardio.set)
   const cardioLogs = useQuery(api.cardio.getByWeekAndDay, {
@@ -61,19 +56,25 @@ export function CircuitOverlay({
     [setCardioMut, week, dayIdx]
   )
 
+  const phaseLabels: Record<CircuitPhase, string> = {
+    prepare: t('circuitGetReady'),
+    work: t('circuitWork'),
+    rest: t('circuitRest'),
+    done: t('circuitComplete'),
+  }
+
   const { state, start, stop, togglePause, skipNext, skipPrev } =
     useCircuitTimer(items, handleCardioComplete, onClose)
 
-  if (!(open || state)) return null
-
-  if (open && !state) {
-    const firstUndone = items.findIndex((_, i) => !getCardioLog(i))
-    if (firstUndone >= 0) start(firstUndone)
-    else {
-      onClose()
-      return null
+  useEffect(() => {
+    if (open && !state) {
+      const firstUndone = items.findIndex((_, i) => !getCardioLog(i))
+      if (firstUndone >= 0) start(firstUndone)
+      else onClose()
     }
-  }
+  }, [open, state, items, getCardioLog, start, onClose])
+
+  if (!(open || state)) return null
 
   if (!state) return null
 
@@ -149,11 +150,14 @@ export function CircuitOverlay({
 
       {next && state.phase !== 'done' && (
         <div className="mb-8 text-muted-foreground text-xs">
-          {state.phase === 'rest' ? 'Up next' : 'Next'}: {next.name}
+          {state.phase === 'rest' ? t('circuitUpNext') : t('circuitNext')}:{' '}
+          {next.name}
         </div>
       )}
       {!next && state.phase === 'work' && (
-        <div className="mb-8 text-muted-foreground text-xs">Last exercise!</div>
+        <div className="mb-8 text-muted-foreground text-xs">
+          {t('circuitLast')}
+        </div>
       )}
 
       {state.phase !== 'done' && (

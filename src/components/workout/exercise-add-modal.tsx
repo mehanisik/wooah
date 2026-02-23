@@ -13,17 +13,19 @@ import {
   CommandList,
 } from '@/components/ui/command'
 import { useExerciseDb } from '@/hooks/use-exercise-db'
-import { PROGRAM } from '@/lib/data/program'
+import { getTemplateOrDefault } from '@/lib/data/programs/registry'
 import {
   DAY_TYPE_MUSCLES,
   type ExerciseDbEntry,
   mapApiEquipment,
   mapApiMuscle,
 } from '@/lib/exercise-db'
+
 import { useT } from '@/lib/i18n'
 
 interface ExerciseAddModalProps {
   dayIdx: number
+  activeProgramId?: string
   open: boolean
   onOpenChange: (open: boolean) => void
   onAddExercise: (entry: {
@@ -39,6 +41,7 @@ interface ExerciseAddModalProps {
 
 export function ExerciseAddModal({
   dayIdx,
+  activeProgramId,
   open,
   onOpenChange,
   onAddExercise,
@@ -47,7 +50,10 @@ export function ExerciseAddModal({
   const { exercises, loading } = useExerciseDb()
   const [search, setSearch] = useState('')
 
-  const dayType = PROGRAM[dayIdx].type
+  const template = getTemplateOrDefault(activeProgramId ?? 'wooah-ppl')
+  const day =
+    dayIdx >= 0 && dayIdx < template.days.length ? template.days[dayIdx] : null
+  const dayType = day?.type ?? 'push'
   const relevantMuscles = DAY_TYPE_MUSCLES[dayType] ?? []
 
   const filtered = useMemo(() => {

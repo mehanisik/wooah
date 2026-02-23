@@ -6,9 +6,11 @@ import { useMemo } from 'react'
 import { useAuth } from '@/hooks/auth-context'
 import { useCurrentWeek } from '@/hooks/use-current-week'
 import { getTemplateOrDefault } from '@/lib/data/programs/registry'
+import { useT } from '@/lib/i18n'
 import { api } from '../../../convex/_generated/api'
 
 export function StatsBar() {
+  const t = useT()
   const { isAuthenticated } = useAuth()
   const currentWeek = useCurrentWeek()
 
@@ -60,17 +62,17 @@ export function StatsBar() {
       <div className="flex items-center gap-1.5">
         <Flame className="h-3.5 w-3.5 text-warning" />
         <span className="font-mono font-semibold text-sm">{completed}</span>
-        <span className="text-[10px] text-muted-foreground">/6</span>
+        <span className="text-[10px] text-muted-foreground">/{dayCount}</span>
       </div>
       <div className="flex items-center gap-1.5">
         <Zap className="h-3.5 w-3.5 text-primary" />
         <span className="font-mono font-semibold text-sm">{streak}</span>
-        <span className="text-[10px] text-muted-foreground">streak</span>
+        <span className="text-[10px] text-muted-foreground">{t('streak')}</span>
       </div>
       <div className="flex items-center gap-1.5">
         <Trophy className="h-3.5 w-3.5 text-success" />
         <span className="font-mono font-semibold text-sm">{prs}</span>
-        <span className="text-[10px] text-muted-foreground">PRs</span>
+        <span className="text-[10px] text-muted-foreground">{t('prs')}</span>
       </div>
     </div>
   )

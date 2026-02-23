@@ -38,6 +38,7 @@ export function PhotosPage() {
         headers: { 'Content-Type': file.type },
         body: file,
       })
+      if (!result.ok) throw new Error(`Upload failed: ${result.status}`)
       const { storageId } = await result.json()
       await savePhoto({
         storageId,
@@ -54,6 +55,7 @@ export function PhotosPage() {
   }
 
   const handleRemove = async (photo: NonNullable<typeof photos>[number]) => {
+    if (!confirm(t('confirmDeletePhoto'))) return
     await removePhoto({ photoId: photo._id })
   }
 

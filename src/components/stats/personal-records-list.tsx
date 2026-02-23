@@ -21,6 +21,7 @@ export function PersonalRecordsList() {
   const prefs = useQuery(api.preferences.get)
   const records = useQuery(api.personalRecords.getAll)
 
+  const unit = prefs?.plateSettings?.unit ?? 'kg'
   const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
   const template = getTemplateOrDefault(activeProgramId)
   const dayCount = template.days.length
@@ -55,7 +56,10 @@ export function PersonalRecordsList() {
     <ChartCard title={t('personalRecords')} empty={entries.length === 0}>
       <div className="space-y-1">
         {entries.slice(0, 15).map((pr, i) => (
-          <div key={i} className="flex items-center gap-2 py-0.5">
+          <div
+            key={`${pr.name}-${pr.date}`}
+            className="flex items-center gap-2 py-0.5"
+          >
             <Trophy
               className={`h-3 w-3 flex-shrink-0 ${
                 i < 3 ? TROPHY_STYLES[i] : 'text-warning'
@@ -63,7 +67,8 @@ export function PersonalRecordsList() {
             />
             <span className="flex-1 truncate font-body text-xs">{pr.name}</span>
             <span className="font-mono text-[10px] text-muted-foreground">
-              {pr.volume.toLocaleString()}kg
+              {pr.volume.toLocaleString()}
+              {unit}
             </span>
             <span className="text-[9px] text-muted-foreground">
               {formatDateShort(new Date(pr.date), locale)}
