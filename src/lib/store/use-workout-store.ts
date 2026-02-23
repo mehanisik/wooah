@@ -16,7 +16,7 @@ const EMPTY_NOTES: Partial<SessionNotes> = {}
 
 function calcCurrentWeek(startDate: string | null): number {
   if (!startDate) return 1
-  return calcWeekNumber(startDate, new Date())
+  return Math.max(1, calcWeekNumber(startDate, new Date()))
 }
 
 export function getActiveDayCount(state: WorkoutState): number {

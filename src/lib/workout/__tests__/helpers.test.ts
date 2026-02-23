@@ -157,4 +157,18 @@ describe('calcWeekNumber', () => {
     expect(calcWeekNumber('2026-01-07', new Date(2026, 0, 7))).toBe(1) // Wed
     expect(calcWeekNumber('2026-01-07', new Date(2026, 0, 12))).toBe(2) // next Mon
   })
+
+  it('returns 0 for dates before the start week', () => {
+    expect(calcWeekNumber('2026-01-12', new Date(2026, 0, 5))).toBe(0)
+    expect(calcWeekNumber('2026-01-12', new Date(2026, 0, 11))).toBe(0) // Sun before
+  })
+
+  it('handles DST spring-forward (167h gap between Mondays)', () => {
+    // 2026 EU DST spring-forward: clocks jump ahead on last Sunday of March (Mar 29)
+    // Monday Mar 23 → Monday Mar 30 spans only 167 real hours.
+    // Math.floor would produce 0 instead of 1; Math.round handles it.
+    const start = '2026-03-23'
+    const afterDST = new Date(2026, 2, 30) // Mar 30, Monday after spring-forward
+    expect(calcWeekNumber(start, afterDST)).toBe(2)
+  })
 })

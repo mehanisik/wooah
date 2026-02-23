@@ -61,11 +61,9 @@ export function calcWeekNumber(startDateStr: string, target: Date): number {
   const [y, mo, d] = startDateStr.split('-').map(Number)
   const startMonday = getMonday(new Date(y, mo - 1, d))
   const targetMonday = getMonday(target)
+  if (targetMonday < startMonday) return 0
   return (
-    Math.max(
-      0,
-      Math.floor((targetMonday.getTime() - startMonday.getTime()) / msPerWeek)
-    ) + 1
+    Math.round((targetMonday.getTime() - startMonday.getTime()) / msPerWeek) + 1
   )
 }
 
