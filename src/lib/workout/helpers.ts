@@ -48,6 +48,25 @@ export function formatDuration(totalSec: number): string {
   return `${m}:${s.toString().padStart(2, '0')}`
 }
 
+export function getMonday(d: Date): Date {
+  const m = new Date(d)
+  m.setHours(0, 0, 0, 0)
+  const day = m.getDay()
+  m.setDate(m.getDate() - (day === 0 ? 6 : day - 1))
+  return m
+}
+
+export function calcWeekNumber(startDateStr: string, target: Date): number {
+  const msPerWeek = 7 * 24 * 60 * 60 * 1000
+  const [y, mo, d] = startDateStr.split('-').map(Number)
+  const startMonday = getMonday(new Date(y, mo - 1, d))
+  const targetMonday = getMonday(target)
+  if (targetMonday < startMonday) return 0
+  return (
+    Math.round((targetMonday.getTime() - startMonday.getTime()) / msPerWeek) + 1
+  )
+}
+
 export function haptic(ms = 10) {
   navigator.vibrate?.(ms)
 }

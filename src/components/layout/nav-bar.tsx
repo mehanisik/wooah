@@ -10,11 +10,29 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import { getTemplateOrDefault } from '@/lib/data/programs/registry'
 import { useT } from '@/lib/i18n'
 import { useWorkoutStore } from '@/lib/store/use-workout-store'
 import { cn } from '@/lib/utils'
 import { getTodayDayIdx, getWeekDates } from '@/lib/workout/helpers'
+
+function useDateKey() {
+  const [key, setKey] = useState(() => new Date().toDateString())
+  useEffect(() => {
+    const update = () => setKey(new Date().toDateString())
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') update()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    const timer = setInterval(update, 60_000)
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible)
+      clearInterval(timer)
+    }
+  }, [])
+  return key
+}
 
 const TYPE_COLORS: Record<string, string> = {
   push: 'bg-push',
@@ -64,6 +82,7 @@ export function NavBar() {
   ]
 
   const pathname = usePathname()
+  const _dateKey = useDateKey()
   const dates = getWeekDates()
   const trainingDays = useWorkoutStore((s) => s.trainingDays)
   const activeProgramId = useWorkoutStore((s) => s.activeProgramId)

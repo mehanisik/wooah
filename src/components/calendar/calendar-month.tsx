@@ -5,6 +5,7 @@ import { formatMonthYear } from '@/lib/format'
 import { useLocale, useT } from '@/lib/i18n'
 import { useWorkoutStore } from '@/lib/store/use-workout-store'
 import { cn } from '@/lib/utils'
+import { calcWeekNumber } from '@/lib/workout/helpers'
 
 interface CalendarMonthProps {
   month: Date
@@ -68,18 +69,8 @@ export function CalendarMonth({
     const dayIdx = sortedTrainingDays.indexOf(weekdayIdx)
     if (dayIdx === -1) return null
 
-    const msPerWeek = 7 * 24 * 60 * 60 * 1000
-    const startMonday = new Date(startDate)
-    startMonday.setDate(
-      startMonday.getDate() - ((startMonday.getDay() + 6) % 7)
-    )
-    const dateMonday = new Date(date)
-    dateMonday.setDate(dateMonday.getDate() - ((dateMonday.getDay() + 6) % 7))
-
-    if (dateMonday.getTime() < startMonday.getTime()) return null
-
-    const week =
-      Math.floor((dateMonday.getTime() - startMonday.getTime()) / msPerWeek) + 1
+    const week = calcWeekNumber(startDate, date)
+    if (week < 1) return null
     const key = `w${week}-d${dayIdx}`
     if (!finishedDays[key]) return null
 

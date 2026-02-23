@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { getTemplateOrDefault } from '@/lib/data/programs/registry'
+import { calcWeekNumber } from '@/lib/workout/helpers'
 import type {
   HistoryEntry,
   SessionNotes,
@@ -13,25 +14,9 @@ const EMPTY_LOG: SetLog = { weight: '', reps: '', done: false }
 const EMPTY_HISTORY: HistoryEntry[] = []
 const EMPTY_NOTES: Partial<SessionNotes> = {}
 
-function getMonday(d: Date): Date {
-  const m = new Date(d)
-  m.setHours(0, 0, 0, 0)
-  const day = m.getDay()
-  m.setDate(m.getDate() - (day === 0 ? 6 : day - 1))
-  return m
-}
-
 function calcCurrentWeek(startDate: string | null): number {
   if (!startDate) return 1
-  const msPerWeek = 7 * 24 * 60 * 60 * 1000
-  return Math.max(
-    1,
-    Math.floor(
-      (getMonday(new Date()).getTime() -
-        getMonday(new Date(startDate)).getTime()) /
-        msPerWeek
-    ) + 1
-  )
+  return Math.max(1, calcWeekNumber(startDate, new Date()))
 }
 
 export function getActiveDayCount(state: WorkoutState): number {

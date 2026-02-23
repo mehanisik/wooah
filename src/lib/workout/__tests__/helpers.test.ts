@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
+  calcWeekNumber,
   formatDuration,
   formatRest,
+  getMonday,
   getTodayDayIdx,
   getTodayWeekdayIdx,
   parseRepRange,
@@ -79,5 +81,94 @@ describe('getTodayDayIdx', () => {
   it('returns null for non-training day', () => {
     const idx = getTodayDayIdx([])
     expect(idx).toBeNull()
+  })
+})
+
+describe('getMonday', () => {
+  it('returns Monday for a Monday', () => {
+    const mon = new Date(2026, 0, 5) // Jan 5, 2026 = Monday
+    const result = getMonday(mon)
+    expect(result.getDay()).toBe(1)
+    expect(result.getDate()).toBe(5)
+  })
+
+  it('returns Monday for a Wednesday', () => {
+    const wed = new Date(2026, 0, 7) // Jan 7, 2026 = Wednesday
+    const result = getMonday(wed)
+    expect(result.getDay()).toBe(1)
+    expect(result.getDate()).toBe(5)
+  })
+
+  it('returns Monday for a Sunday', () => {
+    const sun = new Date(2026, 0, 11) // Jan 11, 2026 = Sunday
+    const result = getMonday(sun)
+    expect(result.getDay()).toBe(1)
+    expect(result.getDate()).toBe(5)
+  })
+
+  it('normalizes to midnight', () => {
+    const d = new Date(2026, 0, 7, 15, 30, 0) // 3:30 PM
+    const result = getMonday(d)
+    expect(result.getHours()).toBe(0)
+    expect(result.getMinutes()).toBe(0)
+  })
+})
+
+describe('calcWeekNumber', () => {
+  it('returns 1 for the start week', () => {
+    expect(calcWeekNumber('2026-01-05', new Date(2026, 0, 5))).toBe(1)
+  })
+
+  it('returns 1 for any day in the start week', () => {
+    expect(calcWeekNumber('2026-01-05', new Date(2026, 0, 7))).toBe(1) // Wed
+    expect(calcWeekNumber('2026-01-05', new Date(2026, 0, 11))).toBe(1) // Sun
+  })
+
+  it('returns 2 for the next week', () => {
+    expect(calcWeekNumber('2026-01-05', new Date(2026, 0, 12))).toBe(2) // next Mon
+    expect(calcWeekNumber('2026-01-05', new Date(2026, 0, 14))).toBe(2) // next Wed
+  })
+
+  it('returns correct week across months', () => {
+    expect(calcWeekNumber('2026-01-05', new Date(2026, 1, 2))).toBe(5) // Feb 2
+  })
+
+  it('same Monday produces week 1, not 0 or 2', () => {
+    // This is the exact bug scenario: startDate is a Monday string,
+    // target is the same Monday as a local Date.
+    // Before fix: new Date("2026-01-05") = UTC midnight, off by TZ offset,
+    // causing week 0 instead of 1.
+    const startStr = '2026-01-05' // Monday
+    const targetLocal = new Date(2026, 0, 5) // same Monday, local midnight
+    expect(calcWeekNumber(startStr, targetLocal)).toBe(1)
+  })
+
+  it('consecutive Mondays get consecutive weeks', () => {
+    const start = '2026-01-05'
+    for (let w = 0; w < 8; w++) {
+      const monday = new Date(2026, 0, 5 + w * 7)
+      expect(calcWeekNumber(start, monday)).toBe(w + 1)
+    }
+  })
+
+  it('start date mid-week still anchors to that Monday', () => {
+    // Start on Wednesday Jan 7 — Monday of that week is Jan 5
+    expect(calcWeekNumber('2026-01-07', new Date(2026, 0, 5))).toBe(1) // Mon
+    expect(calcWeekNumber('2026-01-07', new Date(2026, 0, 7))).toBe(1) // Wed
+    expect(calcWeekNumber('2026-01-07', new Date(2026, 0, 12))).toBe(2) // next Mon
+  })
+
+  it('returns 0 for dates before the start week', () => {
+    expect(calcWeekNumber('2026-01-12', new Date(2026, 0, 5))).toBe(0)
+    expect(calcWeekNumber('2026-01-12', new Date(2026, 0, 11))).toBe(0) // Sun before
+  })
+
+  it('handles DST spring-forward (167h gap between Mondays)', () => {
+    // 2026 EU DST spring-forward: clocks jump ahead on last Sunday of March (Mar 29)
+    // Monday Mar 23 → Monday Mar 30 spans only 167 real hours.
+    // Math.floor would produce 0 instead of 1; Math.round handles it.
+    const start = '2026-03-23'
+    const afterDST = new Date(2026, 2, 30) // Mar 30, Monday after spring-forward
+    expect(calcWeekNumber(start, afterDST)).toBe(2)
   })
 })

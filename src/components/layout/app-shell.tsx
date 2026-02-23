@@ -30,6 +30,28 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     loadExerciseDb().catch(() => undefined)
   }, [authLoading, user, initWeek, mergeState])
 
+  useEffect(() => {
+    if (!ready) return
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') initWeek()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+
+    let lastDate = new Date().getDate()
+    const timer = setInterval(() => {
+      const now = new Date().getDate()
+      if (now !== lastDate) {
+        lastDate = now
+        initWeek()
+      }
+    }, 60_000)
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible)
+      clearInterval(timer)
+    }
+  }, [ready, initWeek])
+
   if (authLoading) {
     return (
       <div className="flex h-dvh items-center justify-center bg-background">

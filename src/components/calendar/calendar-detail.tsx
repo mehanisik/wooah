@@ -7,6 +7,7 @@ import {
   getEffectiveProgram,
   useWorkoutStore,
 } from '@/lib/store/use-workout-store'
+import { calcWeekNumber } from '@/lib/workout/helpers'
 
 interface CalendarDetailProps {
   date: string
@@ -20,21 +21,16 @@ export function CalendarDetail({ date, onClose }: CalendarDetailProps) {
   const personalRecords = useWorkoutStore((s) => s.personalRecords)
   const startDate = useWorkoutStore((s) => s.startDate)
   const timers = useWorkoutStore((s) => s.workoutTimers)
+  const trainingDays = useWorkoutStore((s) => s.trainingDays)
 
   const d = parseLocalDate(date)
   const dow = d.getDay()
-  const dayIdx = dow === 0 ? 6 : dow - 1
-  if (dayIdx >= 6 || !startDate) return null
+  const weekdayIdx = dow === 0 ? 6 : dow - 1
+  const sortedTrainingDays = [...trainingDays].sort((a, b) => a - b)
+  const dayIdx = sortedTrainingDays.indexOf(weekdayIdx)
+  if (dayIdx === -1 || !startDate) return null
 
-  const msPerWeek = 7 * 24 * 60 * 60 * 1000
-  const startMonday = new Date(startDate)
-  startMonday.setDate(startMonday.getDate() - ((startMonday.getDay() + 6) % 7))
-  const dateMonday = new Date(d)
-  dateMonday.setDate(dateMonday.getDate() - ((dateMonday.getDay() + 6) % 7))
-  const week = Math.max(
-    1,
-    Math.floor((dateMonday.getTime() - startMonday.getTime()) / msPerWeek) + 1
-  )
+  const week = calcWeekNumber(startDate, d)
 
   const prog = getEffectiveProgram(dayIdx)
   const timerKey = `w${week}-d${dayIdx}`
