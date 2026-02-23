@@ -226,9 +226,12 @@ export const useWorkoutStore = create<WorkoutState & WorkoutActions>()(
 
       finishDay: (dayIdx) => {
         const key = `w${get().currentWeek}-d${dayIdx}`
+        const alreadyFinished = !!get().finishedDays[key]
         set((s) => ({
           finishedDays: { ...s.finishedDays, [key]: true },
-          totalSessions: s.totalSessions + 1,
+          totalSessions: alreadyFinished
+            ? s.totalSessions
+            : s.totalSessions + 1,
         }))
         get().stopWorkoutTimer(dayIdx)
       },
@@ -431,6 +434,46 @@ export const useWorkoutStore = create<WorkoutState & WorkoutActions>()(
         const week = calcCurrentWeek(get().startDate)
         if (week !== get().currentWeek) {
           set({ currentWeek: week })
+        }
+
+        const current = get()
+        const logDayKeys = new Set<string>()
+        for (const k of Object.keys(current.logs)) {
+          const i = k.indexOf('-', k.indexOf('-') + 1)
+          if (i > 0) logDayKeys.add(k.slice(0, i))
+        }
+
+        let dirty = false
+        const prunedFinished: Record<string, boolean> = {}
+        for (const [key, val] of Object.entries(current.finishedDays)) {
+          if (val && logDayKeys.has(key)) {
+            prunedFinished[key] = true
+          } else if (val) {
+            dirty = true
+          }
+        }
+
+        const prunedTimers: Record<
+          string,
+          (typeof current.workoutTimers)[string]
+        > = {}
+        for (const [key, val] of Object.entries(current.workoutTimers)) {
+          if (logDayKeys.has(key)) {
+            prunedTimers[key] = val
+          } else {
+            dirty = true
+          }
+        }
+
+        if (dirty) {
+          set((s) => ({
+            finishedDays: prunedFinished,
+            workoutTimers: prunedTimers,
+            totalSessions: Math.max(
+              s.totalSessions,
+              Object.keys(prunedFinished).length
+            ),
+          }))
         }
       },
     }),

@@ -14,13 +14,23 @@ import { UpdatePrompt } from './update-prompt'
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false)
+  const [hydrated, setHydrated] = useState(false)
   const { user, loading: authLoading } = useAuth()
   const t = useT()
   const initWeek = useWorkoutStore((s) => s.initWeek)
   const mergeState = useWorkoutStore((s) => s.mergeState)
 
   useEffect(() => {
-    if (authLoading || !user) return
+    const api = useWorkoutStore.persist
+    if (api?.hasHydrated()) {
+      setHydrated(true)
+      return
+    }
+    return api?.onFinishHydration(() => setHydrated(true))
+  }, [])
+
+  useEffect(() => {
+    if (authLoading || !user || !hydrated) return
     const v2Data = migrateFromV2()
     if (v2Data) {
       mergeState(v2Data)
@@ -28,7 +38,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     initWeek()
     setReady(true)
     loadExerciseDb().catch(() => undefined)
-  }, [authLoading, user, initWeek, mergeState])
+  }, [authLoading, user, hydrated, initWeek, mergeState])
 
   useEffect(() => {
     if (!ready) return
