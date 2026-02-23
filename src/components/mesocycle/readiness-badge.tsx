@@ -1,21 +1,85 @@
 'use client'
 
-import { selectSessionNotes } from '@/lib/store/selectors'
-import { useWorkoutStore } from '@/lib/store/use-workout-store'
+import { useQuery } from 'convex/react'
+import { useMemo } from 'react'
+import { useCurrentWeek } from '@/hooks/use-current-week'
 import { cn } from '@/lib/utils'
-import { calcReadiness, getReadinessZone } from '@/lib/workout/readiness'
+import { api } from '../../../convex/_generated/api'
 
 interface ReadinessBadgeProps {
   dayIdx: number
 }
 
 export function ReadinessBadge({ dayIdx }: ReadinessBadgeProps) {
-  const notes = useWorkoutStore((s) => selectSessionNotes(s, dayIdx))
-  const score = calcReadiness(useWorkoutStore.getState(), notes)
+  const currentWeek = useCurrentWeek()
+  const sessions = useQuery(api.sessions.getAll)
 
-  if (score === null) return null
+  const notes = useMemo(() => {
+    if (!sessions) return null
+    const session = sessions.find(
+      (s) => s.week === currentWeek && s.dayIndex === dayIdx
+    )
+    if (!session) return null
+    return session.notes ?? null
+  }, [sessions, currentWeek, dayIdx])
 
-  const { zone, label } = getReadinessZone(score)
+  if (!notes) return null
+
+  const energy = notes.energy ?? null
+  const sleep = notes.sleep ?? null
+  const mood = notes.mood ?? null
+  const soreness = notes.soreness ?? null
+
+  if (!(energy || sleep || mood || soreness)) return null
+
+  const ENERGY_SCORES: Record<string, number> = {
+    Low: 25,
+    Normal: 50,
+    High: 75,
+    Peak: 100,
+  }
+  const SLEEP_SCORES: Record<string, number> = {
+    '<5h': 20,
+    '5-6h': 40,
+    '7-8h': 80,
+    '8+h': 100,
+  }
+  const MOOD_SCORES: Record<string, number> = {
+    Rough: 25,
+    Meh: 50,
+    Good: 75,
+    Great: 100,
+  }
+  const SORENESS_SCORES: Record<string, number> = {
+    'Very Sore': 20,
+    Moderate: 50,
+    Mild: 80,
+    None: 100,
+  }
+
+  const eScore = ENERGY_SCORES[energy ?? ''] ?? 50
+  const slScore = SLEEP_SCORES[sleep ?? ''] ?? 50
+  const mScore = MOOD_SCORES[mood ?? ''] ?? 50
+  const soScore = SORENESS_SCORES[soreness ?? ''] ?? 50
+  const score = Math.round(
+    eScore * 0.25 + slScore * 0.25 + mScore * 0.2 + soScore * 0.2
+  )
+
+  let zone: string
+  let label: string
+  if (score <= 40) {
+    zone = 'rest'
+    label = 'Rest'
+  } else if (score <= 60) {
+    zone = 'light'
+    label = 'Light day'
+  } else if (score <= 80) {
+    zone = 'normal'
+    label = 'Train normally'
+  } else {
+    zone = 'push'
+    label = 'Push hard'
+  }
 
   const zoneStyles: Record<string, string> = {
     rest: 'bg-destructive/15 text-destructive',

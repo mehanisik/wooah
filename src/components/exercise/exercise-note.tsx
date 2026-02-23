@@ -1,12 +1,13 @@
 'use client'
 
+import { useMutation, useQuery } from 'convex/react'
 import { Pin, StickyNote } from 'lucide-react'
 import { useState } from 'react'
 import { Input } from '@/components/ui/input'
+import { useCurrentWeek } from '@/hooks/use-current-week'
 import { useT } from '@/lib/i18n'
-import { selectExerciseNote, selectPinnedNote } from '@/lib/store/selectors'
-import { useWorkoutStore } from '@/lib/store/use-workout-store'
 import { cn } from '@/lib/utils'
+import { api } from '../../../convex/_generated/api'
 
 interface ExerciseNoteProps {
   dayIdx: number
@@ -15,11 +16,24 @@ interface ExerciseNoteProps {
 
 export function ExerciseNote({ dayIdx, exIdx }: ExerciseNoteProps) {
   const t = useT()
+  const week = useCurrentWeek()
   const [editing, setEditing] = useState(false)
-  const note = useWorkoutStore((s) => selectExerciseNote(s, dayIdx, exIdx))
-  const setNote = useWorkoutStore((s) => s.setExerciseNote)
-  const pinnedNote = useWorkoutStore((s) => selectPinnedNote(s, dayIdx, exIdx))
-  const setPinnedNote = useWorkoutStore((s) => s.setPinnedNote)
+
+  const noteDoc = useQuery(api.notes.getExerciseNote, {
+    week,
+    dayIndex: dayIdx,
+    exerciseIndex: exIdx,
+  })
+  const pinnedDoc = useQuery(api.notes.getPinnedNote, {
+    dayIndex: dayIdx,
+    exerciseIndex: exIdx,
+  })
+
+  const setExerciseNote = useMutation(api.notes.setExerciseNote)
+  const setPinnedNoteMut = useMutation(api.notes.setPinnedNote)
+
+  const note = noteDoc?.note ?? ''
+  const pinnedNote = pinnedDoc?.note ?? ''
 
   return (
     <div className="space-y-1">
@@ -34,7 +48,14 @@ export function ExerciseNote({ dayIdx, exIdx }: ExerciseNoteProps) {
         <div className="flex gap-1">
           <Input
             value={note}
-            onChange={(e) => setNote(dayIdx, exIdx, e.target.value)}
+            onChange={(e) =>
+              setExerciseNote({
+                week,
+                dayIndex: dayIdx,
+                exerciseIndex: exIdx,
+                note: e.target.value,
+              })
+            }
             placeholder={t('addANote')}
             className="h-7 text-xs"
             onBlur={() => setEditing(false)}
@@ -43,7 +64,12 @@ export function ExerciseNote({ dayIdx, exIdx }: ExerciseNoteProps) {
           <button
             type="button"
             onClick={() => {
-              if (note) setPinnedNote(dayIdx, exIdx, note)
+              if (note)
+                setPinnedNoteMut({
+                  dayIndex: dayIdx,
+                  exerciseIndex: exIdx,
+                  note,
+                })
             }}
             className={cn(
               'rounded p-1',

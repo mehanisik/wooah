@@ -1,5 +1,7 @@
 'use client'
 
+import { useAuthActions } from '@convex-dev/auth/react'
+import { useMutation, useQuery } from 'convex/react'
 import { useState } from 'react'
 import { InstallPrompt } from '@/components/layout/install-prompt'
 import { ProgramPicker } from '@/components/program/program-picker'
@@ -13,67 +15,50 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useAuth } from '@/hooks/auth-context'
 import { getTemplateOrDefault } from '@/lib/data/programs/registry'
 import { useT } from '@/lib/i18n'
 import type { Locale } from '@/lib/i18n/types'
-import { useWorkoutStore } from '@/lib/store/use-workout-store'
-import { signOut } from '@/lib/supabase/auth'
+import { api } from '../../../convex/_generated/api'
 
 export function SettingsPageClient() {
   const t = useT()
   const { theme, setTheme } = useTheme()
-  const { user } = useAuth()
-  const plateSettings = useWorkoutStore((s) => s.plateSettings)
-  const locale = useWorkoutStore((s) => s.locale)
-  const setLocale = useWorkoutStore((s) => s.setLocale)
-  const activeProgramId = useWorkoutStore((s) => s.activeProgramId)
-  const switchProgram = useWorkoutStore((s) => s.switchProgram)
+  const { signOut } = useAuthActions()
+  const prefs = useQuery(api.preferences.get)
+  const upsertPrefs = useMutation(api.preferences.upsert)
+
+  const plateSettings = prefs?.plateSettings ?? {
+    barWeight: 20,
+    unit: 'kg' as const,
+  }
+  const locale = (prefs?.locale ?? 'en') as Locale
+  const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
+  const activeTemplate = getTemplateOrDefault(activeProgramId)
+
   const [barWeight, setBarWeight] = useState(String(plateSettings.barWeight))
   const [pickerOpen, setPickerOpen] = useState(false)
-  const activeTemplate = getTemplateOrDefault(activeProgramId)
 
   const handleBarWeightSave = () => {
     const w = Number.parseFloat(barWeight)
     if (w > 0 && w <= 50) {
-      useWorkoutStore.setState((s) => ({
-        plateSettings: { ...s.plateSettings, barWeight: w },
-      }))
+      upsertPrefs({
+        plateSettings: { ...plateSettings, barWeight: w },
+      })
     }
   }
 
   const handleUnitChange = (unit: string) => {
-    useWorkoutStore.setState((s) => ({
-      plateSettings: { ...s.plateSettings, unit: unit as 'kg' | 'lbs' },
-    }))
-  }
-
-  const exportData = () => {
-    const state = useWorkoutStore.getState()
-    const blob = new Blob([JSON.stringify(state, null, 2)], {
-      type: 'application/json',
+    upsertPrefs({
+      plateSettings: { ...plateSettings, unit: unit as 'kg' | 'lbs' },
     })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `ironppl-backup-${new Date().toISOString().slice(0, 10)}.json`
-    a.click()
-    URL.revokeObjectURL(url)
   }
 
-  const importData = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    const reader = new FileReader()
-    reader.onload = () => {
-      try {
-        const data = JSON.parse(reader.result as string)
-        useWorkoutStore.getState().mergeState(data)
-      } catch {
-        // ignore invalid JSON
-      }
-    }
-    reader.readAsText(file)
+  const handleLocaleChange = (v: string) => {
+    upsertPrefs({ locale: v as Locale })
+  }
+
+  const handleSwitchProgram = (programId: string, trainingDays: number[]) => {
+    upsertPrefs({ activeProgramId: programId, trainingDays })
   }
 
   return (
@@ -103,7 +88,7 @@ export function SettingsPageClient() {
         open={pickerOpen}
         onOpenChange={setPickerOpen}
         currentProgramId={activeProgramId}
-        onSelect={switchProgram}
+        onSelect={handleSwitchProgram}
       />
 
       <section className="space-y-3 rounded-lg border border-border bg-card px-4 py-3">
@@ -131,7 +116,7 @@ export function SettingsPageClient() {
 
       <section className="space-y-3 rounded-lg border border-border bg-card px-4 py-3">
         <h3 className="font-display text-sm tracking-wider">{t('language')}</h3>
-        <Select value={locale} onValueChange={(v) => setLocale(v as Locale)}>
+        <Select value={locale} onValueChange={handleLocaleChange}>
           <SelectTrigger className="h-8 text-xs">
             <SelectValue />
           </SelectTrigger>
@@ -193,53 +178,16 @@ export function SettingsPageClient() {
       <InstallPrompt />
 
       <section className="space-y-3 rounded-lg border border-border bg-card px-4 py-3">
-        <h3 className="font-display text-sm tracking-wider">{t('data')}</h3>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-1 text-xs"
-            onClick={exportData}
-          >
-            {t('exportData')}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="relative flex-1 text-xs"
-            asChild
-          >
-            <label>
-              {t('importData')}
-              <input
-                type="file"
-                accept=".json"
-                className="hidden"
-                onChange={importData}
-              />
-            </label>
-          </Button>
-        </div>
+        <h3 className="font-display text-sm tracking-wider">{t('account')}</h3>
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full text-xs"
+          onClick={() => signOut()}
+        >
+          {t('signOut')}
+        </Button>
       </section>
-
-      {user && (
-        <section className="space-y-3 rounded-lg border border-border bg-card px-4 py-3">
-          <h3 className="font-display text-sm tracking-wider">
-            {t('account')}
-          </h3>
-          <p className="truncate font-body text-muted-foreground text-xs">
-            {user.email}
-          </p>
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full text-xs"
-            onClick={() => signOut()}
-          >
-            {t('signOut')}
-          </Button>
-        </section>
-      )}
     </div>
   )
 }

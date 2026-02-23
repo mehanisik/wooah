@@ -15,13 +15,14 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
+import { useMutation, useQuery } from 'convex/react'
 import { Plus, Save, X } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { getTemplateOrDefault } from '@/lib/data/programs/registry'
 import { useT } from '@/lib/i18n'
 import type { ProgramOverrideEntry } from '@/lib/store/types'
-import { useWorkoutStore } from '@/lib/store/use-workout-store'
+import { api } from '../../../convex/_generated/api'
 import { ExerciseEditCard } from './exercise-edit-card'
 import { ExercisePickerModal } from './exercise-picker-modal'
 
@@ -32,9 +33,16 @@ interface ProgramEditorProps {
 
 export function ProgramEditor({ dayIdx, onClose }: ProgramEditorProps) {
   const t = useT()
-  const activeProgramId = useWorkoutStore((s) => s.activeProgramId)
+  const prefs = useQuery(api.preferences.get)
+  const upsertPrefs = useMutation(api.preferences.upsert)
+
+  const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
+  const programOverrides = (prefs?.programOverrides ?? {}) as Record<
+    number,
+    ProgramOverrideEntry[]
+  >
   const base = getTemplateOrDefault(activeProgramId).days[dayIdx]
-  const existingOverrides = useWorkoutStore((s) => s.programOverrides[dayIdx])
+  const existingOverrides = programOverrides[dayIdx]
   const [pickerOpen, setPickerOpen] = useState(false)
 
   const [items, setItems] = useState<ProgramOverrideEntry[]>(() => {
@@ -70,18 +78,15 @@ export function ProgramEditor({ dayIdx, onClose }: ProgramEditorProps) {
   }
 
   const save = () => {
-    useWorkoutStore.setState((s) => ({
-      programOverrides: { ...s.programOverrides, [dayIdx]: items },
-    }))
+    const updated = { ...programOverrides, [dayIdx]: items }
+    upsertPrefs({ programOverrides: updated })
     onClose()
   }
 
   const reset = () => {
-    useWorkoutStore.setState((s) => {
-      const overrides = { ...s.programOverrides }
-      delete overrides[dayIdx]
-      return { programOverrides: overrides }
-    })
+    const updated = { ...programOverrides }
+    delete updated[dayIdx]
+    upsertPrefs({ programOverrides: updated })
     onClose()
   }
 

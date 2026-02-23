@@ -1,11 +1,10 @@
 'use client'
 
+import { useQuery } from 'convex/react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useMemo, useRef } from 'react'
-import {
-  getActiveDayCount,
-  useWorkoutStore,
-} from '@/lib/store/use-workout-store'
+import { getTemplateOrDefault } from '@/lib/data/programs/registry'
+import { api } from '../../convex/_generated/api'
 
 const UTILITY_ROUTES = ['/rest', '/info', '/stats', '/calendar', '/photos']
 
@@ -15,7 +14,11 @@ export function useSwipeNavigation() {
   const router = useRouter()
   const pathname = usePathname()
   const touchStart = useRef<{ x: number; y: number } | null>(null)
-  const dayCount = useWorkoutStore((s) => getActiveDayCount(s))
+  const prefs = useQuery(api.preferences.get)
+  const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
+  const template = getTemplateOrDefault(activeProgramId)
+  const dayCount = template.days.length
+
   const ROUTES = useMemo(() => {
     const workout = Array.from({ length: dayCount }, (_, i) => `/workout/${i}`)
     return [...workout, ...UTILITY_ROUTES]

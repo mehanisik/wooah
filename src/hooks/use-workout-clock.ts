@@ -1,24 +1,35 @@
 'use client'
 
+import { useQuery } from 'convex/react'
 import { useEffect, useEffectEvent, useRef, useState } from 'react'
-import { selectWorkoutTimer } from '@/lib/store/selectors'
-import { useWorkoutStore } from '@/lib/store/use-workout-store'
+import { useCurrentWeek } from '@/hooks/use-current-week'
+import { api } from '../../convex/_generated/api'
 
 export function useWorkoutClock(dayIdx: number) {
   const [elapsed, setElapsed] = useState(0)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const timer = useWorkoutStore((s) => selectWorkoutTimer(s, dayIdx))
+  const week = useCurrentWeek()
+  const session = useQuery(api.sessions.getByWeekAndDay, {
+    week,
+    dayIndex: dayIdx,
+  })
 
-  const isRunning = !!timer?.startedAt && !timer.finishedAt
+  const startedAt = session?.startedAt ?? null
+  const finishedAt = session?.finishedAt ?? null
+
+  const isRunning = !!startedAt && !finishedAt
 
   const update = useEffectEvent(() => {
-    if (timer?.startedAt && !timer.finishedAt) {
+    if (startedAt && !finishedAt) {
       const diff = Math.round(
-        (Date.now() - new Date(timer.startedAt).getTime()) / 1000
+        (Date.now() - new Date(startedAt).getTime()) / 1000
       )
       setElapsed(diff)
-    } else if (timer?.duration) {
-      setElapsed(timer.duration)
+    } else if (startedAt && finishedAt) {
+      const duration = Math.round(
+        (new Date(finishedAt).getTime() - new Date(startedAt).getTime()) / 1000
+      )
+      setElapsed(duration)
     } else {
       setElapsed(0)
     }

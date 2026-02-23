@@ -1,30 +1,48 @@
 'use client'
 
+import { useQuery } from 'convex/react'
+import { useMemo } from 'react'
+import { useAuth } from '@/hooks/auth-context'
+import { useCurrentWeek } from '@/hooks/use-current-week'
+import { getTemplateOrDefault } from '@/lib/data/programs/registry'
 import { formatDateFull } from '@/lib/format'
 import { useLocale, useMotivational, useT } from '@/lib/i18n'
-import {
-  selectCompletedThisWeek,
-  selectIsDayFinished,
-} from '@/lib/store/selectors'
-import {
-  getActiveDayCount,
-  getEffectiveProgram,
-  useWorkoutStore,
-} from '@/lib/store/use-workout-store'
 import { getTodayDayIdx } from '@/lib/workout/helpers'
+import { api } from '../../../convex/_generated/api'
 
 export function Greeting() {
   const t = useT()
   const locale = useLocale()
   const motivational = useMotivational()
-  const trainingDays = useWorkoutStore((s) => s.trainingDays)
-  const todayIdx = getTodayDayIdx(trainingDays)
-  const dayCount = useWorkoutStore((s) => getActiveDayCount(s))
-  const completedThisWeek = useWorkoutStore((s) => selectCompletedThisWeek(s))
-  const todayFinished = useWorkoutStore((s) =>
-    todayIdx !== null ? selectIsDayFinished(s, todayIdx) : false
+  const { isAuthenticated } = useAuth()
+  const currentWeek = useCurrentWeek()
+
+  const prefs = useQuery(api.preferences.get, isAuthenticated ? {} : 'skip')
+  const weekSessions = useQuery(
+    api.sessions.getByWeek,
+    isAuthenticated ? { week: currentWeek } : 'skip'
   )
-  const todayWorkout = todayIdx !== null ? getEffectiveProgram(todayIdx) : null
+
+  const trainingDays = prefs?.trainingDays ?? [0, 1, 2, 3, 4, 5]
+  const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
+  const template = getTemplateOrDefault(activeProgramId)
+  const dayCount = template.days.length
+  const todayIdx = getTodayDayIdx(trainingDays)
+
+  const completedThisWeek = useMemo(() => {
+    if (!weekSessions) return 0
+    return weekSessions.filter((s) => s.finishedAt != null).length
+  }, [weekSessions])
+
+  const todayFinished = useMemo(() => {
+    if (todayIdx === null || !weekSessions) return false
+    return weekSessions.some(
+      (s) => s.dayIndex === todayIdx && s.finishedAt != null
+    )
+  }, [weekSessions, todayIdx])
+
+  const todayWorkout =
+    todayIdx !== null ? (template.days[todayIdx] ?? null) : null
 
   const hour = new Date().getHours()
   let timeGreeting: string

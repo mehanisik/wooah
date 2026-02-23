@@ -1,8 +1,6 @@
-import type { SessionNotes, WorkoutState } from '@/lib/store/types'
-import {
-  getActiveDayCount,
-  getEffectiveProgram,
-} from '@/lib/store/use-workout-store'
+import type { Day } from '@/lib/data/program'
+import { getTemplateOrDefault } from '@/lib/data/programs/registry'
+import type { SessionNotes } from '@/lib/store/types'
 
 const ENERGY_SCORES: Record<string, number> = {
   Low: 25,
@@ -44,13 +42,34 @@ function getSubjectiveScore(notes: SessionNotes): number | null {
   return energy * 0.25 + sleep * 0.25 + mood * 0.2 + soreness * 0.2
 }
 
+export interface SetLogEntry {
+  weight: string
+  reps: string
+  done: boolean
+}
+
+export interface ReadinessState {
+  currentWeek: number
+  activeProgramId: string
+  logs: Record<string, SetLogEntry>
+  extraSets: Record<string, number>
+}
+
+function getDay(programId: string, dayIdx: number): Day {
+  return getTemplateOrDefault(programId).days[dayIdx]
+}
+
+function getDayCount(programId: string): number {
+  return getTemplateOrDefault(programId).days.length
+}
+
 function calcVolumeLoad(
-  state: WorkoutState,
+  state: ReadinessState,
   week: number,
   dayIdx: number
 ): number {
   let load = 0
-  const day = getEffectiveProgram(dayIdx)
+  const day = getDay(state.activeProgramId, dayIdx)
   if (!day.exercises.length) return 0
 
   for (let e = 0; e < day.exercises.length; e++) {
@@ -69,14 +88,14 @@ function calcVolumeLoad(
   return load
 }
 
-function getWeeklyVolumeLoad(state: WorkoutState, week: number): number {
-  const dayCount = getActiveDayCount(state)
+function getWeeklyVolumeLoad(state: ReadinessState, week: number): number {
+  const dayCount = getDayCount(state.activeProgramId)
   let total = 0
   for (let d = 0; d < dayCount; d++) total += calcVolumeLoad(state, week, d)
   return total
 }
 
-function getACWR(state: WorkoutState): number {
+function getACWR(state: ReadinessState): number {
   const acute = getWeeklyVolumeLoad(state, state.currentWeek)
   if (acute === 0) return 1.0
 
@@ -96,7 +115,7 @@ function getACWR(state: WorkoutState): number {
   return chronic > 0 ? acute / chronic : 1.0
 }
 
-function getPerformanceScore(state: WorkoutState): number {
+function getPerformanceScore(state: ReadinessState): number {
   const acwr = getACWR(state)
   if (acwr >= 0.8 && acwr <= 1.3) return 100
   if (acwr < 0.8) return Math.max(0, 100 - (0.8 - acwr) * 200)
@@ -104,7 +123,7 @@ function getPerformanceScore(state: WorkoutState): number {
 }
 
 export function calcReadiness(
-  state: WorkoutState,
+  state: ReadinessState,
   notes: SessionNotes
 ): number | null {
   const subjective = getSubjectiveScore(notes)

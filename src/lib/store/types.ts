@@ -74,6 +74,7 @@ export interface ProgramOverrideEntry {
   alternatives?: { name: string; equipment: Equipment }[]
 }
 
+/** @deprecated Zustand store state — will be removed once full Convex migration is complete */
 export interface WorkoutState {
   currentWeek: number
   logs: Record<string, SetLog>
@@ -101,6 +102,7 @@ export interface WorkoutState {
   trainingDays: number[]
 }
 
+/** @deprecated Zustand store actions — will be removed once full Convex migration is complete */
 export interface WorkoutActions {
   getLog: (dayIdx: number, exIdx: number, setIdx: number) => SetLog
   setLog: (dayIdx: number, exIdx: number, setIdx: number, data: SetLog) => void

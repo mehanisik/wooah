@@ -1,13 +1,12 @@
 'use client'
 
+import { useQuery } from 'convex/react'
 import { Trophy } from 'lucide-react'
+import { useMemo } from 'react'
+import { getTemplateOrDefault } from '@/lib/data/programs/registry'
 import { formatDateShort } from '@/lib/format'
 import { useLocale, useT } from '@/lib/i18n'
-import {
-  getActiveDayCount,
-  getEffectiveProgram,
-  useWorkoutStore,
-} from '@/lib/store/use-workout-store'
+import { api } from '../../../convex/_generated/api'
 import { ChartCard } from './chart-card'
 
 const TROPHY_STYLES = [
@@ -19,25 +18,38 @@ const TROPHY_STYLES = [
 export function PersonalRecordsList() {
   const t = useT()
   const locale = useLocale()
-  const records = useWorkoutStore((s) => s.personalRecords)
+  const prefs = useQuery(api.preferences.get)
+  const records = useQuery(api.personalRecords.getAll)
 
-  const dayCount = useWorkoutStore((s) => getActiveDayCount(s))
+  const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
+  const template = getTemplateOrDefault(activeProgramId)
+  const dayCount = template.days.length
 
-  const nameMap: Record<string, string> = {}
-  for (let d = 0; d < dayCount; d++) {
-    const prog = getEffectiveProgram(d)
-    prog.exercises.forEach((ex, eIdx) => {
-      nameMap[`d${d}-e${eIdx}`] = ex.name
-    })
-  }
+  const nameMap = useMemo(() => {
+    const map: Record<string, string> = {}
+    for (let d = 0; d < dayCount; d++) {
+      const day = template.days[d]
+      if (!day) continue
+      day.exercises.forEach((ex, eIdx) => {
+        map[`d${d}-e${eIdx}`] = ex.name
+      })
+    }
+    return map
+  }, [dayCount, template])
 
-  const entries = Object.entries(records)
-    .map(([key, pr]) => ({
-      name: nameMap[key] || key,
-      volume: pr.volume,
-      date: pr.date,
-    }))
-    .sort((a, b) => b.volume - a.volume)
+  const entries = useMemo(() => {
+    if (!records) return []
+    return records
+      .map((pr) => ({
+        name:
+          nameMap[`d${pr.dayIndex}-e${pr.exerciseIndex}`] ||
+          pr.exerciseName ||
+          `d${pr.dayIndex}-e${pr.exerciseIndex}`,
+        volume: pr.bestVolume,
+        date: pr.achievedAt,
+      }))
+      .sort((a, b) => b.volume - a.volume)
+  }, [records, nameMap])
 
   return (
     <ChartCard title={t('personalRecords')} empty={entries.length === 0}>

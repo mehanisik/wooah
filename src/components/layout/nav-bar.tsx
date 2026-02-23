@@ -1,5 +1,6 @@
 'use client'
 
+import { useQuery } from 'convex/react'
 import {
   BarChart3,
   CalendarDays,
@@ -11,11 +12,13 @@ import {
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { useAuth } from '@/hooks/auth-context'
+import { useCurrentWeek } from '@/hooks/use-current-week'
 import { getTemplateOrDefault } from '@/lib/data/programs/registry'
 import { useT } from '@/lib/i18n'
-import { useWorkoutStore } from '@/lib/store/use-workout-store'
 import { cn } from '@/lib/utils'
 import { getTodayDayIdx, getWeekDates } from '@/lib/workout/helpers'
+import { api } from '../../../convex/_generated/api'
 
 function useDateKey() {
   const [key, setKey] = useState(() => new Date().toDateString())
@@ -84,12 +87,27 @@ export function NavBar() {
   const pathname = usePathname()
   const _dateKey = useDateKey()
   const dates = getWeekDates()
-  const trainingDays = useWorkoutStore((s) => s.trainingDays)
-  const activeProgramId = useWorkoutStore((s) => s.activeProgramId)
-  const todayIdx = getTodayDayIdx(trainingDays)
-  const finishedDays = useWorkoutStore((s) => s.finishedDays)
-  const currentWeek = useWorkoutStore((s) => s.currentWeek)
+  const { isAuthenticated } = useAuth()
+
+  const prefs = useQuery(api.preferences.get, isAuthenticated ? {} : 'skip')
+  const currentWeek = useCurrentWeek()
+  const weekSessions = useQuery(
+    api.sessions.getByWeek,
+    isAuthenticated ? { week: currentWeek } : 'skip'
+  )
+
+  const trainingDays = prefs?.trainingDays ?? [0, 1, 2, 3, 4, 5]
+  const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
   const template = getTemplateOrDefault(activeProgramId)
+
+  const finishedDays = new Set<number>()
+  if (weekSessions) {
+    for (const s of weekSessions) {
+      if (s.finishedAt != null) finishedDays.add(s.dayIndex)
+    }
+  }
+
+  const todayIdx = getTodayDayIdx(trainingDays)
   const sortedTrainingDays = [...trainingDays].sort((a, b) => a - b)
 
   return (
@@ -102,7 +120,7 @@ export function NavBar() {
             const href = `/workout/${programDayIdx}`
             const isActive = pathname === href
             const isToday = programDayIdx === todayIdx
-            const finished = !!finishedDays[`w${currentWeek}-d${programDayIdx}`]
+            const finished = finishedDays.has(programDayIdx)
 
             return (
               <Link

@@ -1,19 +1,36 @@
 'use client'
 
+import { useQuery } from 'convex/react'
 import { Coffee } from 'lucide-react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+import { useCurrentWeek } from '@/hooks/use-current-week'
+import { getTemplateOrDefault } from '@/lib/data/programs/registry'
 import { useRestQuotes, useT } from '@/lib/i18n'
-import { selectCompletedThisWeek } from '@/lib/store/selectors'
-import {
-  getActiveDayCount,
-  useWorkoutStore,
-} from '@/lib/store/use-workout-store'
+import { api } from '../../../convex/_generated/api'
 
 export function RestPageClient() {
   const t = useT()
   const restQuotes = useRestQuotes()
-  const completedThisWeek = useWorkoutStore((s) => selectCompletedThisWeek(s))
-  const dayCount = useWorkoutStore((s) => getActiveDayCount(s))
+  const currentWeek = useCurrentWeek()
+  const prefs = useQuery(api.preferences.get)
+  const sessions = useQuery(api.sessions.getAll)
+
+  const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
+  const template = getTemplateOrDefault(activeProgramId)
+  const dayCount = template.days.length
+
+  const completedThisWeek = useMemo(() => {
+    if (!sessions) return 0
+    let count = 0
+    for (let d = 0; d < dayCount; d++) {
+      const found = sessions.some(
+        (s) => s.week === currentWeek && s.dayIndex === d && s.finishedAt
+      )
+      if (found) count++
+    }
+    return count
+  }, [sessions, currentWeek, dayCount])
+
   const [quote] = useState(
     () => restQuotes[Math.floor(Math.random() * restQuotes.length)]
   )

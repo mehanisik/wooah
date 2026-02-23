@@ -1,52 +1,66 @@
 'use client'
 
+import { useMutation, useQuery } from 'convex/react'
 import { Star, X } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { useCurrentWeek } from '@/hooks/use-current-week'
+import { getTemplateOrDefault } from '@/lib/data/programs/registry'
 import { useT } from '@/lib/i18n'
-import { selectWorkoutTimer } from '@/lib/store/selectors'
-import {
-  getEffectiveProgram,
-  useWorkoutStore,
-} from '@/lib/store/use-workout-store'
 import { cn } from '@/lib/utils'
 import { formatDuration } from '@/lib/workout/helpers'
+import { api } from '../../../convex/_generated/api'
 
 interface CelebrationModalProps {
   dayIdx: number
   open: boolean
   onClose: () => void
+  activeProgramId: string
 }
 
 export function CelebrationModal({
   dayIdx,
   open,
   onClose,
+  activeProgramId,
 }: CelebrationModalProps) {
   const t = useT()
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [rating, setRating] = useState(0)
-  const timer = useWorkoutStore((s) => selectWorkoutTimer(s, dayIdx))
-  const logs = useWorkoutStore((s) => s.logs)
-  const currentWeek = useWorkoutStore((s) => s.currentWeek)
-  const setSessionNotes = useWorkoutStore((s) => s.setSessionNotes)
-  const getSessionNotes = useWorkoutStore((s) => s.getSessionNotes)
+  const week = useCurrentWeek()
 
-  const prog = getEffectiveProgram(dayIdx)
-  let totalSets = 0
-  let totalVolume = 0
+  const session = useQuery(api.sessions.getByWeekAndDay, {
+    week,
+    dayIndex: dayIdx,
+  })
+  const sets = useQuery(api.sets.getByWeekAndDay, { week, dayIndex: dayIdx })
+  const setNotesMut = useMutation(api.sessions.setNotes)
 
-  prog.exercises.forEach((ex, eIdx) => {
-    for (let s = 0; s < ex.sets + 4; s++) {
-      const log = logs[`w${currentWeek}-d${dayIdx}-e${eIdx}-s${s}`]
-      if (log?.done) {
-        totalSets++
-        totalVolume +=
-          (Number.parseFloat(log.weight) || 0) *
-          (Number.parseInt(log.reps, 10) || 0)
+  const prog = getTemplateOrDefault(activeProgramId).days[dayIdx]
+
+  const { totalSets, totalVolume } = useMemo(() => {
+    if (!sets) return { totalSets: 0, totalVolume: 0 }
+    let tSets = 0
+    let tVol = 0
+    for (const s of sets) {
+      if (s.done) {
+        tSets++
+        tVol +=
+          (Number.parseFloat(String(s.weight)) || 0) *
+          (Number.parseInt(String(s.reps), 10) || 0)
       }
     }
-  })
+    return { totalSets: tSets, totalVolume: tVol }
+  }, [sets])
+
+  const duration = useMemo(() => {
+    if (!(session?.startedAt && session?.finishedAt)) return null
+    return Math.round(
+      (new Date(session.finishedAt).getTime() -
+        new Date(session.startedAt).getTime()) /
+        1000
+    )
+  }, [session])
 
   useEffect(() => {
     if (!(open && canvasRef.current)) return
@@ -104,8 +118,12 @@ export function CelebrationModal({
 
   const handleRate = (r: number) => {
     setRating(r)
-    const notes = getSessionNotes(dayIdx)
-    setSessionNotes(dayIdx, { ...notes, rating: r })
+    const currentNotes = (session?.notes as Record<string, unknown>) ?? {}
+    setNotesMut({
+      week,
+      dayIndex: dayIdx,
+      notes: { ...currentNotes, rating: r },
+    })
   }
 
   if (!open) return null
@@ -129,13 +147,13 @@ export function CelebrationModal({
           {t('workoutDone')}
         </div>
         <div className="mb-4 font-body text-muted-foreground text-xs">
-          {prog.day} — {prog.name}
+          {prog?.day} — {prog?.name}
         </div>
 
         <div className="mb-4 grid grid-cols-3 gap-3">
           <div>
             <div className="font-mono font-semibold text-lg">
-              {timer?.duration ? formatDuration(timer.duration) : '—'}
+              {duration ? formatDuration(duration) : '—'}
             </div>
             <div className="text-[10px] text-muted-foreground">
               {t('durationLabel')}

@@ -1,29 +1,55 @@
 'use client'
 
+import { useMutation, useQuery } from 'convex/react'
 import { AlertTriangle } from 'lucide-react'
+import { useMemo } from 'react'
 import { Button } from '@/components/ui/button'
-import { useWorkoutStore } from '@/lib/store/use-workout-store'
+import { useCurrentWeek } from '@/hooks/use-current-week'
 import { cn } from '@/lib/utils'
 import { checkDeloadSignals } from '@/lib/workout/deload-detect'
+import { api } from '../../../convex/_generated/api'
+
+const DEFAULT_MESO = {
+  length: 6,
+  deloadLength: 1,
+  startWeek: null,
+  rampRate: 1,
+}
 
 export function DeloadBanner() {
-  const state = useWorkoutStore.getState()
-  const signal = checkDeloadSignals(state)
-  const currentWeek = useWorkoutStore((s) => s.currentWeek)
+  const prefs = useQuery(api.preferences.get)
+  const currentWeek = useCurrentWeek()
+  const upsertPrefs = useMutation(api.preferences.upsert)
+
+  const raw = prefs?.mesocycleConfig ?? DEFAULT_MESO
+  const config = { ...raw, startWeek: raw.startWeek ?? null }
+  const deloadDismissed = prefs?.deloadDismissed ?? null
+  const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
+
+  const signal = useMemo(
+    () =>
+      checkDeloadSignals({
+        mesocycleConfig: config,
+        currentWeek,
+        deloadDismissed,
+        activeProgramId,
+      }),
+    [config, currentWeek, deloadDismissed, activeProgramId]
+  )
 
   if (!signal) return null
 
   const acceptDeload = () => {
-    useWorkoutStore.setState((s) => ({
+    upsertPrefs({
       mesocycleConfig: {
-        ...s.mesocycleConfig,
-        startWeek: s.currentWeek - s.mesocycleConfig.length,
+        ...config,
+        startWeek: currentWeek - config.length,
       },
-    }))
+    })
   }
 
   const dismiss = () => {
-    useWorkoutStore.setState({ deloadDismissed: currentWeek })
+    upsertPrefs({ deloadDismissed: currentWeek })
   }
 
   return (

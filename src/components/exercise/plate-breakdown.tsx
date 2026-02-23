@@ -1,8 +1,9 @@
 'use client'
 
+import { useQuery } from 'convex/react'
 import { useT } from '@/lib/i18n'
-import { useWorkoutStore } from '@/lib/store/use-workout-store'
 import { calcPlates, isBarbell, PLATE_COLORS } from '@/lib/workout/plate-calc'
+import { api } from '../../../convex/_generated/api'
 
 interface PlateBreakdownProps {
   weight: string
@@ -11,7 +12,8 @@ interface PlateBreakdownProps {
 
 export function PlateBreakdown({ weight, exerciseName }: PlateBreakdownProps) {
   const t = useT()
-  const barWeight = useWorkoutStore((s) => s.plateSettings.barWeight)
+  const prefs = useQuery(api.preferences.get)
+  const barWeight = prefs?.plateSettings?.barWeight ?? 20
 
   if (!(weight && isBarbell(exerciseName))) return null
 

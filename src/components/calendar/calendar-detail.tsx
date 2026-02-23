@@ -1,13 +1,13 @@
 'use client'
 
+import { useQuery } from 'convex/react'
 import { Trophy, X } from 'lucide-react'
+import { useMemo } from 'react'
+import { getTemplateOrDefault } from '@/lib/data/programs/registry'
 import { formatDate, parseLocalDate } from '@/lib/format'
 import { useLocale, useT } from '@/lib/i18n'
-import {
-  getEffectiveProgram,
-  useWorkoutStore,
-} from '@/lib/store/use-workout-store'
 import { calcWeekNumber } from '@/lib/workout/helpers'
+import { api } from '../../../convex/_generated/api'
 
 interface CalendarDetailProps {
   date: string
@@ -17,36 +17,84 @@ interface CalendarDetailProps {
 export function CalendarDetail({ date, onClose }: CalendarDetailProps) {
   const t = useT()
   const locale = useLocale()
-  const history = useWorkoutStore((s) => s.history)
-  const personalRecords = useWorkoutStore((s) => s.personalRecords)
-  const startDate = useWorkoutStore((s) => s.startDate)
-  const timers = useWorkoutStore((s) => s.workoutTimers)
-  const trainingDays = useWorkoutStore((s) => s.trainingDays)
+  const prefs = useQuery(api.preferences.get)
+  const historyEntries = useQuery(api.history.getAll)
+  const personalRecords = useQuery(api.personalRecords.getAll)
+  const sessions = useQuery(api.sessions.getAll)
+
+  const startDate = prefs?.startDate ?? null
+  const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
+  const trainingDays = prefs?.trainingDays ?? [0, 1, 2, 3, 4, 5]
 
   const d = parseLocalDate(date)
   const dow = d.getDay()
   const weekdayIdx = dow === 0 ? 6 : dow - 1
   const sortedTrainingDays = [...trainingDays].sort((a, b) => a - b)
   const dayIdx = sortedTrainingDays.indexOf(weekdayIdx)
-  if (dayIdx === -1 || !startDate) return null
 
-  const week = calcWeekNumber(startDate, d)
+  const week = startDate ? calcWeekNumber(startDate, d) : 0
+  const template = getTemplateOrDefault(activeProgramId)
+  const prog = dayIdx >= 0 ? template.days[dayIdx] : undefined
 
-  const prog = getEffectiveProgram(dayIdx)
+  const historyMap = useMemo(() => {
+    if (!historyEntries)
+      return {} as Record<string, NonNullable<typeof historyEntries>>
+    const map: Record<string, NonNullable<typeof historyEntries>> = {}
+    for (const e of historyEntries) {
+      const key = `d${e.dayIndex}-e${e.exerciseIndex}`
+      if (!map[key]) map[key] = []
+      map[key].push(e)
+    }
+    return map
+  }, [historyEntries])
+
+  const prMap = useMemo(() => {
+    if (!personalRecords) return {} as Record<string, boolean>
+    const map: Record<string, boolean> = {}
+    for (const pr of personalRecords) {
+      map[`d${pr.dayIndex}-e${pr.exerciseIndex}`] = true
+    }
+    return map
+  }, [personalRecords])
+
+  const workoutTimers = useMemo(() => {
+    if (!sessions)
+      return {} as Record<
+        string,
+        { startedAt: string; finishedAt: string | null; duration: number }
+      >
+    const map: Record<
+      string,
+      { startedAt: string; finishedAt: string | null; duration: number }
+    > = {}
+    for (const s of sessions) {
+      map[`w${s.week}-d${s.dayIndex}`] = {
+        startedAt: s.startedAt ?? '',
+        finishedAt: s.finishedAt ?? null,
+        duration: s.durationSec ?? 0,
+      }
+    }
+    return map
+  }, [sessions])
+
+  if (dayIdx === -1 || !startDate || !prog) return null
+
   const timerKey = `w${week}-d${dayIdx}`
-  const timer = timers[timerKey]
+  const timer = workoutTimers[timerKey]
 
   const exercises = prog.exercises.map((ex, eIdx) => {
-    const entries = history[`d${dayIdx}-e${eIdx}`] || []
+    const entries = historyMap[`d${dayIdx}-e${eIdx}`] || []
     const weekEntry = entries.find((e) => e.week === week)
-    const hasPR = !!personalRecords[`d${dayIdx}-e${eIdx}`]
+    const hasPR = !!prMap[`d${dayIdx}-e${eIdx}`]
     return { name: ex.name, entry: weekEntry, hasPR }
   })
 
   const totalVolume = exercises.reduce((vol, ex) => {
     if (!ex.entry) return vol
-    if (ex.entry.sets) {
-      return vol + ex.entry.sets.reduce((s, x) => s + x.weight * x.reps, 0)
+    if (ex.entry.detailedSets) {
+      return (
+        vol + ex.entry.detailedSets.reduce((s, x) => s + x.weight * x.reps, 0)
+      )
     }
     return vol + ex.entry.weight * ex.entry.reps
   }, 0)

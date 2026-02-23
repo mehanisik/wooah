@@ -1,23 +1,46 @@
 'use client'
 
+import { useQuery } from 'convex/react'
+import { useMemo } from 'react'
+import { useCurrentWeek } from '@/hooks/use-current-week'
+import { getTemplateOrDefault } from '@/lib/data/programs/registry'
 import { useT } from '@/lib/i18n'
-import { selectLog } from '@/lib/store/selectors'
-import {
-  getEffectiveProgram,
-  useWorkoutStore,
-} from '@/lib/store/use-workout-store'
 import { calcOneRM } from '@/lib/workout/one-rm'
+import { api } from '../../../convex/_generated/api'
 
 interface OneRmDisplayProps {
   dayIdx: number
   exIdx: number
+  activeProgramId: string
 }
 
-export function OneRmDisplay({ dayIdx, exIdx }: OneRmDisplayProps) {
+export function OneRmDisplay({
+  dayIdx,
+  exIdx,
+  activeProgramId,
+}: OneRmDisplayProps) {
   const t = useT()
-  const ex = getEffectiveProgram(dayIdx).exercises[exIdx]
+  const week = useCurrentWeek()
+  const ex =
+    getTemplateOrDefault(activeProgramId).days[dayIdx]?.exercises[exIdx]
   const amrapSetIdx = ex ? ex.sets - 1 : 0
-  const log = useWorkoutStore((s) => selectLog(s, dayIdx, exIdx, amrapSetIdx))
+
+  const sets = useQuery(api.sets.getByWeekAndDay, { week, dayIndex: dayIdx })
+
+  const log = useMemo(() => {
+    if (!sets) return { weight: '', reps: '', done: false }
+    const found = sets.find(
+      (s: { exerciseIndex: number; setIndex: number }) =>
+        s.exerciseIndex === exIdx && s.setIndex === amrapSetIdx
+    )
+    return found
+      ? {
+          weight: String(found.weight ?? ''),
+          reps: String(found.reps ?? ''),
+          done: !!found.done,
+        }
+      : { weight: '', reps: '', done: false }
+  }, [sets, exIdx, amrapSetIdx])
 
   if (!(ex?.compound && ex.amrap)) return null
 

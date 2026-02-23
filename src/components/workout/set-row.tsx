@@ -1,12 +1,14 @@
 'use client'
 
+import { useMutation, useQuery } from 'convex/react'
 import { Check } from 'lucide-react'
+import { useMemo } from 'react'
 import { Input } from '@/components/ui/input'
+import { useCurrentWeek } from '@/hooks/use-current-week'
 import { useHaptic } from '@/hooks/use-haptic'
 import { useT } from '@/lib/i18n'
-import { selectLastSession, selectLog } from '@/lib/store/selectors'
-import { useWorkoutStore } from '@/lib/store/use-workout-store'
 import { cn } from '@/lib/utils'
+import { api } from '../../../convex/_generated/api'
 
 interface SetRowProps {
   dayIdx: number
@@ -28,30 +30,89 @@ export function SetRow({
   onStartRest,
 }: SetRowProps) {
   const t = useT()
-  const log = useWorkoutStore((s) => selectLog(s, dayIdx, exIdx, setIdx))
-  const setLog = useWorkoutStore((s) => s.setLog)
-  const lastSession = useWorkoutStore((s) =>
-    selectLastSession(s, dayIdx, exIdx)
-  )
+  const week = useCurrentWeek()
   const haptic = useHaptic()
 
-  const previousSet = lastSession?.sets?.[setIdx]
+  const sets = useQuery(api.sets.getByWeekAndDay, { week, dayIndex: dayIdx })
+  const history = useQuery(api.history.getByDayAndExercise, {
+    dayIndex: dayIdx,
+    exerciseIndex: exIdx,
+  })
 
-  const startWorkoutTimer = useWorkoutStore((s) => s.startWorkoutTimer)
+  const upsertSet = useMutation(api.sets.upsert)
+  const startTimer = useMutation(api.sessions.startTimer)
+
+  const log = useMemo(() => {
+    if (!sets) return { weight: '', reps: '', done: false }
+    const found = sets.find(
+      (s: { exerciseIndex: number; setIndex: number }) =>
+        s.exerciseIndex === exIdx && s.setIndex === setIdx
+    )
+    return found
+      ? {
+          weight: String(found.weight ?? ''),
+          reps: String(found.reps ?? ''),
+          done: !!found.done,
+        }
+      : { weight: '', reps: '', done: false }
+  }, [sets, exIdx, setIdx])
+
+  const lastSession = useMemo(() => {
+    if (!history || history.length === 0) return null
+    return history[history.length - 1]
+  }, [history])
+
+  const previousSet = lastSession?.detailedSets?.[setIdx]
+
+  if (sets === undefined) {
+    return (
+      <div className="grid grid-cols-[2rem_1fr_1fr_2.75rem] items-center gap-1.5">
+        <span className="text-center font-mono text-muted-foreground text-xs">
+          {isAmrap ? 'A' : setIdx + 1}
+        </span>
+        <div className="h-8 animate-pulse rounded bg-muted" />
+        <div className="h-8 animate-pulse rounded bg-muted" />
+        <div className="h-9 w-9 animate-pulse rounded-md bg-muted" />
+      </div>
+    )
+  }
+
+  const handleChange = (field: 'weight' | 'reps', value: string) => {
+    upsertSet({
+      week,
+      dayIndex: dayIdx,
+      exerciseIndex: exIdx,
+      setIndex: setIdx,
+      weight: field === 'weight' ? value : log.weight,
+      reps: field === 'reps' ? value : log.reps,
+      done: log.done,
+    })
+  }
 
   const toggleDone = () => {
     haptic()
-    const newData = { ...log, done: !log.done }
+    let newWeight = log.weight
+    let newReps = log.reps
 
     if (!(log.done || log.weight) && previousSet) {
-      newData.weight = String(previousSet.weight)
-      newData.reps = String(previousSet.reps)
+      newWeight = String(previousSet.weight)
+      newReps = String(previousSet.reps)
     }
 
-    setLog(dayIdx, exIdx, setIdx, newData)
+    const newDone = !log.done
 
-    if (newData.done) {
-      startWorkoutTimer(dayIdx)
+    upsertSet({
+      week,
+      dayIndex: dayIdx,
+      exerciseIndex: exIdx,
+      setIndex: setIdx,
+      weight: newWeight,
+      reps: newReps,
+      done: newDone,
+    })
+
+    if (newDone) {
+      startTimer({ week, dayIndex: dayIdx })
       onStartRest(restSeconds, exerciseName)
     }
   }
@@ -74,9 +135,7 @@ export function SetRow({
           previousSet ? String(previousSet.weight) : t('kgPlaceholder')
         }
         value={log.weight}
-        onChange={(e) =>
-          setLog(dayIdx, exIdx, setIdx, { ...log, weight: e.target.value })
-        }
+        onChange={(e) => handleChange('weight', e.target.value)}
         className="h-8 px-1 text-center font-mono text-sm placeholder:text-muted-foreground/50 placeholder:italic"
         disabled={log.done}
       />
@@ -88,9 +147,7 @@ export function SetRow({
           previousSet ? String(previousSet.reps) : t('repsPlaceholder')
         }
         value={log.reps}
-        onChange={(e) =>
-          setLog(dayIdx, exIdx, setIdx, { ...log, reps: e.target.value })
-        }
+        onChange={(e) => handleChange('reps', e.target.value)}
         className="h-8 px-1 text-center font-mono text-sm placeholder:text-muted-foreground/50 placeholder:italic"
         disabled={log.done}
       />

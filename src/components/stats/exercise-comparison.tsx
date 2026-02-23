@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useQuery } from 'convex/react'
+import { useMemo, useState } from 'react'
 import {
   Bar,
   BarChart,
@@ -17,12 +18,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { getTemplateOrDefault } from '@/lib/data/programs/registry'
 import { useT } from '@/lib/i18n'
-import {
-  getActiveDayCount,
-  getEffectiveProgram,
-  useWorkoutStore,
-} from '@/lib/store/use-workout-store'
+import { api } from '../../../convex/_generated/api'
 import { ChartCard } from './chart-card'
 import { CHART_COLORS, TOOLTIP_STYLE } from './chart-theme'
 
@@ -30,7 +28,24 @@ type Range = 'all' | '6m' | '3m' | '1m'
 
 export function ExerciseComparison() {
   const t = useT()
-  const oneRmHistory = useWorkoutStore((s) => s.oneRmHistory)
+  const prefs = useQuery(api.preferences.get)
+  const oneRmEntries = useQuery(api.oneRm.getAll)
+
+  const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
+  const template = getTemplateOrDefault(activeProgramId)
+  const dayCount = template.days.length
+
+  const oneRmHistory = useMemo(() => {
+    if (!oneRmEntries)
+      return {} as Record<string, { date: string; value: number }[]>
+    const map: Record<string, { date: string; value: number }[]> = {}
+    for (const e of oneRmEntries) {
+      const key = `d${e.dayIndex}-e${e.exerciseIndex}`
+      if (!map[key]) map[key] = []
+      map[key].push({ date: e.date, value: e.value })
+    }
+    return map
+  }, [oneRmEntries])
 
   const keys = Object.keys(oneRmHistory).filter(
     (k) => oneRmHistory[k].length > 0
@@ -39,15 +54,17 @@ export function ExerciseComparison() {
   const [exB, setExB] = useState(keys[1] || '')
   const [range, setRange] = useState<Range>('all')
 
-  const dayCount = useWorkoutStore((s) => getActiveDayCount(s))
-
-  const nameMap: Record<string, string> = {}
-  for (let d = 0; d < dayCount; d++) {
-    const prog = getEffectiveProgram(d)
-    prog.exercises.forEach((ex, eIdx) => {
-      nameMap[`d${d}-e${eIdx}`] = ex.name
-    })
-  }
+  const nameMap = useMemo(() => {
+    const map: Record<string, string> = {}
+    for (let d = 0; d < dayCount; d++) {
+      const day = template.days[d]
+      if (!day) continue
+      day.exercises.forEach((ex, eIdx) => {
+        map[`d${d}-e${eIdx}`] = ex.name
+      })
+    }
+    return map
+  }, [dayCount, template])
 
   const filterByRange = (entries: { date: string; value: number }[]) => {
     if (range === 'all') return entries

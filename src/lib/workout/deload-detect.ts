@@ -1,15 +1,23 @@
+import { getTemplateOrDefault } from '@/lib/data/programs/registry'
 import type {
   MesocycleConfig,
   OneRmEntry,
   SessionNotes,
-  WorkoutState,
 } from '@/lib/store/types'
-import { getActiveDayCount } from '@/lib/store/use-workout-store'
 import { getMesoWeek, isDeloadWeek } from './mesocycle'
 
 export interface DeloadSignal {
   level: 'red' | 'yellow'
   reason: string
+}
+
+export interface DeloadCheckParams {
+  mesocycleConfig: MesocycleConfig
+  currentWeek: number
+  deloadDismissed: number | null
+  activeProgramId: string
+  oneRmHistory?: Record<string, OneRmEntry[]>
+  sessionNotes?: Record<string, SessionNotes>
 }
 
 function getRecentOneRMDrops(
@@ -54,20 +62,26 @@ function getRecentFatigue(
   return fatigueCount
 }
 
-export function checkDeloadSignals(state: WorkoutState): DeloadSignal | null {
-  if (isDeloadWeek(state.mesocycleConfig, state.currentWeek)) return null
-  if (state.deloadDismissed === state.currentWeek) return null
+export function checkDeloadSignals(
+  params: DeloadCheckParams
+): DeloadSignal | null {
+  const {
+    mesocycleConfig,
+    currentWeek,
+    deloadDismissed,
+    activeProgramId,
+    oneRmHistory = {},
+    sessionNotes = {},
+  } = params
 
-  const oneRMDrops = getRecentOneRMDrops(state.oneRmHistory)
-  const weeksSinceDeload = getWeeksSinceDeload(
-    state.mesocycleConfig,
-    state.currentWeek
-  )
-  const fatigueCount = getRecentFatigue(
-    state.sessionNotes,
-    state.currentWeek,
-    getActiveDayCount(state)
-  )
+  if (isDeloadWeek(mesocycleConfig, currentWeek)) return null
+  if (deloadDismissed === currentWeek) return null
+
+  const dayCount = getTemplateOrDefault(activeProgramId).days.length
+
+  const oneRMDrops = getRecentOneRMDrops(oneRmHistory)
+  const weeksSinceDeload = getWeeksSinceDeload(mesocycleConfig, currentWeek)
+  const fatigueCount = getRecentFatigue(sessionNotes, currentWeek, dayCount)
 
   if (oneRMDrops >= 2) {
     return {

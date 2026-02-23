@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useQuery } from 'convex/react'
+import { useMemo, useState } from 'react'
+import { useCurrentWeek } from '@/hooks/use-current-week'
+import { getTemplateOrDefault } from '@/lib/data/programs/registry'
 import { useT } from '@/lib/i18n'
-import {
-  getActiveDayCount,
-  useWorkoutStore,
-} from '@/lib/store/use-workout-store'
+import { api } from '../../../convex/_generated/api'
 import { CalendarDetail } from './calendar-detail'
 import { CalendarMonth } from './calendar-month'
 
@@ -54,11 +54,26 @@ function getStreaks(
 
 export function CalendarPage() {
   const t = useT()
-  const finishedDays = useWorkoutStore((s) => s.finishedDays)
-  const currentWeek = useWorkoutStore((s) => s.currentWeek)
+  const currentWeek = useCurrentWeek()
+  const prefs = useQuery(api.preferences.get)
+  const sessions = useQuery(api.sessions.getAll)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
 
-  const dayCount = useWorkoutStore((s) => getActiveDayCount(s))
+  const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
+  const template = getTemplateOrDefault(activeProgramId)
+  const dayCount = template.days.length
+
+  const finishedDays = useMemo(() => {
+    if (!sessions) return {} as Record<string, boolean>
+    const map: Record<string, boolean> = {}
+    for (const s of sessions) {
+      if (s.finishedAt) {
+        map[`w${s.week}-d${s.dayIndex}`] = true
+      }
+    }
+    return map
+  }, [sessions])
+
   const months = getMonthsToShow()
   const { current, longest } = getStreaks(finishedDays, currentWeek, dayCount)
 

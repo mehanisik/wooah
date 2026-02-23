@@ -1,10 +1,11 @@
 'use client'
 
+import { useQuery } from 'convex/react'
+import { useMemo } from 'react'
 import { useT } from '@/lib/i18n'
-import { selectLastSession } from '@/lib/store/selectors'
-import { useWorkoutStore } from '@/lib/store/use-workout-store'
 import { calcPlates } from '@/lib/workout/plate-calc'
 import { generateWarmupSets } from '@/lib/workout/warmup-calc'
+import { api } from '../../../convex/_generated/api'
 
 interface WarmupTableProps {
   dayIdx: number
@@ -14,13 +15,21 @@ interface WarmupTableProps {
 
 export function WarmupTable({ dayIdx, exIdx, exerciseName }: WarmupTableProps) {
   const t = useT()
-  const lastSession = useWorkoutStore((s) =>
-    selectLastSession(s, dayIdx, exIdx)
+  const history = useQuery(api.history.getByDayAndExercise, {
+    dayIndex: dayIdx,
+    exerciseIndex: exIdx,
+  })
+
+  const lastSession = useMemo(() => {
+    if (!history || history.length === 0) return null
+    return history[history.length - 1]
+  }, [history])
+
+  if (!lastSession?.detailedSets?.length) return null
+
+  const workingWeight = Math.max(
+    ...lastSession.detailedSets.map((s: { weight?: number }) => s.weight || 0)
   )
-
-  if (!lastSession?.sets?.length) return null
-
-  const workingWeight = Math.max(...lastSession.sets.map((s) => s.weight || 0))
   if (workingWeight <= 0) return null
 
   const warmupSets = generateWarmupSets(workingWeight, exerciseName)

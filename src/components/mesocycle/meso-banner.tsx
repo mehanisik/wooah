@@ -1,12 +1,24 @@
 'use client'
 
+import { useQuery } from 'convex/react'
 import { BatteryCharging, TrendingUp } from 'lucide-react'
-import { useWorkoutStore } from '@/lib/store/use-workout-store'
+import { useCurrentWeek } from '@/hooks/use-current-week'
 import { getMesoWeek, getRIR, isDeloadWeek } from '@/lib/workout/mesocycle'
+import { api } from '../../../convex/_generated/api'
+
+const DEFAULT_MESO = {
+  length: 6,
+  deloadLength: 1,
+  startWeek: null,
+  rampRate: 1,
+}
 
 export function MesoBanner() {
-  const config = useWorkoutStore((s) => s.mesocycleConfig)
-  const currentWeek = useWorkoutStore((s) => s.currentWeek)
+  const prefs = useQuery(api.preferences.get)
+  const currentWeek = useCurrentWeek()
+
+  const raw = prefs?.mesocycleConfig ?? DEFAULT_MESO
+  const config = { ...raw, startWeek: raw.startWeek ?? null }
 
   const week = getMesoWeek(config, currentWeek)
   if (week === null) return null

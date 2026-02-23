@@ -1,15 +1,17 @@
 'use client'
 
+import { useMutation, useQuery } from 'convex/react'
 import { Pause, Play, SkipBack, SkipForward, X } from 'lucide-react'
+import { useCallback } from 'react'
 import { type CircuitPhase, useCircuitTimer } from '@/hooks/use-circuit-timer'
-import {
-  getEffectiveProgram,
-  useWorkoutStore,
-} from '@/lib/store/use-workout-store'
+import { useCurrentWeek } from '@/hooks/use-current-week'
+import type { Day } from '@/lib/data/program'
 import { cn } from '@/lib/utils'
+import { api } from '../../../convex/_generated/api'
 
 interface CircuitOverlayProps {
   dayIdx: number
+  day: Day
   open: boolean
   onClose: () => void
 }
@@ -30,20 +32,42 @@ const phaseLabels: Record<CircuitPhase, string> = {
   done: 'CIRCUIT COMPLETE',
 }
 
-export function CircuitOverlay({ dayIdx, open, onClose }: CircuitOverlayProps) {
-  const prog = getEffectiveProgram(dayIdx)
-  const setCardioLog = useWorkoutStore((s) => s.setCardioLog)
-  const items = prog.cardio || []
+export function CircuitOverlay({
+  dayIdx,
+  day,
+  open,
+  onClose,
+}: CircuitOverlayProps) {
+  const week = useCurrentWeek()
+  const setCardioMut = useMutation(api.cardio.set)
+  const cardioLogs = useQuery(api.cardio.getByWeekAndDay, {
+    week,
+    dayIndex: dayIdx,
+  })
+  const items = day.cardio || []
+
+  const getCardioLog = useCallback(
+    (itemIdx: number): boolean => {
+      if (!cardioLogs) return false
+      return cardioLogs.some((c) => c.itemIndex === itemIdx && c.done)
+    },
+    [cardioLogs]
+  )
+
+  const handleCardioComplete = useCallback(
+    (idx: number) => {
+      setCardioMut({ week, dayIndex: dayIdx, itemIndex: idx, done: true })
+    },
+    [setCardioMut, week, dayIdx]
+  )
 
   const { state, start, stop, togglePause, skipNext, skipPrev } =
-    useCircuitTimer(items, (idx) => setCardioLog(dayIdx, idx, true), onClose)
+    useCircuitTimer(items, handleCardioComplete, onClose)
 
   if (!(open || state)) return null
 
   if (open && !state) {
-    const firstUndone = items.findIndex(
-      (_, i) => !useWorkoutStore.getState().getCardioLog(dayIdx, i)
-    )
+    const firstUndone = items.findIndex((_, i) => !getCardioLog(i))
     if (firstUndone >= 0) start(firstUndone)
     else {
       onClose()

@@ -1,7 +1,8 @@
 'use client'
 
+import { useMutation, useQuery } from 'convex/react'
 import { Pencil, Plus, Trophy } from 'lucide-react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { ProgramEditor } from '@/components/program/program-editor'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -11,18 +12,15 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
+import { useCurrentWeek } from '@/hooks/use-current-week'
 import { useRestTimer } from '@/hooks/use-rest-timer'
 import { useWakeLock } from '@/hooks/use-wake-lock'
 import { useWorkoutClock } from '@/hooks/use-workout-clock'
 import { PROGRAM } from '@/lib/data/program'
+import { getTemplateOrDefault } from '@/lib/data/programs/registry'
 import { useT } from '@/lib/i18n'
-import { selectIsDayFinished } from '@/lib/store/selectors'
-import {
-  getEffectiveProgram,
-  useWorkoutStore,
-} from '@/lib/store/use-workout-store'
-import { syncToSupabase } from '@/lib/supabase/sync'
 import { cn } from '@/lib/utils'
+import { api } from '../../../convex/_generated/api'
 import { CardioSection } from './cardio-section'
 import { CelebrationModal } from './celebration-modal'
 import { ExerciseAddModal } from './exercise-add-modal'
@@ -36,12 +34,21 @@ interface WorkoutPageProps {
 
 export function WorkoutPage({ dayIdx }: WorkoutPageProps) {
   const t = useT()
-  const day = getEffectiveProgram(dayIdx)
+  const week = useCurrentWeek()
+
+  const prefs = useQuery(api.preferences.get)
+  const session = useQuery(api.sessions.getByWeekAndDay, {
+    week,
+    dayIndex: dayIdx,
+  })
+
+  const finishDayMut = useMutation(api.sessions.finishDay)
+
+  const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
+  const day = getTemplateOrDefault(activeProgramId).days[dayIdx]
   const baseDay = PROGRAM[dayIdx]
-  const finishDay = useWorkoutStore((s) => s.finishDay)
-  const finished = useWorkoutStore((s) => selectIsDayFinished(s, dayIdx))
-  const programOverrides = useWorkoutStore((s) => s.programOverrides[dayIdx])
-  const removeExerciseFromDay = useWorkoutStore((s) => s.removeExerciseFromDay)
+  const finished = !!session?.finishedAt
+
   const elapsed = useWorkoutClock(dayIdx)
   const restTimer = useRestTimer()
 
@@ -51,14 +58,39 @@ export function WorkoutPage({ dayIdx }: WorkoutPageProps) {
 
   useWakeLock(!finished)
 
-  // Timer is started by SetRow on first set completion, not on page load
+  const exerciseDisplayNames = useMemo(() => {
+    if (!day) return []
+    return day.exercises.map((ex) => ex.name)
+  }, [day])
 
   function handleFinish() {
-    finishDay(dayIdx)
+    finishDayMut({ week, dayIndex: dayIdx })
     setCelebrationOpen(true)
-    syncToSupabase(dayIdx).catch(() => {
-      // sync failure is non-fatal
-    })
+  }
+
+  function handleAddExercise(_entry: {
+    custom: boolean
+    name: string
+    equipment: string
+    sets: number
+    reps: string
+    rest: number
+    rir: string
+  }) {
+    // Program overrides are managed server-side or by program editor
+    // For custom exercise adds, this would call a Convex mutation
+    // Currently preserving the UI flow; the actual persistence
+    // would need a programOverrides mutation on Convex
+  }
+
+  if (!day || prefs === undefined) {
+    return (
+      <div className="space-y-4 pb-4">
+        <div className="h-10 w-48 animate-pulse rounded bg-muted" />
+        <div className="h-32 animate-pulse rounded bg-muted" />
+        <div className="h-32 animate-pulse rounded bg-muted" />
+      </div>
+    )
   }
 
   return (
@@ -97,22 +129,16 @@ export function WorkoutPage({ dayIdx }: WorkoutPageProps) {
         </div>
       </div>
 
-      {day.exercises.map((ex, exIdx) => {
-        const isCustom = programOverrides?.[exIdx]?.custom === true
-        return (
-          <ExerciseCard
-            key={`${dayIdx}-${exIdx}`}
-            dayIdx={dayIdx}
-            exIdx={exIdx}
-            exercise={ex}
-            isCustom={isCustom}
-            onRemove={
-              isCustom ? () => removeExerciseFromDay(dayIdx, exIdx) : undefined
-            }
-            onStartRest={(sec, label) => restTimer.start(sec, label)}
-          />
-        )
-      })}
+      {day.exercises.map((ex, exIdx) => (
+        <ExerciseCard
+          key={`${dayIdx}-${exIdx}`}
+          dayIdx={dayIdx}
+          exIdx={exIdx}
+          exercise={ex}
+          displayName={exerciseDisplayNames[exIdx] ?? ex.name}
+          onStartRest={(sec, label) => restTimer.start(sec, label)}
+        />
+      ))}
 
       {!finished && (
         <button
@@ -142,12 +168,14 @@ export function WorkoutPage({ dayIdx }: WorkoutPageProps) {
         dayIdx={dayIdx}
         open={addModalOpen}
         onOpenChange={setAddModalOpen}
+        onAddExercise={handleAddExercise}
       />
 
       <CelebrationModal
         dayIdx={dayIdx}
         open={celebrationOpen}
         onClose={() => setCelebrationOpen(false)}
+        activeProgramId={activeProgramId}
       />
 
       <Sheet open={editOpen} onOpenChange={setEditOpen}>

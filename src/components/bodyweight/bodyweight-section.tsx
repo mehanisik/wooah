@@ -1,5 +1,6 @@
 'use client'
 
+import { useMutation, useQuery } from 'convex/react'
 import { Scale } from 'lucide-react'
 import { useState } from 'react'
 import {
@@ -20,13 +21,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { formatDateCompact } from '@/lib/format'
 import { useLocale, useT } from '@/lib/i18n'
-import { useWorkoutStore } from '@/lib/store/use-workout-store'
+import { api } from '../../../convex/_generated/api'
 
 export function BodyweightSection() {
   const t = useT()
   const locale = useLocale()
-  const entries = useWorkoutStore((s) => s.bodyweight)
-  const addBodyweight = useWorkoutStore((s) => s.addBodyweight)
+  const entries = useQuery(api.bodyweight.getAll) ?? []
+  const addBodyweightMut = useMutation(api.bodyweight.add)
   const [value, setValue] = useState('')
 
   const latest = entries[entries.length - 1]
@@ -43,7 +44,7 @@ export function BodyweightSection() {
   const handleSave = () => {
     const w = Number.parseFloat(value)
     if (w >= 30 && w <= 300) {
-      addBodyweight(w)
+      addBodyweightMut({ weight: w })
       setValue('')
     }
   }

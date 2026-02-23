@@ -21,22 +21,30 @@ import {
   mapApiMuscle,
 } from '@/lib/exercise-db'
 import { useT } from '@/lib/i18n'
-import { useWorkoutStore } from '@/lib/store/use-workout-store'
 
 interface ExerciseAddModalProps {
   dayIdx: number
   open: boolean
   onOpenChange: (open: boolean) => void
+  onAddExercise: (entry: {
+    custom: boolean
+    name: string
+    equipment: string
+    sets: number
+    reps: string
+    rest: number
+    rir: string
+  }) => void
 }
 
 export function ExerciseAddModal({
   dayIdx,
   open,
   onOpenChange,
+  onAddExercise,
 }: ExerciseAddModalProps) {
   const t = useT()
   const { exercises, loading } = useExerciseDb()
-  const addExerciseToDay = useWorkoutStore((s) => s.addExerciseToDay)
   const [search, setSearch] = useState('')
 
   const dayType = PROGRAM[dayIdx].type
@@ -69,7 +77,7 @@ export function ExerciseAddModal({
       ? mapApiEquipment(entry.equipments[0])
       : 'machine'
 
-    addExerciseToDay(dayIdx, {
+    onAddExercise({
       custom: true,
       name: entry.name,
       equipment,

@@ -1,22 +1,25 @@
 'use client'
 
+import { useQuery } from 'convex/react'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
-import { useWorkoutStore } from '@/lib/store/use-workout-store'
 import { getTodayDayIdx } from '@/lib/workout/helpers'
+import { api } from '../../convex/_generated/api'
 
 export default function Home() {
   const router = useRouter()
-  const trainingDays = useWorkoutStore((s) => s.trainingDays)
+  const prefs = useQuery(api.preferences.get)
+  const trainingDays = prefs?.trainingDays ?? [0, 1, 2, 3, 4, 5]
 
   useEffect(() => {
+    if (prefs === undefined) return
     const idx = getTodayDayIdx(trainingDays)
     if (idx === null) {
       router.replace('/rest')
     } else {
       router.replace(`/workout/${idx}`)
     }
-  }, [router, trainingDays])
+  }, [router, trainingDays, prefs])
 
   return (
     <div className="flex items-center justify-center py-16">

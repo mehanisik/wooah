@@ -1,47 +1,64 @@
 'use client'
 
+import { useQuery } from 'convex/react'
+import { useMemo } from 'react'
+import { useCurrentWeek } from '@/hooks/use-current-week'
 import { MUSCLE_GROUPS, MUSCLE_MAP, VOLUME_LANDMARKS } from '@/lib/data/muscles'
+import { getTemplateOrDefault } from '@/lib/data/programs/registry'
 import { useT } from '@/lib/i18n'
-import {
-  getActiveDayCount,
-  getEffectiveProgram,
-  useWorkoutStore,
-} from '@/lib/store/use-workout-store'
 import { cn } from '@/lib/utils'
+import { api } from '../../../convex/_generated/api'
 import { ChartCard } from './chart-card'
 
 export function FrequencyHeatmap() {
   const t = useT()
-  const currentWeek = useWorkoutStore((s) => s.currentWeek)
-  const logs = useWorkoutStore((s) => s.logs)
+  const currentWeek = useCurrentWeek()
+  const prefs = useQuery(api.preferences.get)
+  const setsData = useQuery(api.sets.getByUser)
 
-  const dayCount = useWorkoutStore((s) => getActiveDayCount(s))
+  const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
+  const trainingDays = prefs?.trainingDays ?? [0, 1, 2, 3, 4, 5]
+  const template = getTemplateOrDefault(activeProgramId)
+  const dayCount = template.days.length
 
-  const grid: Record<string, Record<number, number>> = {}
-  for (const g of MUSCLE_GROUPS) {
-    grid[g] = {}
-    for (let d = 0; d < dayCount; d++) grid[g][d] = 0
-  }
+  const logsMap = useMemo(() => {
+    if (!setsData) return {} as Record<string, { done: boolean }>
+    const map: Record<string, { done: boolean }> = {}
+    for (const s of setsData) {
+      const key = `w${s.week}-d${s.dayIndex}-e${s.exerciseIndex}-s${s.setIndex}`
+      map[key] = { done: s.done }
+    }
+    return map
+  }, [setsData])
 
-  for (let d = 0; d < dayCount; d++) {
-    const prog = getEffectiveProgram(d)
-    prog.exercises.forEach((ex, eIdx) => {
-      let doneSets = 0
-      for (let s = 0; s < ex.sets + 4; s++) {
-        const key = `w${currentWeek}-d${d}-e${eIdx}-s${s}`
-        if (logs[key]?.done) doneSets++
-      }
-      if (doneSets > 0) {
-        const mapping = MUSCLE_MAP[ex.name]
-        if (mapping) {
-          for (const m of mapping.primary)
-            grid[m][d] = (grid[m][d] || 0) + doneSets
-          for (const m of mapping.secondary)
-            grid[m][d] = (grid[m][d] || 0) + Math.round(doneSets * 0.5)
+  const grid = useMemo(() => {
+    const g: Record<string, Record<number, number>> = {}
+    for (const group of MUSCLE_GROUPS) {
+      g[group] = {}
+      for (let d = 0; d < dayCount; d++) g[group][d] = 0
+    }
+
+    for (let d = 0; d < dayCount; d++) {
+      const day = template.days[d]
+      if (!day) continue
+      day.exercises.forEach((ex, eIdx) => {
+        let doneSets = 0
+        for (let s = 0; s < ex.sets + 4; s++) {
+          const key = `w${currentWeek}-d${d}-e${eIdx}-s${s}`
+          if (logsMap[key]?.done) doneSets++
         }
-      }
-    })
-  }
+        if (doneSets > 0) {
+          const mapping = MUSCLE_MAP[ex.name]
+          if (mapping) {
+            for (const m of mapping.primary) g[m][d] = (g[m][d] || 0) + doneSets
+            for (const m of mapping.secondary)
+              g[m][d] = (g[m][d] || 0) + Math.round(doneSets * 0.5)
+          }
+        }
+      })
+    }
+    return g
+  }, [currentWeek, dayCount, template, logsMap])
 
   const ALL_DAY_LABELS = [
     t('navMon'),
@@ -52,7 +69,6 @@ export function FrequencyHeatmap() {
     t('navSat'),
     t('calSun'),
   ]
-  const trainingDays = useWorkoutStore((s) => s.trainingDays)
   const sortedDays = [...trainingDays].sort((a, b) => a - b)
   const days = sortedDays.map((d) => ALL_DAY_LABELS[d])
   const maxCell = Math.max(
