@@ -42,7 +42,7 @@ const serwist = new Serwist({
       }),
     },
     {
-      matcher: /^https:\/\/.*\.supabase\.co\/(auth|rest|storage)\/.*/i,
+      matcher: /^https:\/\/.*\.convex\.cloud\/.*/i,
       handler: new NetworkOnly(),
     },
 

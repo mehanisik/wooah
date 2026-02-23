@@ -1,5 +1,6 @@
+import { useQuery } from 'convex/react'
 import { useCallback } from 'react'
-import { useWorkoutStore } from '@/lib/store/use-workout-store'
+import { api } from '../../../convex/_generated/api'
 import type { Messages } from './en'
 import en, { MOTIVATIONAL_EN, REST_QUOTES_EN } from './en'
 import pl, { MOTIVATIONAL_PL, REST_QUOTES_PL } from './pl'
@@ -21,8 +22,13 @@ function interpolate(
   return result
 }
 
+function usePrefsLocale(): Locale {
+  const prefs = useQuery(api.preferences.get)
+  return (prefs?.locale as Locale) ?? 'en'
+}
+
 export function useT() {
-  const locale = useWorkoutStore((s) => s.locale)
+  const locale = usePrefsLocale()
 
   return useCallback(
     (key: MessageKey, params?: Record<string, string | number>): string => {
@@ -34,16 +40,16 @@ export function useT() {
 }
 
 export function useLocale(): Locale {
-  return useWorkoutStore((s) => s.locale)
+  return usePrefsLocale()
 }
 
 export function useMotivational(): string[] {
-  const locale = useWorkoutStore((s) => s.locale)
+  const locale = usePrefsLocale()
   return locale === 'pl' ? MOTIVATIONAL_PL : MOTIVATIONAL_EN
 }
 
 export function useRestQuotes(): string[] {
-  const locale = useWorkoutStore((s) => s.locale)
+  const locale = usePrefsLocale()
   return locale === 'pl' ? REST_QUOTES_PL : REST_QUOTES_EN
 }
 

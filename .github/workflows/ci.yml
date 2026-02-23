@@ -151,5 +151,4 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bun run build
         env:
-          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-key
+          NEXT_PUBLIC_CONVEX_URL: https://placeholder.convex.cloud

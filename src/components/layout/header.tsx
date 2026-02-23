@@ -1,34 +1,98 @@
 'use client'
 
+import { useQuery } from 'convex/react'
 import { Flame, Settings, Trophy, Zap } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { WooahLogo } from '@/components/ui/wooah-logo'
 import { useAuth } from '@/hooks/auth-context'
+import { useCurrentWeek } from '@/hooks/use-current-week'
+import { getTemplateOrDefault } from '@/lib/data/programs/registry'
 import { useT } from '@/lib/i18n'
-import {
-  selectCompletedThisWeek,
-  usePRCount,
-  useStreak,
-} from '@/lib/store/selectors'
-import {
-  getActiveDayCount,
-  useWorkoutStore,
-} from '@/lib/store/use-workout-store'
+import type { MesocycleConfig } from '@/lib/store/types'
 import { getMesoWeek, isDeloadWeek } from '@/lib/workout/mesocycle'
+import { api } from '../../../convex/_generated/api'
+
+function useCompletedThisWeek(
+  weekSessions: { finishedAt?: string | null }[] | undefined
+): number {
+  return useMemo(() => {
+    if (!weekSessions) return 0
+    return weekSessions.filter((s) => s.finishedAt != null).length
+  }, [weekSessions])
+}
+
+function useStreak(
+  allSessions:
+    | { finishedAt?: string | null; week: number; dayIndex: number }[]
+    | undefined,
+  dayCount: number,
+  currentWeek: number
+): number {
+  return useMemo(() => {
+    if (!allSessions || dayCount === 0) return 0
+    const finishedSet = new Set<string>()
+    for (const s of allSessions) {
+      if (s.finishedAt != null) finishedSet.add(`w${s.week}-d${s.dayIndex}`)
+    }
+    let streak = 0
+    for (let w = currentWeek; w >= 1; w--) {
+      for (let d = dayCount - 1; d >= 0; d--) {
+        if (finishedSet.has(`w${w}-d${d}`)) {
+          streak++
+        } else if (streak > 0) {
+          return streak
+        }
+      }
+    }
+    return streak
+  }, [allSessions, dayCount, currentWeek])
+}
+
+function usePRCount(prs: unknown[] | undefined): number {
+  return prs?.length ?? 0
+}
 
 export function Header() {
   const t = useT()
-  const completed = useWorkoutStore((s) => selectCompletedThisWeek(s))
-  const dayCount = useWorkoutStore((s) => getActiveDayCount(s))
-  const streak = useStreak()
-  const prs = usePRCount()
-  const { user } = useAuth()
-  const avatarUrl = user?.user_metadata?.avatar_url as string | undefined
+  const { isAuthenticated } = useAuth()
+  const currentWeek = useCurrentWeek()
+
+  const prefs = useQuery(api.preferences.get, isAuthenticated ? {} : 'skip')
+  const weekSessions = useQuery(
+    api.sessions.getByWeek,
+    isAuthenticated ? { week: currentWeek } : 'skip'
+  )
+  const allSessions = useQuery(
+    api.sessions.getAll,
+    isAuthenticated ? {} : 'skip'
+  )
+  const allPRs = useQuery(
+    api.personalRecords.getAll,
+    isAuthenticated ? {} : 'skip'
+  )
+  const viewer = useQuery(api.users.viewer, isAuthenticated ? {} : 'skip')
+
+  const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
+  const template = getTemplateOrDefault(activeProgramId)
+  const dayCount = template.days.length
+  const mesocycleConfig: MesocycleConfig = {
+    length: prefs?.mesocycleConfig?.length ?? 6,
+    deloadLength: prefs?.mesocycleConfig?.deloadLength ?? 1,
+    startWeek: prefs?.mesocycleConfig?.startWeek ?? null,
+    rampRate: prefs?.mesocycleConfig?.rampRate ?? 1,
+  }
+
+  const completed = useCompletedThisWeek(weekSessions)
+  const streak = useStreak(allSessions, dayCount, currentWeek)
+  const prs = usePRCount(allPRs)
+
+  const avatarUrl = (viewer as Record<string, unknown> | null)?.image as
+    | string
+    | undefined
   const [avatarError, setAvatarError] = useState(false)
-  const mesocycleConfig = useWorkoutStore((s) => s.mesocycleConfig)
-  const currentWeek = useWorkoutStore((s) => s.currentWeek)
+
   const mesoWeek = getMesoWeek(mesocycleConfig, currentWeek)
   const deload = isDeloadWeek(mesocycleConfig, currentWeek)
 

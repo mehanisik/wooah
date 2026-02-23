@@ -1,24 +1,21 @@
 'use client'
 
+import { useMutation, useQuery } from 'convex/react'
 import { ChevronDown, Plus, Trash2, X } from 'lucide-react'
 import Image from 'next/image'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
+import { useCurrentWeek } from '@/hooks/use-current-week'
 import { useExerciseGif } from '@/hooks/use-exercise-gif'
 import type { MuscleGroup } from '@/lib/data/muscles'
 import { MUSCLE_MAP } from '@/lib/data/muscles'
 import type { Exercise } from '@/lib/data/program'
 import { getMuscleMapping } from '@/lib/exercise-db'
 import { useT } from '@/lib/i18n'
-import {
-  selectExtraSets,
-  selectLog,
-  useDisplayName,
-} from '@/lib/store/selectors'
-import { useWorkoutStore } from '@/lib/store/use-workout-store'
 import { cn } from '@/lib/utils'
 import { formatRest } from '@/lib/workout/helpers'
 import { getSupersetPartner, isSupersetExercise } from '@/lib/workout/superset'
+import { api } from '../../../convex/_generated/api'
 import { SetRow } from './set-row'
 
 const MUSCLE_COLORS: Record<MuscleGroup, string> = {
@@ -41,6 +38,7 @@ interface ExerciseCardProps {
   dayIdx: number
   exIdx: number
   exercise: Exercise
+  displayName: string
   isCustom?: boolean
   onRemove?: () => void
   onStartRest: (sec: number, label: string) => void
@@ -50,37 +48,47 @@ export function ExerciseCard({
   dayIdx,
   exIdx,
   exercise,
+  displayName,
   isCustom,
   onRemove,
   onStartRest,
 }: ExerciseCardProps) {
   const t = useT()
+  const week = useCurrentWeek()
   const [open, setOpen] = useState(false)
   const [showGif, setShowGif] = useState(false)
-  const displayName = useDisplayName(dayIdx, exIdx)
   const gifUrl = useExerciseGif(displayName)
   const muscles = MUSCLE_MAP[displayName] ?? getMuscleMapping(displayName)
-  const extraSets = useWorkoutStore((s) => selectExtraSets(s, dayIdx, exIdx))
-  const addExtraSet = useWorkoutStore((s) => s.addExtraSet)
+
+  const extraSetsDoc = useQuery(api.extraSets.get, {
+    week,
+    dayIndex: dayIdx,
+    exerciseIndex: exIdx,
+  })
+  const addExtraSetMut = useMutation(api.extraSets.add)
+
+  const sets = useQuery(api.sets.getByWeekAndDay, { week, dayIndex: dayIdx })
+
+  const extraSets = extraSetsDoc ?? 0
   const totalSets = exercise.sets + extraSets
   const isSuperset = isSupersetExercise(dayIdx, exIdx)
   const partnerIdx = isSuperset ? getSupersetPartner(dayIdx, exIdx) : null
-  const partnerName = useDisplayName(dayIdx, partnerIdx ?? exIdx)
 
-  const allDone = useWorkoutStore((s) =>
-    Array.from(
-      { length: exercise.sets + selectExtraSets(s, dayIdx, exIdx) },
-      (_, i) => selectLog(s, dayIdx, exIdx, i)
-    ).every((l) => l.done)
-  )
-
-  const completedCount = useWorkoutStore(
-    (s) =>
-      Array.from(
-        { length: exercise.sets + selectExtraSets(s, dayIdx, exIdx) },
-        (_, i) => selectLog(s, dayIdx, exIdx, i)
-      ).filter((l) => l.done).length
-  )
+  const { allDone, completedCount } = useMemo(() => {
+    if (!sets) return { allDone: false, completedCount: 0 }
+    let done = 0
+    for (let i = 0; i < totalSets; i++) {
+      const found = sets.find(
+        (s: { exerciseIndex: number; setIndex: number; done?: boolean }) =>
+          s.exerciseIndex === exIdx && s.setIndex === i
+      )
+      if (found?.done) done++
+    }
+    return {
+      allDone: done === totalSets && totalSets > 0,
+      completedCount: done,
+    }
+  }, [sets, exIdx, totalSets])
 
   return (
     <div
@@ -156,7 +164,7 @@ export function ExerciseCard({
                 </Badge>
                 {partnerIdx !== null && (
                   <span className="truncate text-[9px] text-warning">
-                    {t('supersetWith', { name: partnerName })}
+                    {t('supersetWith', { name: '' })}
                   </span>
                 )}
               </>
@@ -265,7 +273,9 @@ export function ExerciseCard({
           <div className="flex items-center gap-2 pt-1">
             <button
               type="button"
-              onClick={() => addExtraSet(dayIdx, exIdx)}
+              onClick={() =>
+                addExtraSetMut({ week, dayIndex: dayIdx, exerciseIndex: exIdx })
+              }
               className="flex items-center gap-1 font-body text-[10px] text-muted-foreground transition-colors hover:text-foreground"
             >
               <Plus className="h-3 w-3" />

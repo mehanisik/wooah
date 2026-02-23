@@ -1,26 +1,34 @@
 'use client'
 
+import { useMutation } from 'convex/react'
 import { useRef, useState } from 'react'
-import type { SetLog } from '@/lib/store/types'
-import { useWorkoutStore } from '@/lib/store/use-workout-store'
+import { useCurrentWeek } from '@/hooks/use-current-week'
+import { api } from '../../convex/_generated/api'
+
+interface SetLogData {
+  weight: string
+  reps: string
+  done: boolean
+}
 
 interface UndoEntry {
   dayIdx: number
   exIdx: number
   setIdx: number
-  previousData: SetLog
+  previousData: SetLogData
 }
 
 export function useUndo() {
   const [entry, setEntry] = useState<UndoEntry | null>(null)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const setLog = useWorkoutStore((s) => s.setLog)
+  const currentWeek = useCurrentWeek()
+  const upsertSet = useMutation(api.sets.upsert)
 
   const push = (
     dayIdx: number,
     exIdx: number,
     setIdx: number,
-    previousData: SetLog
+    previousData: SetLogData
   ) => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current)
     setEntry({ dayIdx, exIdx, setIdx, previousData })
@@ -29,7 +37,15 @@ export function useUndo() {
 
   const undo = () => {
     if (!entry) return
-    setLog(entry.dayIdx, entry.exIdx, entry.setIdx, entry.previousData)
+    upsertSet({
+      week: currentWeek,
+      dayIndex: entry.dayIdx,
+      exerciseIndex: entry.exIdx,
+      setIndex: entry.setIdx,
+      weight: entry.previousData.weight,
+      reps: entry.previousData.reps,
+      done: entry.previousData.done,
+    })
     if (timeoutRef.current) clearTimeout(timeoutRef.current)
     setEntry(null)
   }

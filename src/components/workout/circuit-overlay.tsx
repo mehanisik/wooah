@@ -1,15 +1,18 @@
 'use client'
 
+import { useMutation, useQuery } from 'convex/react'
 import { Pause, Play, SkipBack, SkipForward, X } from 'lucide-react'
+import { useCallback, useEffect } from 'react'
 import { type CircuitPhase, useCircuitTimer } from '@/hooks/use-circuit-timer'
-import {
-  getEffectiveProgram,
-  useWorkoutStore,
-} from '@/lib/store/use-workout-store'
+import { useCurrentWeek } from '@/hooks/use-current-week'
+import type { Day } from '@/lib/data/program'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
+import { api } from '../../../convex/_generated/api'
 
 interface CircuitOverlayProps {
   dayIdx: number
+  day: Day
   open: boolean
   onClose: () => void
 }
@@ -23,33 +26,55 @@ const phaseColors: Record<CircuitPhase, string> = {
   done: 'text-success',
 }
 
-const phaseLabels: Record<CircuitPhase, string> = {
-  prepare: 'GET READY',
-  work: 'WORK',
-  rest: 'REST',
-  done: 'CIRCUIT COMPLETE',
-}
+export function CircuitOverlay({
+  dayIdx,
+  day,
+  open,
+  onClose,
+}: CircuitOverlayProps) {
+  const t = useT()
+  const week = useCurrentWeek()
+  const setCardioMut = useMutation(api.cardio.set)
+  const cardioLogs = useQuery(api.cardio.getByWeekAndDay, {
+    week,
+    dayIndex: dayIdx,
+  })
+  const items = day.cardio || []
 
-export function CircuitOverlay({ dayIdx, open, onClose }: CircuitOverlayProps) {
-  const prog = getEffectiveProgram(dayIdx)
-  const setCardioLog = useWorkoutStore((s) => s.setCardioLog)
-  const items = prog.cardio || []
+  const getCardioLog = useCallback(
+    (itemIdx: number): boolean => {
+      if (!cardioLogs) return false
+      return cardioLogs.some((c) => c.itemIndex === itemIdx && c.done)
+    },
+    [cardioLogs]
+  )
+
+  const handleCardioComplete = useCallback(
+    (idx: number) => {
+      setCardioMut({ week, dayIndex: dayIdx, itemIndex: idx, done: true })
+    },
+    [setCardioMut, week, dayIdx]
+  )
+
+  const phaseLabels: Record<CircuitPhase, string> = {
+    prepare: t('circuitGetReady'),
+    work: t('circuitWork'),
+    rest: t('circuitRest'),
+    done: t('circuitComplete'),
+  }
 
   const { state, start, stop, togglePause, skipNext, skipPrev } =
-    useCircuitTimer(items, (idx) => setCardioLog(dayIdx, idx, true), onClose)
+    useCircuitTimer(items, handleCardioComplete, onClose)
+
+  useEffect(() => {
+    if (open && !state) {
+      const firstUndone = items.findIndex((_, i) => !getCardioLog(i))
+      if (firstUndone >= 0) start(firstUndone)
+      else onClose()
+    }
+  }, [open, state, items, getCardioLog, start, onClose])
 
   if (!(open || state)) return null
-
-  if (open && !state) {
-    const firstUndone = items.findIndex(
-      (_, i) => !useWorkoutStore.getState().getCardioLog(dayIdx, i)
-    )
-    if (firstUndone >= 0) start(firstUndone)
-    else {
-      onClose()
-      return null
-    }
-  }
 
   if (!state) return null
 
@@ -125,11 +150,14 @@ export function CircuitOverlay({ dayIdx, open, onClose }: CircuitOverlayProps) {
 
       {next && state.phase !== 'done' && (
         <div className="mb-8 text-muted-foreground text-xs">
-          {state.phase === 'rest' ? 'Up next' : 'Next'}: {next.name}
+          {state.phase === 'rest' ? t('circuitUpNext') : t('circuitNext')}:{' '}
+          {next.name}
         </div>
       )}
       {!next && state.phase === 'work' && (
-        <div className="mb-8 text-muted-foreground text-xs">Last exercise!</div>
+        <div className="mb-8 text-muted-foreground text-xs">
+          {t('circuitLast')}
+        </div>
       )}
 
       {state.phase !== 'done' && (

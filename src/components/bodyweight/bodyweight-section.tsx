@@ -1,5 +1,6 @@
 'use client'
 
+import { useMutation, useQuery } from 'convex/react'
 import { Scale } from 'lucide-react'
 import { useState } from 'react'
 import {
@@ -20,13 +21,15 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { formatDateCompact } from '@/lib/format'
 import { useLocale, useT } from '@/lib/i18n'
-import { useWorkoutStore } from '@/lib/store/use-workout-store'
+import { api } from '../../../convex/_generated/api'
 
 export function BodyweightSection() {
   const t = useT()
   const locale = useLocale()
-  const entries = useWorkoutStore((s) => s.bodyweight)
-  const addBodyweight = useWorkoutStore((s) => s.addBodyweight)
+  const prefs = useQuery(api.preferences.get)
+  const unit = prefs?.plateSettings?.unit ?? 'kg'
+  const entries = useQuery(api.bodyweight.getAll) ?? []
+  const addBodyweightMut = useMutation(api.bodyweight.add)
   const [value, setValue] = useState('')
 
   const latest = entries[entries.length - 1]
@@ -43,7 +46,7 @@ export function BodyweightSection() {
   const handleSave = () => {
     const w = Number.parseFloat(value)
     if (w >= 30 && w <= 300) {
-      addBodyweight(w)
+      addBodyweightMut({ weight: w })
       setValue('')
     }
   }
@@ -51,9 +54,9 @@ export function BodyweightSection() {
   return (
     <ChartCard
       title={t('bodyweight')}
-      headline={latest ? `${latest.weight}kg` : '—'}
+      headline={latest ? `${latest.weight}${unit}` : '—'}
       change={change}
-      changeLabel="kg"
+      changeLabel={unit}
     >
       <div className="mb-3 flex gap-2">
         <Input
@@ -63,7 +66,7 @@ export function BodyweightSection() {
           step={0.1}
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          placeholder={latest ? `${latest.weight}` : 'kg'}
+          placeholder={latest ? `${latest.weight}` : unit}
           className="h-8 flex-1 font-mono text-xs"
           onKeyDown={(e) => e.key === 'Enter' && handleSave()}
         />
@@ -99,7 +102,7 @@ export function BodyweightSection() {
             <YAxis hide domain={['dataMin - 1', 'dataMax + 1']} />
             <Tooltip
               {...TOOLTIP_STYLE}
-              formatter={(val: number) => [`${val}kg`, 'Weight']}
+              formatter={(val: number) => [`${val}${unit}`, t('bodyweight')]}
               labelFormatter={() => ''}
             />
             <Area

@@ -1,5 +1,7 @@
 'use client'
 
+import { useQuery } from 'convex/react'
+import { useMemo } from 'react'
 import {
   Bar,
   BarChart,
@@ -9,12 +11,10 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import { useCurrentWeek } from '@/hooks/use-current-week'
+import { getTemplateOrDefault } from '@/lib/data/programs/registry'
 import { useT } from '@/lib/i18n'
-import {
-  getActiveDayCount,
-  getEffectiveProgram,
-  useWorkoutStore,
-} from '@/lib/store/use-workout-store'
+import { api } from '../../../convex/_generated/api'
 import { ChartCard } from './chart-card'
 import { ChartLegend } from './chart-legend'
 import {
@@ -26,32 +26,61 @@ import {
 
 export function VolumeChart() {
   const t = useT()
-  const currentWeek = useWorkoutStore((s) => s.currentWeek)
-  const history = useWorkoutStore((s) => s.history)
-  const dayCount = useWorkoutStore((s) => getActiveDayCount(s))
+  const currentWeek = useCurrentWeek()
+  const prefs = useQuery(api.preferences.get)
+  const historyEntries = useQuery(api.history.getAll)
 
-  const weeks: { label: string; push: number; pull: number; legs: number }[] =
-    []
-  const startWeek = Math.max(1, currentWeek - 7)
+  const unit = prefs?.plateSettings?.unit ?? 'kg'
+  const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
+  const template = getTemplateOrDefault(activeProgramId)
+  const dayCount = template.days.length
 
-  for (let w = startWeek; w <= currentWeek; w++) {
-    const row = { label: `W${w}`, push: 0, pull: 0, legs: 0 }
-    for (let d = 0; d < dayCount; d++) {
-      const prog = getEffectiveProgram(d)
-      const type = prog.type as 'push' | 'pull' | 'legs'
-      prog.exercises.forEach((_, eIdx) => {
-        const entries = history[`d${d}-e${eIdx}`] || []
-        const weekEntries = entries.filter((e) => e.week === w)
-        for (const e of weekEntries) {
-          const vol = e.sets
-            ? e.sets.reduce((s, x) => s + x.weight * x.reps, 0)
-            : e.weight * e.reps
-          if (type in row) row[type] += vol
-        }
-      })
+  const historyMap = useMemo(() => {
+    if (!historyEntries)
+      return {} as Record<string, NonNullable<typeof historyEntries>>
+    const map: Record<string, NonNullable<typeof historyEntries>> = {}
+    for (const e of historyEntries) {
+      const key = `d${e.dayIndex}-e${e.exerciseIndex}`
+      if (!map[key]) map[key] = []
+      map[key].push(e)
     }
-    weeks.push(row)
-  }
+    return map
+  }, [historyEntries])
+
+  const weeks = useMemo(() => {
+    const result: {
+      label: string
+      push: number
+      pull: number
+      legs: number
+    }[] = []
+    const startWeek = Math.max(1, currentWeek - 7)
+
+    for (let w = startWeek; w <= currentWeek; w++) {
+      const row = { label: `W${w}`, push: 0, pull: 0, legs: 0 }
+      for (let d = 0; d < dayCount; d++) {
+        const day = template.days[d]
+        const type = day?.type as 'push' | 'pull' | 'legs'
+        if (!day) continue
+        day.exercises.forEach((_, eIdx) => {
+          const entries = historyMap[`d${d}-e${eIdx}`] || []
+          const weekEntries = entries.filter((e) => e.week === w)
+          for (const e of weekEntries) {
+            const vol = e.detailedSets
+              ? e.detailedSets.reduce(
+                  (s: number, x: { weight: number; reps: number }) =>
+                    s + x.weight * x.reps,
+                  0
+                )
+              : e.weight * e.reps
+            if (type in row) row[type] += vol
+          }
+        })
+      }
+      result.push(row)
+    }
+    return result
+  }, [currentWeek, dayCount, template, historyMap])
 
   const thisWeek = weeks[weeks.length - 1]
   const prevWeek = weeks[weeks.length - 2]
@@ -59,7 +88,9 @@ export function VolumeChart() {
   const prevTotal = prevWeek ? prevWeek.push + prevWeek.pull + prevWeek.legs : 0
   const change = prevTotal > 0 ? Math.round(thisTotal - prevTotal) : 0
   const headlineStr =
-    thisTotal >= 1000 ? `${(thisTotal / 1000).toFixed(1)}t` : `${thisTotal}kg`
+    thisTotal >= 1000
+      ? `${(thisTotal / 1000).toFixed(1)}t`
+      : `${thisTotal}${unit}`
 
   const hasData = weeks.some((w) => w.push + w.pull + w.legs > 0)
 
@@ -68,7 +99,7 @@ export function VolumeChart() {
       title={t('weeklyVolume')}
       headline={headlineStr}
       change={change}
-      changeLabel="kg"
+      changeLabel={unit}
       empty={!hasData}
       footer={
         <ChartLegend
@@ -93,7 +124,7 @@ export function VolumeChart() {
           <Tooltip
             {...TOOLTIP_STYLE}
             formatter={(val: number) =>
-              val >= 1000 ? `${(val / 1000).toFixed(1)}t` : `${val}kg`
+              val >= 1000 ? `${(val / 1000).toFixed(1)}t` : `${val}${unit}`
             }
           />
           <Bar

@@ -1,18 +1,18 @@
 'use client'
 
+import { useQuery } from 'convex/react'
+import { useMemo } from 'react'
+import { useCurrentWeek } from '@/hooks/use-current-week'
 import {
   MUSCLE_GROUPS,
   MUSCLE_MAP,
   type MuscleGroup,
   VOLUME_LANDMARKS,
 } from '@/lib/data/muscles'
+import { getTemplateOrDefault } from '@/lib/data/programs/registry'
 import { useT } from '@/lib/i18n'
-import {
-  getActiveDayCount,
-  getEffectiveProgram,
-  useWorkoutStore,
-} from '@/lib/store/use-workout-store'
 import { cn } from '@/lib/utils'
+import { api } from '../../../convex/_generated/api'
 import { ChartCard } from './chart-card'
 import { ChartLegend } from './chart-legend'
 
@@ -48,33 +48,49 @@ function getZone(sets: number, group: MuscleGroup) {
 
 export function MuscleVolumeChart() {
   const t = useT()
-  const currentWeek = useWorkoutStore((s) => s.currentWeek)
-  const logs = useWorkoutStore((s) => s.logs)
+  const currentWeek = useCurrentWeek()
+  const prefs = useQuery(api.preferences.get)
+  const setsData = useQuery(api.sets.getByUser)
 
-  const weeklyVolume: Record<string, number> = {}
-  for (const group of MUSCLE_GROUPS) weeklyVolume[group] = 0
+  const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
+  const template = getTemplateOrDefault(activeProgramId)
+  const dayCount = template.days.length
 
-  const dayCount = useWorkoutStore((s) => getActiveDayCount(s))
+  const logsMap = useMemo(() => {
+    if (!setsData) return {} as Record<string, { done: boolean }>
+    const map: Record<string, { done: boolean }> = {}
+    for (const s of setsData) {
+      const key = `w${s.week}-d${s.dayIndex}-e${s.exerciseIndex}-s${s.setIndex}`
+      map[key] = { done: s.done }
+    }
+    return map
+  }, [setsData])
 
-  for (let d = 0; d < dayCount; d++) {
-    const prog = getEffectiveProgram(d)
-    prog.exercises.forEach((ex, eIdx) => {
-      let doneSets = 0
-      for (let s = 0; s < ex.sets + 4; s++) {
-        const key = `w${currentWeek}-d${d}-e${eIdx}-s${s}`
-        if (logs[key]?.done) doneSets++
-      }
-      if (doneSets > 0) {
-        const mapping = MUSCLE_MAP[ex.name]
-        if (mapping) {
-          for (const m of mapping.primary)
-            weeklyVolume[m] = (weeklyVolume[m] || 0) + doneSets
-          for (const m of mapping.secondary)
-            weeklyVolume[m] = (weeklyVolume[m] || 0) + doneSets * 0.5
+  const weeklyVolume = useMemo(() => {
+    const vol: Record<string, number> = {}
+    for (const group of MUSCLE_GROUPS) vol[group] = 0
+
+    for (let d = 0; d < dayCount; d++) {
+      const day = template.days[d]
+      if (!day) continue
+      day.exercises.forEach((ex, eIdx) => {
+        let doneSets = 0
+        for (let s = 0; s < ex.sets + 4; s++) {
+          const key = `w${currentWeek}-d${d}-e${eIdx}-s${s}`
+          if (logsMap[key]?.done) doneSets++
         }
-      }
-    })
-  }
+        if (doneSets > 0) {
+          const mapping = MUSCLE_MAP[ex.name]
+          if (mapping) {
+            for (const m of mapping.primary) vol[m] = (vol[m] || 0) + doneSets
+            for (const m of mapping.secondary)
+              vol[m] = (vol[m] || 0) + doneSets * 0.5
+          }
+        }
+      })
+    }
+    return vol
+  }, [currentWeek, dayCount, template, logsMap])
 
   const maxMRV = Math.max(...MUSCLE_GROUPS.map((g) => VOLUME_LANDMARKS[g].mrv))
 

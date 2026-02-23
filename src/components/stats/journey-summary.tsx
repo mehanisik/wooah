@@ -1,41 +1,49 @@
 'use client'
 
+import { useQuery } from 'convex/react'
+import { useMemo } from 'react'
+import { useCurrentWeek } from '@/hooks/use-current-week'
 import { formatDate, parseLocalDate } from '@/lib/format'
 import { useLocale, useT } from '@/lib/i18n'
-import { useWorkoutStore } from '@/lib/store/use-workout-store'
 import { formatDuration } from '@/lib/workout/helpers'
+import { api } from '../../../convex/_generated/api'
 import { ChartCard } from './chart-card'
 
 export function JourneySummary() {
   const t = useT()
   const locale = useLocale()
-  const totalSessions = useWorkoutStore((s) => s.totalSessions)
-  const currentWeek = useWorkoutStore((s) => s.currentWeek)
-  const startDate = useWorkoutStore((s) => s.startDate)
-  const prCount = useWorkoutStore((s) => Object.keys(s.personalRecords).length)
-  const timers = useWorkoutStore((s) => s.workoutTimers)
+  const currentWeek = useCurrentWeek()
+  const prefs = useQuery(api.preferences.get)
+  const sessions = useQuery(api.sessions.getAll)
+  const totalSessionCount = useQuery(api.sessions.count)
+  const personalRecords = useQuery(api.personalRecords.getAll)
+  const historyEntries = useQuery(api.history.getAll)
 
-  const durations = Object.values(timers)
-    .filter((t) => t.duration > 0)
-    .map((t) => t.duration)
-  const avgDuration =
-    durations.length > 0
-      ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length)
-      : 0
+  const totalSessions = totalSessionCount ?? 0
+  const startDate = prefs?.startDate ?? null
+  const prCount = personalRecords?.length ?? 0
 
-  const totalVolume = useWorkoutStore((s) => {
+  const avgDuration = useMemo(() => {
+    if (!sessions) return 0
+    const durations = sessions
+      .filter((s) => s.finishedAt && s.durationSec && s.durationSec > 0)
+      .map((s) => s.durationSec!)
+    if (durations.length === 0) return 0
+    return Math.round(durations.reduce((a, b) => a + b, 0) / durations.length)
+  }, [sessions])
+
+  const totalVolume = useMemo(() => {
+    if (!historyEntries) return 0
     let vol = 0
-    for (const entries of Object.values(s.history)) {
-      for (const e of entries) {
-        if (e.sets) {
-          for (const set of e.sets) vol += set.weight * set.reps
-        } else {
-          vol += e.weight * e.reps
-        }
+    for (const e of historyEntries) {
+      if (e.detailedSets) {
+        for (const set of e.detailedSets) vol += set.weight * set.reps
+      } else {
+        vol += e.weight * e.reps
       }
     }
     return vol
-  })
+  }, [historyEntries])
 
   const stats = [
     { label: t('sessionsLabel'), value: totalSessions },

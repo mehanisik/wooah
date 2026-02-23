@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useQuery } from 'convex/react'
+import { useMemo, useState } from 'react'
 import {
   Bar,
   BarChart,
@@ -16,33 +17,50 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { getTemplateOrDefault } from '@/lib/data/programs/registry'
 import { useT } from '@/lib/i18n'
-import {
-  getActiveDayCount,
-  getEffectiveProgram,
-  useWorkoutStore,
-} from '@/lib/store/use-workout-store'
+import { api } from '../../../convex/_generated/api'
 import { ChartCard } from './chart-card'
 import { AXIS_STYLE, CHART_COLORS, TOOLTIP_STYLE } from './chart-theme'
 
 export function WeightProgression() {
   const t = useT()
-  const history = useWorkoutStore((s) => s.history)
-  const dayCount = useWorkoutStore((s) => getActiveDayCount(s))
+  const prefs = useQuery(api.preferences.get)
+  const historyEntries = useQuery(api.history.getAll)
 
-  const exerciseOptions: { key: string; name: string }[] = []
-  for (let d = 0; d < dayCount; d++) {
-    const prog = getEffectiveProgram(d)
-    prog.exercises.forEach((ex, eIdx) => {
-      const hKey = `d${d}-e${eIdx}`
-      if (history[hKey]?.length) {
-        exerciseOptions.push({ key: hKey, name: ex.name })
-      }
-    })
-  }
+  const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
+  const template = getTemplateOrDefault(activeProgramId)
+  const dayCount = template.days.length
+
+  const historyMap = useMemo(() => {
+    if (!historyEntries)
+      return {} as Record<string, NonNullable<typeof historyEntries>>
+    const map: Record<string, NonNullable<typeof historyEntries>> = {}
+    for (const e of historyEntries) {
+      const key = `d${e.dayIndex}-e${e.exerciseIndex}`
+      if (!map[key]) map[key] = []
+      map[key].push(e)
+    }
+    return map
+  }, [historyEntries])
+
+  const exerciseOptions = useMemo(() => {
+    const opts: { key: string; name: string }[] = []
+    for (let d = 0; d < dayCount; d++) {
+      const day = template.days[d]
+      if (!day) continue
+      day.exercises.forEach((ex, eIdx) => {
+        const hKey = `d${d}-e${eIdx}`
+        if (historyMap[hKey]?.length) {
+          opts.push({ key: hKey, name: ex.name })
+        }
+      })
+    }
+    return opts
+  }, [dayCount, template, historyMap])
 
   const [selected, setSelected] = useState(exerciseOptions[0]?.key || '')
-  const entries = history[selected] || []
+  const entries = historyMap[selected] || []
   const last10 = entries.slice(-10)
 
   const data = last10.map((e, i) => ({

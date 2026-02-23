@@ -1,10 +1,10 @@
 'use client'
 
+import { useMutation, useQuery } from 'convex/react'
+import { useCurrentWeek } from '@/hooks/use-current-week'
 import { type MessageKey, useT } from '@/lib/i18n'
-import { selectSessionNotes } from '@/lib/store/selectors'
-import type { SessionNotes } from '@/lib/store/types'
-import { useWorkoutStore } from '@/lib/store/use-workout-store'
 import { cn } from '@/lib/utils'
+import { api } from '../../../convex/_generated/api'
 
 const ENERGY_OPTIONS = [
   { value: 'Low', key: 'energyLow' as const },
@@ -31,17 +31,38 @@ const SORENESS_OPTIONS = [
   { value: 'None', key: 'sorenessNone' as const },
 ]
 
+interface SessionNotesData {
+  energy?: string
+  sleep?: string
+  mood?: string
+  soreness?: string
+  rating?: number
+  text?: string
+}
+
 interface SessionStripProps {
   dayIdx: number
 }
 
 export function SessionStrip({ dayIdx }: SessionStripProps) {
   const t = useT()
-  const notes = useWorkoutStore((s) => selectSessionNotes(s, dayIdx))
-  const setNotes = useWorkoutStore((s) => s.setSessionNotes)
+  const week = useCurrentWeek()
+  const session = useQuery(api.sessions.getByWeekAndDay, {
+    week,
+    dayIndex: dayIdx,
+  })
+  const setNotesMut = useMutation(api.sessions.setNotes)
 
-  const update = (field: keyof SessionNotes, value: string) => {
-    setNotes(dayIdx, { ...notes, [field]: value })
+  const notes: Partial<SessionNotesData> = session?.notes
+    ? (session.notes as Partial<SessionNotesData>)
+    : {}
+
+  const update = (field: keyof SessionNotesData, value: string) => {
+    setNotesMut({
+      week,
+      dayIndex: dayIdx,
+      notes: { ...notes, [field]: value },
+    })
   }
 
   return (

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useQuery } from 'convex/react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   Bar,
   BarChart,
@@ -17,12 +18,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { getTemplateOrDefault } from '@/lib/data/programs/registry'
 import { useT } from '@/lib/i18n'
-import {
-  getActiveDayCount,
-  getEffectiveProgram,
-  useWorkoutStore,
-} from '@/lib/store/use-workout-store'
+import { api } from '../../../convex/_generated/api'
 import { ChartCard } from './chart-card'
 import { CHART_COLORS, TOOLTIP_STYLE } from './chart-theme'
 
@@ -30,23 +28,57 @@ type Range = 'all' | '6m' | '3m' | '1m'
 
 export function ExerciseComparison() {
   const t = useT()
-  const oneRmHistory = useWorkoutStore((s) => s.oneRmHistory)
+  const prefs = useQuery(api.preferences.get)
+  const oneRmEntries = useQuery(api.oneRm.getAll)
 
-  const keys = Object.keys(oneRmHistory).filter(
-    (k) => oneRmHistory[k].length > 0
+  const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
+  const unit = prefs?.plateSettings?.unit ?? 'kg'
+  const template = getTemplateOrDefault(activeProgramId)
+  const dayCount = template.days.length
+
+  const oneRmHistory = useMemo(() => {
+    if (!oneRmEntries)
+      return {} as Record<string, { date: string; value: number }[]>
+    const map: Record<string, { date: string; value: number }[]> = {}
+    for (const e of oneRmEntries) {
+      const key = `d${e.dayIndex}-e${e.exerciseIndex}`
+      if (!map[key]) map[key] = []
+      map[key].push({ date: e.date, value: e.value })
+    }
+    return map
+  }, [oneRmEntries])
+
+  const keys = useMemo(
+    () => Object.keys(oneRmHistory).filter((k) => oneRmHistory[k].length > 0),
+    [oneRmHistory]
   )
-  const [exA, setExA] = useState(keys[0] || '')
-  const [exB, setExB] = useState(keys[1] || '')
+  const [exA, setExA] = useState('')
+  const [exB, setExB] = useState('')
   const [range, setRange] = useState<Range>('all')
 
-  const dayCount = useWorkoutStore((s) => getActiveDayCount(s))
+  useEffect(() => {
+    if (keys.length > 0 && !exA) setExA(keys[0])
+    if (keys.length > 1 && !exB) setExB(keys[1])
+  }, [keys, exA, exB])
 
-  const nameMap: Record<string, string> = {}
-  for (let d = 0; d < dayCount; d++) {
-    const prog = getEffectiveProgram(d)
-    prog.exercises.forEach((ex, eIdx) => {
-      nameMap[`d${d}-e${eIdx}`] = ex.name
-    })
+  const nameMap = useMemo(() => {
+    const map: Record<string, string> = {}
+    for (let d = 0; d < dayCount; d++) {
+      const day = template.days[d]
+      if (!day) continue
+      day.exercises.forEach((ex, eIdx) => {
+        map[`d${d}-e${eIdx}`] = ex.name
+      })
+    }
+    return map
+  }, [dayCount, template])
+
+  if (prefs === undefined || oneRmEntries === undefined) {
+    return (
+      <ChartCard title={t('compare1rm')} empty>
+        {null}
+      </ChartCard>
+    )
   }
 
   const filterByRange = (entries: { date: string; value: number }[]) => {
@@ -127,7 +159,7 @@ export function ExerciseComparison() {
               <YAxis hide />
               <Tooltip
                 {...TOOLTIP_STYLE}
-                formatter={(val: number) => [`${val}kg`, '1RM']}
+                formatter={(val: number) => [`${val}${unit}`, '1RM']}
                 labelFormatter={() => ''}
               />
               <Bar
@@ -149,7 +181,7 @@ export function ExerciseComparison() {
               <YAxis hide />
               <Tooltip
                 {...TOOLTIP_STYLE}
-                formatter={(val: number) => [`${val}kg`, '1RM']}
+                formatter={(val: number) => [`${val}${unit}`, '1RM']}
                 labelFormatter={() => ''}
               />
               <Bar

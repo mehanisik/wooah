@@ -1,66 +1,33 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useMutation, useQuery } from 'convex/react'
+import { useEffect } from 'react'
 import { LoginPage } from '@/components/auth/login-page'
 import { WooahLogo } from '@/components/ui/wooah-logo'
 import { useAuth } from '@/hooks/auth-context'
 import { loadExerciseDb } from '@/lib/exercise-db'
 import { useT } from '@/lib/i18n'
-import { migrateFromV2 } from '@/lib/store/migration'
-import { useWorkoutStore } from '@/lib/store/use-workout-store'
+import { api } from '../../../convex/_generated/api'
 import { Header } from './header'
 import { NavBar } from './nav-bar'
 import { UpdatePrompt } from './update-prompt'
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const [ready, setReady] = useState(false)
-  const [hydrated, setHydrated] = useState(false)
-  const { user, loading: authLoading } = useAuth()
+  const { isAuthenticated, loading: authLoading } = useAuth()
   const t = useT()
-  const initWeek = useWorkoutStore((s) => s.initWeek)
-  const mergeState = useWorkoutStore((s) => s.mergeState)
+  const prefs = useQuery(api.preferences.get, isAuthenticated ? {} : 'skip')
+  const upsertPrefs = useMutation(api.preferences.upsert)
 
   useEffect(() => {
-    const api = useWorkoutStore.persist
-    if (api?.hasHydrated()) {
-      setHydrated(true)
-      return
+    if (!isAuthenticated) return
+    if (prefs === undefined) return
+    if (prefs === null) {
+      upsertPrefs({
+        startDate: new Date().toISOString().split('T')[0],
+      })
     }
-    return api?.onFinishHydration(() => setHydrated(true))
-  }, [])
-
-  useEffect(() => {
-    if (authLoading || !user || !hydrated) return
-    const v2Data = migrateFromV2()
-    if (v2Data) {
-      mergeState(v2Data)
-    }
-    initWeek()
-    setReady(true)
     loadExerciseDb().catch(() => undefined)
-  }, [authLoading, user, hydrated, initWeek, mergeState])
-
-  useEffect(() => {
-    if (!ready) return
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') initWeek()
-    }
-    document.addEventListener('visibilitychange', onVisible)
-
-    let lastDate = new Date().getDate()
-    const timer = setInterval(() => {
-      const now = new Date().getDate()
-      if (now !== lastDate) {
-        lastDate = now
-        initWeek()
-      }
-    }, 60_000)
-
-    return () => {
-      document.removeEventListener('visibilitychange', onVisible)
-      clearInterval(timer)
-    }
-  }, [ready, initWeek])
+  }, [isAuthenticated, prefs, upsertPrefs])
 
   if (authLoading) {
     return (
@@ -75,7 +42,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     )
   }
 
-  if (!user) {
+  if (!isAuthenticated) {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center bg-background">
         <LoginPage />
@@ -83,7 +50,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     )
   }
 
-  if (!ready) {
+  if (prefs === undefined) {
     return (
       <div className="flex h-dvh items-center justify-center bg-background">
         <div className="text-center">

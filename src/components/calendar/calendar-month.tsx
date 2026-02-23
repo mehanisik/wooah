@@ -1,11 +1,13 @@
 'use client'
 
+import { useQuery } from 'convex/react'
+import { useMemo } from 'react'
 import { getTemplateOrDefault } from '@/lib/data/programs/registry'
 import { formatMonthYear } from '@/lib/format'
 import { useLocale, useT } from '@/lib/i18n'
-import { useWorkoutStore } from '@/lib/store/use-workout-store'
 import { cn } from '@/lib/utils'
 import { calcWeekNumber } from '@/lib/workout/helpers'
+import { api } from '../../../convex/_generated/api'
 
 interface CalendarMonthProps {
   month: Date
@@ -33,12 +35,26 @@ export function CalendarMonth({
 }: CalendarMonthProps) {
   const t = useT()
   const locale = useLocale()
-  const finishedDays = useWorkoutStore((s) => s.finishedDays)
-  const startDate = useWorkoutStore((s) => s.startDate)
-  const activeProgramId = useWorkoutStore((s) => s.activeProgramId)
-  const trainingDays = useWorkoutStore((s) => s.trainingDays)
+  const prefs = useQuery(api.preferences.get)
+  const sessions = useQuery(api.sessions.getAll)
+
+  const startDate = prefs?.startDate ?? null
+  const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
+  const trainingDays = prefs?.trainingDays ?? [0, 1, 2, 3, 4, 5]
   const template = getTemplateOrDefault(activeProgramId)
   const sortedTrainingDays = [...trainingDays].sort((a, b) => a - b)
+
+  const finishedDays = useMemo(() => {
+    if (!sessions) return {} as Record<string, boolean>
+    const map: Record<string, boolean> = {}
+    for (const s of sessions) {
+      if (s.finishedAt) {
+        map[`w${s.week}-d${s.dayIndex}`] = true
+      }
+    }
+    return map
+  }, [sessions])
+
   const DAY_HEADERS = [
     t('navMon'),
     t('navTue'),

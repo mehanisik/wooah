@@ -1,40 +1,29 @@
 'use client'
 
+import { useMutation, useQuery } from 'convex/react'
 import { Camera, Loader2, Trash2, X } from 'lucide-react'
 import Image from 'next/image'
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { useAuth } from '@/hooks/auth-context'
+import { useCurrentWeek } from '@/hooks/use-current-week'
 import { useT } from '@/lib/i18n'
-import { useWorkoutStore } from '@/lib/store/use-workout-store'
-import {
-  deletePhoto,
-  loadPhotos,
-  type PhotoMeta,
-  uploadPhoto,
-} from '@/lib/supabase/photos'
+import { api } from '../../../convex/_generated/api'
 
 export function PhotosPage() {
   const t = useT()
-  const { user } = useAuth()
-  const [photos, setPhotos] = useState<PhotoMeta[]>([])
-  const [fullscreen, setFullscreen] = useState<PhotoMeta | null>(null)
-  const [loading, setLoading] = useState(true)
+  const currentWeek = useCurrentWeek()
+  const photos = useQuery(api.photos.getAll)
+  const generateUploadUrl = useMutation(api.photos.generateUploadUrl)
+  const savePhoto = useMutation(api.photos.save)
+  const removePhoto = useMutation(api.photos.remove)
+
+  const [fullscreen, setFullscreen] = useState<
+    NonNullable<typeof photos>[number] | null
+  >(null)
   const [uploading, setUploading] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const currentWeek = useWorkoutStore((s) => s.currentWeek)
-
-  useEffect(() => {
-    if (!user) {
-      setLoading(false)
-      return
-    }
-    loadPhotos(user.id)
-      .then(setPhotos)
-      .catch(() => undefined)
-      .finally(() => setLoading(false))
-  }, [user])
+  const loading = photos === undefined
 
   const handleAdd = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -43,49 +32,43 @@ export function PhotosPage() {
 
     try {
       const dayIdx = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1
-      const photo = await uploadPhoto(file, currentWeek, dayIdx, user?.id)
-
-      if (photo) {
-        setPhotos((prev) => [photo, ...prev])
-      } else {
-        const localPhoto: PhotoMeta = {
-          id: `local-${Date.now()}`,
-          url: URL.createObjectURL(file),
-          date: new Date().toISOString(),
-          week: currentWeek,
-          dayIdx,
-          storagePath: '',
-        }
-        setPhotos((prev) => [localPhoto, ...prev])
-      }
-    } catch {
-      const dayIdx = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1
-      const localPhoto: PhotoMeta = {
-        id: `local-${Date.now()}`,
-        url: URL.createObjectURL(file),
-        date: new Date().toISOString(),
+      const uploadUrl = await generateUploadUrl()
+      const result = await fetch(uploadUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': file.type },
+        body: file,
+      })
+      if (!result.ok) throw new Error(`Upload failed: ${result.status}`)
+      const { storageId } = await result.json()
+      await savePhoto({
+        storageId,
         week: currentWeek,
-        dayIdx,
-        storagePath: '',
-      }
-      setPhotos((prev) => [localPhoto, ...prev])
+        dayIndex: dayIdx,
+        timestamp: Date.now(),
+      })
+    } catch {
+      // upload failed silently
     } finally {
       setUploading(false)
       if (inputRef.current) inputRef.current.value = ''
     }
   }
 
-  const handleRemove = async (photo: PhotoMeta) => {
-    setPhotos((prev) => prev.filter((p) => p.id !== photo.id))
-    if (photo.storagePath) await deletePhoto(photo, user?.id)
+  const handleRemove = async (photo: NonNullable<typeof photos>[number]) => {
+    if (!confirm(t('confirmDeletePhoto'))) return
+    await removePhoto({ photoId: photo._id })
   }
 
-  const grouped = photos.reduce<Record<string, PhotoMeta[]>>((acc, p) => {
-    const key = `W${p.week}`
-    if (!acc[key]) acc[key] = []
-    acc[key].push(p)
-    return acc
-  }, {})
+  const photoList = photos ?? []
+  const grouped = photoList.reduce<Record<string, typeof photoList>>(
+    (acc, p) => {
+      const key = `W${p.week}`
+      if (!acc[key]) acc[key] = []
+      acc[key].push(p)
+      return acc
+    },
+    {}
+  )
 
   return (
     <div className="space-y-3 pb-4">
@@ -120,7 +103,7 @@ export function PhotosPage() {
         </div>
       )}
 
-      {!loading && photos.length === 0 && (
+      {!loading && photoList.length === 0 && (
         <div className="rounded-lg border border-border border-dashed bg-card px-4 py-8 text-center">
           <Camera className="mx-auto mb-2 h-8 w-8 text-muted-foreground/40" />
           <p className="text-muted-foreground text-xs">{t('noPhotosYet')}</p>
@@ -131,7 +114,7 @@ export function PhotosPage() {
       )}
 
       {!loading &&
-        photos.length > 0 &&
+        photoList.length > 0 &&
         Object.entries(grouped).map(([week, weekPhotos]) => (
           <div key={week}>
             <h3 className="mb-1.5 font-display text-muted-foreground text-xs tracking-wider">
@@ -140,7 +123,7 @@ export function PhotosPage() {
             <div className="grid grid-cols-3 gap-2">
               {weekPhotos.map((photo) => (
                 <div
-                  key={photo.id}
+                  key={photo._id}
                   className="relative aspect-square overflow-hidden rounded-md"
                 >
                   <button
@@ -149,8 +132,8 @@ export function PhotosPage() {
                     onClick={() => setFullscreen(photo)}
                   >
                     <Image
-                      src={photo.url}
-                      alt={`Progress ${photo.date}`}
+                      src={photo.url ?? ''}
+                      alt={`Progress ${new Date(photo.timestamp).toLocaleDateString()}`}
                       className="h-full w-full object-cover"
                       fill
                       unoptimized
@@ -185,8 +168,8 @@ export function PhotosPage() {
             <X className="h-6 w-6 text-white" />
           </button>
           <Image
-            src={fullscreen.url}
-            alt={`Progress ${fullscreen.date}`}
+            src={fullscreen.url ?? ''}
+            alt={`Progress ${new Date(fullscreen.timestamp).toLocaleDateString()}`}
             className="max-h-full max-w-full object-contain"
             fill
             unoptimized

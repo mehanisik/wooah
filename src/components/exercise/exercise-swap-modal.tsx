@@ -9,18 +9,17 @@ import {
   CommandList,
 } from '@/components/ui/command'
 import { MUSCLE_GROUPS, MUSCLE_MAP } from '@/lib/data/muscles'
+import { getTemplateOrDefault } from '@/lib/data/programs/registry'
 import { useT } from '@/lib/i18n'
-import { selectExerciseSwap } from '@/lib/store/selectors'
-import {
-  getEffectiveProgram,
-  useWorkoutStore,
-} from '@/lib/store/use-workout-store'
 
 interface ExerciseSwapModalProps {
   dayIdx: number
   exIdx: number
   open: boolean
   onOpenChange: (open: boolean) => void
+  activeProgramId: string
+  currentSwapName: string | null
+  onSwap: (name: string | null) => void
 }
 
 export function ExerciseSwapModal({
@@ -28,13 +27,13 @@ export function ExerciseSwapModal({
   exIdx,
   open,
   onOpenChange,
+  activeProgramId,
+  currentSwapName,
+  onSwap,
 }: ExerciseSwapModalProps) {
-  const ex = getEffectiveProgram(dayIdx).exercises[exIdx]
-  const setExerciseSwap = useWorkoutStore((s) => s.setExerciseSwap)
-  const currentSwap = useWorkoutStore((s) =>
-    selectExerciseSwap(s, dayIdx, exIdx)
-  )
-  const currentName = currentSwap || ex?.name
+  const ex =
+    getTemplateOrDefault(activeProgramId).days[dayIdx]?.exercises[exIdx]
+  const currentName = currentSwapName || ex?.name
 
   const t = useT()
 
@@ -48,8 +47,8 @@ export function ExerciseSwapModal({
   }
 
   const handleSelect = (name: string) => {
-    if (name === ex.name) setExerciseSwap(dayIdx, exIdx, null)
-    else setExerciseSwap(dayIdx, exIdx, name)
+    if (name === ex.name) onSwap(null)
+    else onSwap(name)
     onOpenChange(false)
   }
 
