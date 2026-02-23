@@ -466,11 +466,14 @@ export const useWorkoutStore = create<WorkoutState & WorkoutActions>()(
         }
 
         if (dirty) {
-          set({
+          set((s) => ({
             finishedDays: prunedFinished,
             workoutTimers: prunedTimers,
-            totalSessions: Object.keys(prunedFinished).length,
-          })
+            totalSessions: Math.max(
+              s.totalSessions,
+              Object.keys(prunedFinished).length
+            ),
+          }))
         }
       },
     }),

@@ -122,11 +122,8 @@ export function NavBar() {
                   className={cn(
                     'flex h-5 w-5 items-center justify-center rounded-full',
                     !finished && 'font-mono text-xs tabular-nums',
-                    isToday &&
-                      cn(
-                        'font-semibold text-white',
-                        TYPE_COLORS[day.type] || 'bg-primary'
-                      )
+                    isToday && 'font-semibold text-white',
+                    isToday && (TYPE_COLORS[day.type] || 'bg-primary')
                   )}
                 >
                   {finished ? (

@@ -14,20 +14,19 @@ import { UpdatePrompt } from './update-prompt'
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false)
-  const [hydrated, setHydrated] = useState(
-    useWorkoutStore.persist.hasHydrated()
-  )
+  const [hydrated, setHydrated] = useState(false)
   const { user, loading: authLoading } = useAuth()
   const t = useT()
   const initWeek = useWorkoutStore((s) => s.initWeek)
   const mergeState = useWorkoutStore((s) => s.mergeState)
 
   useEffect(() => {
-    if (useWorkoutStore.persist.hasHydrated()) {
+    const api = useWorkoutStore.persist
+    if (api?.hasHydrated()) {
       setHydrated(true)
       return
     }
-    return useWorkoutStore.persist.onFinishHydration(() => setHydrated(true))
+    return api?.onFinishHydration(() => setHydrated(true))
   }, [])
 
   useEffect(() => {
