@@ -118,28 +118,31 @@ export function NavBar() {
                 <span className="font-body font-semibold text-[10px] uppercase tracking-wider">
                   {WEEKDAY_LABELS[weekday]}
                 </span>
-                {finished ? (
-                  <Check
-                    className={cn(
-                      'h-3.5 w-3.5',
-                      TYPE_CHECK_COLORS[day.type] || 'text-success'
-                    )}
-                    strokeWidth={3}
-                  />
-                ) : (
-                  <span
-                    className={cn(
-                      'flex h-5 w-5 items-center justify-center rounded-full font-mono text-xs tabular-nums',
-                      isToday &&
-                        cn(
-                          'font-semibold text-white',
-                          TYPE_COLORS[day.type] || 'bg-primary'
-                        )
-                    )}
-                  >
-                    {dates[weekday]}
-                  </span>
-                )}
+                <span
+                  className={cn(
+                    'flex h-5 w-5 items-center justify-center rounded-full',
+                    !finished && 'font-mono text-xs tabular-nums',
+                    isToday &&
+                      cn(
+                        'font-semibold text-white',
+                        TYPE_COLORS[day.type] || 'bg-primary'
+                      )
+                  )}
+                >
+                  {finished ? (
+                    <Check
+                      className={cn(
+                        'h-3.5 w-3.5',
+                        isToday
+                          ? 'text-white'
+                          : TYPE_CHECK_COLORS[day.type] || 'text-success'
+                      )}
+                      strokeWidth={3}
+                    />
+                  ) : (
+                    dates[weekday]
+                  )}
+                </span>
                 {isActive && (
                   <span
                     className={cn(
