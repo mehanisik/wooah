@@ -26,8 +26,8 @@ const nextConfig: NextConfig = {
     optimizePackageImports: [
       'lucide-react',
       'recharts',
-      'radix-ui',
-      'zustand',
+      '@base-ui/react',
+      'convex',
     ],
   },
 }

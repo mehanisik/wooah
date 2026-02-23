@@ -21,7 +21,7 @@
         { "key": "X-Permitted-Cross-Domain-Policies", "value": "none" },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co https://*.googleusercontent.com; connect-src 'self' https://*.supabase.co https://exercisedb-api.vercel.app; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.convex.cloud https://*.googleusercontent.com; connect-src 'self' https://*.convex.cloud https://*.convex.site https://accounts.google.com https://exercisedb-api.vercel.app wss://*.convex.cloud; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self' https://accounts.google.com"
         }
       ]
     },
