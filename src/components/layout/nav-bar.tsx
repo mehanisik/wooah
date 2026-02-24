@@ -49,6 +49,8 @@ const TYPE_COLORS: Record<string, string> = {
   back: 'bg-back',
   shoulders: 'bg-shoulders',
   arms: 'bg-arms',
+  power_upper: 'bg-upper',
+  power_lower: 'bg-lower',
 }
 
 const TYPE_CHECK_COLORS: Record<string, string> = {
@@ -62,6 +64,8 @@ const TYPE_CHECK_COLORS: Record<string, string> = {
   back: 'text-back',
   shoulders: 'text-shoulders',
   arms: 'text-arms',
+  power_upper: 'text-upper',
+  power_lower: 'text-lower',
 }
 
 export function NavBar() {

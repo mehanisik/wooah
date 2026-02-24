@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from 'convex/react'
-import { Flame, Settings, Trophy, Zap } from 'lucide-react'
+import { ChevronRight, Flame, Settings, Trophy, Zap } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
@@ -100,14 +100,27 @@ export function Header() {
     <header className="safe-area-pt sticky top-0 z-40 border-border border-b bg-background/95 backdrop-blur-sm">
       <div className="mx-auto max-w-lg px-4">
         <div className="flex h-12 items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <WooahLogo className="text-xl" />
-            {mesoWeek !== null && (
-              <span className="font-mono text-[10px] text-muted-foreground">
-                {deload ? t('deload') : `W${mesoWeek}`}
+          <div className="flex items-center gap-2">
+            <Link href="/" className="flex items-center gap-2">
+              <WooahLogo className="text-xl" />
+              {mesoWeek !== null && (
+                <span className="font-mono text-[10px] text-muted-foreground">
+                  {deload ? t('deload') : `W${mesoWeek}`}
+                </span>
+              )}
+            </Link>
+            <span className="text-border">|</span>
+            <Link
+              href="/programs"
+              className="flex items-center gap-0.5 rounded-md px-1.5 py-0.5 transition-colors hover:bg-accent"
+              aria-label={t('browseProgramsAriaLabel')}
+            >
+              <span className="max-w-[80px] truncate font-body text-[10px] text-muted-foreground">
+                {template.meta.name}
               </span>
-            )}
-          </Link>
+              <ChevronRight className="h-3 w-3 text-muted-foreground" />
+            </Link>
+          </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-1.5">

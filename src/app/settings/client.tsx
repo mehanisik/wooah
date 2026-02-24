@@ -4,7 +4,6 @@ import { useAuthActions } from '@convex-dev/auth/react'
 import { useMutation, useQuery } from 'convex/react'
 import { useState } from 'react'
 import { InstallPrompt } from '@/components/layout/install-prompt'
-import { ProgramPicker } from '@/components/program/program-picker'
 import { useTheme } from '@/components/providers/theme-provider'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,7 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { getTemplateOrDefault } from '@/lib/data/programs/registry'
 import { useT } from '@/lib/i18n'
 import type { Locale } from '@/lib/i18n/types'
 import { api } from '../../../convex/_generated/api'
@@ -32,11 +30,8 @@ export function SettingsPageClient() {
     unit: 'kg' as const,
   }
   const locale = (prefs?.locale ?? 'en') as Locale
-  const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
-  const activeTemplate = getTemplateOrDefault(activeProgramId)
 
   const [barWeight, setBarWeight] = useState(String(plateSettings.barWeight))
-  const [pickerOpen, setPickerOpen] = useState(false)
 
   const handleBarWeightSave = () => {
     const w = Number.parseFloat(barWeight)
@@ -57,39 +52,9 @@ export function SettingsPageClient() {
     upsertPrefs({ locale: v as Locale })
   }
 
-  const handleSwitchProgram = (programId: string, trainingDays: number[]) => {
-    upsertPrefs({ activeProgramId: programId, trainingDays })
-  }
-
   return (
     <div className="space-y-4 pb-4">
       <h2 className="font-display text-lg tracking-wider">{t('settings')}</h2>
-
-      <section className="space-y-3 rounded-lg border border-border bg-card px-4 py-3">
-        <h3 className="font-display text-sm tracking-wider">
-          {t('programLabel')}
-        </h3>
-        <p className="font-body text-muted-foreground text-xs">
-          {t('currentProgram', { name: activeTemplate.meta.name })}
-          {' — '}
-          {t('daysPerWeek', { count: activeTemplate.meta.daysPerWeek })}
-        </p>
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-full text-xs"
-          onClick={() => setPickerOpen(true)}
-        >
-          {t('changeProgram')}
-        </Button>
-      </section>
-
-      <ProgramPicker
-        open={pickerOpen}
-        onOpenChange={setPickerOpen}
-        currentProgramId={activeProgramId}
-        onSelect={handleSwitchProgram}
-      />
 
       <section className="space-y-3 rounded-lg border border-border bg-card px-4 py-3">
         <h3 className="font-display text-sm tracking-wider">{t('theme')}</h3>
