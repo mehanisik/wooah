@@ -13,6 +13,7 @@ import type * as bodyweight from "../bodyweight.js";
 import type * as cardio from "../cardio.js";
 import type * as extraSets from "../extraSets.js";
 import type * as history from "../history.js";
+import type * as http from "../http.js";
 import type * as notes from "../notes.js";
 import type * as oneRm from "../oneRm.js";
 import type * as personalRecords from "../personalRecords.js";
@@ -34,6 +35,7 @@ declare const fullApi: ApiFromModules<{
   cardio: typeof cardio;
   extraSets: typeof extraSets;
   history: typeof history;
+  http: typeof http;
   notes: typeof notes;
   oneRm: typeof oneRm;
   personalRecords: typeof personalRecords;
