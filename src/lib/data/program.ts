@@ -42,6 +42,8 @@ export type DayType =
   | 'back'
   | 'shoulders'
   | 'arms'
+  | 'power_upper'
+  | 'power_lower'
   | 'rest'
 
 export interface Day {

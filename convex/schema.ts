@@ -146,6 +146,25 @@ export default defineSchema({
     .index('by_user', ['userId'])
     .index('by_user_day_exercise', ['userId', 'dayIndex', 'exerciseIndex']),
 
+  programTemplates: defineTable({
+    programId: v.string(),
+    name: v.string(),
+    author: v.optional(v.string()),
+    gender: v.string(),
+    difficulty: v.string(),
+    daysPerWeek: v.number(),
+    description: v.string(),
+    tags: v.array(v.string()),
+    days: v.any(),
+    defaultRestDays: v.array(v.number()),
+    isGlobal: v.boolean(),
+    createdBy: v.optional(v.id('users')),
+    forkedFrom: v.optional(v.string()),
+  })
+    .index('by_programId', ['programId'])
+    .index('by_global', ['isGlobal'])
+    .index('by_user', ['createdBy']),
+
   extraSets: defineTable({
     userId: v.id('users'),
     week: v.number(),
