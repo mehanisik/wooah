@@ -265,11 +265,14 @@ const pl: Messages = {
   save: 'ZAPISZ',
   resetLabel: 'RESETUJ',
 
-  // Program Picker
+  // Program Picker / Browser
   programLabel: 'PROGRAM',
+  programs: 'PROGRAMY',
   changeProgram: 'ZMIEŃ PROGRAM',
   selectProgram: 'WYBIERZ PROGRAM',
   currentProgram: 'Aktualny: {name}',
+  browseProgramsAriaLabel: 'Przeglądaj programy',
+  nExercises: '{count} ćwiczeń',
   daysPerWeek: '{count} dni/tydzień',
   programSwitchWarning: 'Zmiana programu zresetuje twoje dostosowania ćwiczeń.',
   confirmSwitch: 'POTWIERDŹ',

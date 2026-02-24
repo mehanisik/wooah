@@ -259,11 +259,14 @@ const en = {
   save: 'SAVE',
   resetLabel: 'RESET',
 
-  // Program Picker
+  // Program Picker / Browser
   programLabel: 'PROGRAM',
+  programs: 'PROGRAMS',
   changeProgram: 'CHANGE PROGRAM',
   selectProgram: 'SELECT PROGRAM',
   currentProgram: 'Current: {name}',
+  browseProgramsAriaLabel: 'Browse programs',
+  nExercises: '{count} exercises',
   daysPerWeek: '{count} days/week',
   programSwitchWarning:
     'Switching programs will reset your exercise customizations.',
