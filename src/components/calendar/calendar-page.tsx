@@ -3,7 +3,7 @@
 import { useQuery } from 'convex/react'
 import { useMemo, useState } from 'react'
 import { useCurrentWeek } from '@/hooks/use-current-week'
-import { getTemplateOrDefault } from '@/lib/data/programs/registry'
+import { useTemplate } from '@/hooks/use-template'
 import { useT } from '@/lib/i18n'
 import { api } from '../../../convex/_generated/api'
 import { CalendarDetail } from './calendar-detail'
@@ -60,8 +60,7 @@ export function CalendarPage() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
 
   const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
-  const template = getTemplateOrDefault(activeProgramId)
-  const dayCount = template.days.length
+  const template = useTemplate(activeProgramId)
 
   const finishedDays = useMemo(() => {
     if (!sessions) return {} as Record<string, boolean>
@@ -74,6 +73,9 @@ export function CalendarPage() {
     return map
   }, [sessions])
 
+  if (!template) return null
+
+  const dayCount = template.days.length
   const months = getMonthsToShow()
   const { current, longest } = getStreaks(finishedDays, currentWeek, dayCount)
 

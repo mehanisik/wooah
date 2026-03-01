@@ -1,6 +1,13 @@
 import { getAuthUserId } from '@convex-dev/auth/server'
 import { v } from 'convex/values'
-import { internalMutation, mutation, query } from './_generated/server'
+import { internal } from './_generated/api'
+import {
+  action,
+  internalMutation,
+  mutation,
+  query,
+} from './_generated/server'
+import { SEED_PROGRAMS } from './seedData'
 
 export const list = query({
   args: {},
@@ -205,5 +212,17 @@ export const seed = internalMutation({
     }
 
     return { inserted, skipped, total: programs.length }
+  },
+})
+
+export const seedGlobalPrograms = action({
+  args: {},
+  handler: async (
+    ctx
+  ): Promise<{ inserted: number; skipped: number; total: number }> => {
+    return ctx.runMutation(internal.programs.seed, {
+      // biome-ignore lint/suspicious/noExplicitAny: seed data is validated by the mutation schema
+      programs: SEED_PROGRAMS as any,
+    })
   },
 })

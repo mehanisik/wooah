@@ -56,10 +56,6 @@ export interface Day {
   exercises: Exercise[]
 }
 
-import { wooahPpl } from './programs/wooah-ppl'
-
-export const PROGRAM: Day[] = wooahPpl.days
-
 export function getAltName(alt: Alternative | string): string {
   return typeof alt === 'string' ? alt : alt.name
 }

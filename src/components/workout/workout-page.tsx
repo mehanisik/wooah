@@ -14,10 +14,9 @@ import {
 } from '@/components/ui/sheet'
 import { useCurrentWeek } from '@/hooks/use-current-week'
 import { useRestTimer } from '@/hooks/use-rest-timer'
+import { useTemplate } from '@/hooks/use-template'
 import { useWakeLock } from '@/hooks/use-wake-lock'
 import { useWorkoutClock } from '@/hooks/use-workout-clock'
-import { PROGRAM } from '@/lib/data/program'
-import { getTemplateOrDefault } from '@/lib/data/programs/registry'
 import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { api } from '../../../convex/_generated/api'
@@ -45,8 +44,8 @@ export function WorkoutPage({ dayIdx }: WorkoutPageProps) {
   const finishDayMut = useMutation(api.sessions.finishDay)
 
   const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
-  const day = getTemplateOrDefault(activeProgramId).days[dayIdx]
-  const baseDay = PROGRAM[dayIdx]
+  const template = useTemplate(activeProgramId)
+  const day = template?.days[dayIdx]
   const finished = !!session?.finishedAt
 
   const elapsed = useWorkoutClock(dayIdx)
@@ -98,11 +97,9 @@ export function WorkoutPage({ dayIdx }: WorkoutPageProps) {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="font-display text-2xl tracking-wider">
-            {baseDay.day} — {baseDay.name}
+            {day.day} — {day.name}
           </h2>
-          <p className="font-body text-muted-foreground text-xs">
-            {baseDay.focus}
-          </p>
+          <p className="font-body text-muted-foreground text-xs">{day.focus}</p>
         </div>
         <div className="flex items-center gap-2">
           {!finished && (
@@ -118,12 +115,12 @@ export function WorkoutPage({ dayIdx }: WorkoutPageProps) {
             variant="outline"
             className={cn(
               'font-mono text-xs',
-              baseDay.type === 'push' && 'border-push text-push',
-              baseDay.type === 'pull' && 'border-pull text-pull',
-              baseDay.type === 'legs' && 'border-legs text-legs'
+              day.type === 'push' && 'border-push text-push',
+              day.type === 'pull' && 'border-pull text-pull',
+              day.type === 'legs' && 'border-legs text-legs'
             )}
           >
-            {baseDay.type.toUpperCase()}
+            {day.type.toUpperCase()}
           </Badge>
           <WorkoutClock elapsed={elapsed} finished={finished} />
         </div>
@@ -132,6 +129,7 @@ export function WorkoutPage({ dayIdx }: WorkoutPageProps) {
       {day.exercises.map((ex, exIdx) => (
         <ExerciseCard
           key={`${dayIdx}-${exIdx}`}
+          day={day}
           dayIdx={dayIdx}
           exIdx={exIdx}
           exercise={ex}
@@ -151,8 +149,8 @@ export function WorkoutPage({ dayIdx }: WorkoutPageProps) {
         </button>
       )}
 
-      {baseDay.cardio && baseDay.cardio.length > 0 && (
-        <CardioSection dayIdx={dayIdx} items={baseDay.cardio} />
+      {day.cardio && day.cardio.length > 0 && (
+        <CardioSection dayIdx={dayIdx} items={day.cardio} />
       )}
 
       {!finished && (

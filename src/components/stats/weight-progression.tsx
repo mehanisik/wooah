@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { getTemplateOrDefault } from '@/lib/data/programs/registry'
+import { useTemplate } from '@/hooks/use-template'
 import { useT } from '@/lib/i18n'
 import { api } from '../../../convex/_generated/api'
 import { ChartCard } from './chart-card'
@@ -29,8 +29,8 @@ export function WeightProgression() {
   const historyEntries = useQuery(api.history.getAll)
 
   const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
-  const template = getTemplateOrDefault(activeProgramId)
-  const dayCount = template.days.length
+  const template = useTemplate(activeProgramId)
+  const dayCount = template?.days.length ?? 0
 
   const historyMap = useMemo(() => {
     if (!historyEntries)
@@ -47,7 +47,7 @@ export function WeightProgression() {
   const exerciseOptions = useMemo(() => {
     const opts: { key: string; name: string }[] = []
     for (let d = 0; d < dayCount; d++) {
-      const day = template.days[d]
+      const day = template?.days[d]
       if (!day) continue
       day.exercises.forEach((ex, eIdx) => {
         const hKey = `d${d}-e${eIdx}`

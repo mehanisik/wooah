@@ -1,14 +1,24 @@
 'use client'
 
 import { useMutation, useQuery } from 'convex/react'
-import { ArrowLeft, Check, ChevronDown, ChevronUp } from 'lucide-react'
+import {
+  ArrowLeft,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Copy,
+  Trash2,
+} from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useCallback, useMemo, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/auth-context'
-import { PROGRAM_TEMPLATES } from '@/lib/data/programs/registry'
+import {
+  type ConvexProgramTemplate,
+  useAllTemplates,
+} from '@/hooks/use-template'
 import type { Difficulty, ProgramTemplate } from '@/lib/data/programs/types'
 import type { MessageKey } from '@/lib/i18n'
 import { useT } from '@/lib/i18n'
@@ -49,7 +59,10 @@ export function ProgramBrowser() {
 
   const prefs = useQuery(api.preferences.get, isAuthenticated ? {} : 'skip')
   const upsertPrefs = useMutation(api.preferences.upsert)
+  const forkMut = useMutation(api.programs.fork)
+  const removeMut = useMutation(api.programs.remove)
 
+  const allTemplates = useAllTemplates()
   const currentProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
 
   const [filter, setFilter] = useState<Filter>('all')
@@ -58,10 +71,32 @@ export function ProgramBrowser() {
     null
   )
   const [selectedDays, setSelectedDays] = useState<number[]>([])
+  const [forkingId, setForkingId] = useState<string | null>(null)
+  const [forkName, setForkName] = useState('')
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
-  const filtered = useMemo(
-    () => PROGRAM_TEMPLATES.filter((tpl) => matchesFilter(tpl, filter)),
-    [filter]
+  const { globals, userPrograms } = useMemo(() => {
+    if (!allTemplates) return { globals: [], userPrograms: [] }
+    const g: ConvexProgramTemplate[] = []
+    const u: ConvexProgramTemplate[] = []
+    for (const tpl of allTemplates) {
+      if (tpl.isGlobal) {
+        g.push(tpl)
+      } else {
+        u.push(tpl)
+      }
+    }
+    return { globals: g, userPrograms: u }
+  }, [allTemplates])
+
+  const filteredGlobals = useMemo(
+    () => globals.filter((tpl) => matchesFilter(tpl, filter)),
+    [globals, filter]
+  )
+
+  const filteredUser = useMemo(
+    () => userPrograms.filter((tpl) => matchesFilter(tpl, filter)),
+    [userPrograms, filter]
   )
 
   const filters: { key: Filter; label: string }[] = [
@@ -109,6 +144,44 @@ export function ProgramBrowser() {
     setExpandedId(null)
     router.push('/')
   }, [pickingDaysFor, sortedDays, upsertPrefs, router])
+
+  const handleFork = useCallback(
+    async (sourceId: string) => {
+      const name = forkName.trim()
+      if (!name) return
+      const newId = `${sourceId}-${Date.now()}`
+      await forkMut({
+        sourceProgramId: sourceId,
+        newProgramId: newId,
+        newName: name,
+      })
+      setForkingId(null)
+      setForkName('')
+      upsertPrefs({ activeProgramId: newId })
+    },
+    [forkMut, forkName, upsertPrefs]
+  )
+
+  const handleDelete = useCallback(
+    async (programId: string) => {
+      await removeMut({ programId })
+      setDeletingId(null)
+      if (currentProgramId === programId) {
+        upsertPrefs({ activeProgramId: 'wooah-ppl' })
+      }
+    },
+    [removeMut, currentProgramId, upsertPrefs]
+  )
+
+  if (!allTemplates) {
+    return (
+      <div className="space-y-4 pb-4">
+        <div className="h-8 w-40 animate-pulse rounded bg-muted" />
+        <div className="h-20 animate-pulse rounded bg-muted" />
+        <div className="h-20 animate-pulse rounded bg-muted" />
+      </div>
+    )
+  }
 
   if (pickingDaysFor) {
     const required = pickingDaysFor.meta.daysPerWeek
@@ -209,6 +282,205 @@ export function ProgramBrowser() {
     )
   }
 
+  const renderCard = (tpl: ProgramTemplate, isUserProgram: boolean) => {
+    const isCurrent = tpl.meta.id === currentProgramId
+    const isExpanded = expandedId === tpl.meta.id
+
+    return (
+      <div
+        key={tpl.meta.id}
+        className={`rounded-lg border p-3 transition-colors ${
+          isCurrent ? 'border-primary/40 bg-primary/5' : 'border-border bg-card'
+        }`}
+      >
+        <button
+          type="button"
+          className="w-full text-left"
+          onClick={() => setExpandedId(isExpanded ? null : tpl.meta.id)}
+        >
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <span className="font-display text-xs tracking-wider">
+                  {tpl.meta.name}
+                </span>
+                {isCurrent && (
+                  <Check className="h-3 w-3 shrink-0 text-primary" />
+                )}
+              </div>
+              {tpl.meta.author && (
+                <p className="mt-0.5 font-body text-[10px] text-muted-foreground">
+                  {tpl.meta.author}
+                </p>
+              )}
+            </div>
+            <div className="flex shrink-0 items-center gap-1.5">
+              <Badge
+                variant="outline"
+                className="border-0 px-1.5 py-0 font-body text-[10px]"
+              >
+                {t('daysPerWeek', { count: tpl.meta.daysPerWeek })}
+              </Badge>
+              <Badge
+                variant="outline"
+                className={`border-0 px-1.5 py-0 font-body text-[10px] ${DIFFICULTY_COLORS[tpl.meta.difficulty]}`}
+              >
+                {tpl.meta.difficulty}
+              </Badge>
+              {isExpanded ? (
+                <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+              )}
+            </div>
+          </div>
+          <p className="mt-1 font-body text-[11px] text-muted-foreground leading-snug">
+            {tpl.meta.description}
+          </p>
+        </button>
+
+        {isExpanded && (
+          <div className="mt-3 space-y-2 border-border border-t pt-3">
+            <div className="space-y-1">
+              {tpl.days.map((day, i) => (
+                <div
+                  key={day.name}
+                  className="flex items-baseline justify-between font-body text-[11px]"
+                >
+                  <span className="text-foreground">
+                    {t('dayPreview', { n: i + 1, name: day.name })}
+                  </span>
+                  <span className="text-muted-foreground">
+                    {t('nExercises', {
+                      count: day.exercises.length,
+                    })}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex gap-2">
+              {!isCurrent && (
+                <Button
+                  size="sm"
+                  className="flex-1 text-xs"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    startDayPick(tpl)
+                  }}
+                >
+                  {t('selectProgram')}
+                </Button>
+              )}
+
+              {!isUserProgram && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1 text-xs"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setForkingId(tpl.meta.id)
+                    setForkName(`${tpl.meta.name} (copy)`)
+                  }}
+                >
+                  <Copy className="h-3 w-3" />
+                  {t('forkProgram')}
+                </Button>
+              )}
+
+              {isUserProgram && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1 text-xs"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setForkingId(tpl.meta.id)
+                      setForkName(`${tpl.meta.name} (copy)`)
+                    }}
+                  >
+                    <Copy className="h-3 w-3" />
+                    {t('forkProgram')}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1 text-destructive text-xs hover:text-destructive"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setDeletingId(tpl.meta.id)
+                    }}
+                  >
+                    <Trash2 className="h-3 w-3" />
+                    {t('deleteProgram')}
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+
+        {forkingId === tpl.meta.id && (
+          <div className="mt-2 space-y-2 border-border border-t pt-2">
+            <input
+              type="text"
+              value={forkName}
+              onChange={(e) => setForkName(e.target.value)}
+              className="w-full rounded-md border border-border bg-background px-3 py-1.5 font-body text-xs"
+              placeholder={t('forkNamePlaceholder')}
+            />
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 text-xs"
+                onClick={() => setForkingId(null)}
+              >
+                {t('cancel')}
+              </Button>
+              <Button
+                size="sm"
+                className="flex-1 text-xs"
+                disabled={!forkName.trim()}
+                onClick={() => handleFork(tpl.meta.id)}
+              >
+                {t('confirmSwitch')}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {deletingId === tpl.meta.id && (
+          <div className="mt-2 space-y-2 border-destructive/30 border-t pt-2">
+            <p className="font-body text-[11px] text-destructive">
+              {t('confirmDeleteProgram')}
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 text-xs"
+                onClick={() => setDeletingId(null)}
+              >
+                {t('cancel')}
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                className="flex-1 text-xs"
+                onClick={() => handleDelete(tpl.meta.id)}
+              >
+                {t('deleteProgram')}
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-4 pb-4">
       <div className="flex items-center gap-3">
@@ -239,102 +511,22 @@ export function ProgramBrowser() {
         ))}
       </div>
 
+      {filteredUser.length > 0 && (
+        <div className="space-y-2">
+          <h3 className="font-display text-[11px] text-muted-foreground uppercase tracking-wider">
+            {t('myPrograms')}
+          </h3>
+          {filteredUser.map((tpl) => renderCard(tpl, true))}
+        </div>
+      )}
+
       <div className="space-y-2">
-        {filtered.map((tpl) => {
-          const isCurrent = tpl.meta.id === currentProgramId
-          const isExpanded = expandedId === tpl.meta.id
-
-          return (
-            <div
-              key={tpl.meta.id}
-              className={`rounded-lg border p-3 transition-colors ${
-                isCurrent
-                  ? 'border-primary/40 bg-primary/5'
-                  : 'border-border bg-card'
-              }`}
-            >
-              <button
-                type="button"
-                className="w-full text-left"
-                onClick={() => setExpandedId(isExpanded ? null : tpl.meta.id)}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-display text-xs tracking-wider">
-                        {tpl.meta.name}
-                      </span>
-                      {isCurrent && (
-                        <Check className="h-3 w-3 shrink-0 text-primary" />
-                      )}
-                    </div>
-                    {tpl.meta.author && (
-                      <p className="mt-0.5 font-body text-[10px] text-muted-foreground">
-                        {tpl.meta.author}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex shrink-0 items-center gap-1.5">
-                    <Badge
-                      variant="outline"
-                      className="border-0 px-1.5 py-0 font-body text-[10px]"
-                    >
-                      {t('daysPerWeek', { count: tpl.meta.daysPerWeek })}
-                    </Badge>
-                    <Badge
-                      variant="outline"
-                      className={`border-0 px-1.5 py-0 font-body text-[10px] ${DIFFICULTY_COLORS[tpl.meta.difficulty]}`}
-                    >
-                      {tpl.meta.difficulty}
-                    </Badge>
-                    {isExpanded ? (
-                      <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" />
-                    ) : (
-                      <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-                    )}
-                  </div>
-                </div>
-                <p className="mt-1 font-body text-[11px] text-muted-foreground leading-snug">
-                  {tpl.meta.description}
-                </p>
-              </button>
-
-              {isExpanded && (
-                <div className="mt-3 space-y-2 border-border border-t pt-3">
-                  <div className="space-y-1">
-                    {tpl.days.map((day, i) => (
-                      <div
-                        key={day.name}
-                        className="flex items-baseline justify-between font-body text-[11px]"
-                      >
-                        <span className="text-foreground">
-                          {t('dayPreview', { n: i + 1, name: day.name })}
-                        </span>
-                        <span className="text-muted-foreground">
-                          {t('nExercises', {
-                            count: day.exercises.length,
-                          })}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                  {!isCurrent && (
-                    <Button
-                      size="sm"
-                      className="w-full text-xs"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        startDayPick(tpl)
-                      }}
-                    >
-                      {t('selectProgram')}
-                    </Button>
-                  )}
-                </div>
-              )}
-            </div>
-          )
-        })}
+        {filteredUser.length > 0 && (
+          <h3 className="font-display text-[11px] text-muted-foreground uppercase tracking-wider">
+            {t('templates')}
+          </h3>
+        )}
+        {filteredGlobals.map((tpl) => renderCard(tpl, false))}
       </div>
     </div>
   )

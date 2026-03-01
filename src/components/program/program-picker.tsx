@@ -9,7 +9,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
-import { PROGRAM_TEMPLATES } from '@/lib/data/programs/registry'
+import { useAllTemplates } from '@/hooks/use-template'
 import type { Difficulty, ProgramTemplate } from '@/lib/data/programs/types'
 import { useT } from '@/lib/i18n'
 import { DayPicker } from './day-picker'
@@ -42,14 +42,15 @@ export function ProgramPicker({
   onSelect: (programId: string, trainingDays: number[]) => void
 }) {
   const t = useT()
+  const allTemplates = useAllTemplates()
   const [filter, setFilter] = useState<Filter>('all')
   const [selectedTemplate, setSelectedTemplate] =
     useState<ProgramTemplate | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
   const filtered = useMemo(
-    () => PROGRAM_TEMPLATES.filter((tpl) => matchesFilter(tpl, filter)),
-    [filter]
+    () => (allTemplates ?? []).filter((tpl) => matchesFilter(tpl, filter)),
+    [allTemplates, filter]
   )
 
   const filters: { key: Filter; label: string }[] = [
@@ -186,7 +187,9 @@ export function ProgramPicker({
                             {t('dayPreview', { n: i + 1, name: day.name })}
                           </span>
                           <span className="text-muted-foreground">
-                            {day.exercises.length} exercises
+                            {t('nExercises', {
+                              count: day.exercises.length,
+                            })}
                           </span>
                         </div>
                       ))}

@@ -294,6 +294,12 @@ const pl: Messages = {
   saturday: 'Sobota',
   sunday: 'Niedziela',
   dayPreview: 'Dzień {n}: {name}',
+  myPrograms: 'MOJE PROGRAMY',
+  templates: 'SZABLONY',
+  forkProgram: 'KOPIUJ',
+  deleteProgram: 'USUŃ',
+  confirmDeleteProgram: 'Na pewno? Tej operacji nie można cofnąć.',
+  forkNamePlaceholder: 'Nazwij swoją kopię...',
 
   // Settings
   settings: 'USTAWIENIA',
@@ -336,6 +342,23 @@ const pl: Messages = {
   circuitUpNext: 'Następnie',
   circuitNext: 'Dalej',
   circuitLast: 'Ostatnie ćwiczenie!',
+
+  // Dashboard Nav
+  navToday: 'DZIŚ',
+  navProgress: 'POSTĘPY',
+  navMe: 'JA',
+
+  // Dashboard
+  startWorkout: 'ROZPOCZNIJ TRENING',
+  todayWorkout: 'DZISIEJSZY TRENING',
+  workoutCompleted: 'UKOŃCZONY',
+  exercisesCount: '{count} ćwiczeń',
+  estDuration: '~{minutes} min',
+  thisWeekProgress: 'TEN TYDZIEŃ',
+  recentPRs: 'OSTATNIE REKORDY',
+  noWorkoutToday: 'Brak treningu na dziś',
+  profile: 'PROFIL',
+  trainingInfo: 'INFORMACJE O TRENINGU',
 
   // Misc
   redirecting: 'Przekierowywanie…',

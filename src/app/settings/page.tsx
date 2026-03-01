@@ -1,10 +1,5 @@
-import type { Metadata } from 'next'
-import { SettingsPageClient } from './client'
-
-export const metadata: Metadata = {
-  title: 'Settings — Wooah!',
-}
+import { redirect } from 'next/navigation'
 
 export default function SettingsPage() {
-  return <SettingsPageClient />
+  redirect('/me')
 }

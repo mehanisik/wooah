@@ -3,7 +3,7 @@
 import { useQuery } from 'convex/react'
 import { Trophy } from 'lucide-react'
 import { useMemo } from 'react'
-import { getTemplateOrDefault } from '@/lib/data/programs/registry'
+import { useTemplate } from '@/hooks/use-template'
 import { formatDateShort } from '@/lib/format'
 import { useLocale, useT } from '@/lib/i18n'
 import { api } from '../../../convex/_generated/api'
@@ -23,13 +23,13 @@ export function PersonalRecordsList() {
 
   const unit = prefs?.plateSettings?.unit ?? 'kg'
   const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
-  const template = getTemplateOrDefault(activeProgramId)
-  const dayCount = template.days.length
+  const template = useTemplate(activeProgramId)
+  const dayCount = template?.days.length ?? 0
 
   const nameMap = useMemo(() => {
     const map: Record<string, string> = {}
     for (let d = 0; d < dayCount; d++) {
-      const day = template.days[d]
+      const day = template?.days[d]
       if (!day) continue
       day.exercises.forEach((ex, eIdx) => {
         map[`d${d}-e${eIdx}`] = ex.name

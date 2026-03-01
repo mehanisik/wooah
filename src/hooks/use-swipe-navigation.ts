@@ -3,10 +3,8 @@
 import { useQuery } from 'convex/react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useMemo, useRef } from 'react'
-import { getTemplateOrDefault } from '@/lib/data/programs/registry'
+import { useTemplate } from '@/hooks/use-template'
 import { api } from '../../convex/_generated/api'
-
-const UTILITY_ROUTES = ['/rest', '/info', '/stats', '/calendar', '/photos']
 
 const SWIPE_THRESHOLD = 50
 
@@ -16,13 +14,13 @@ export function useSwipeNavigation() {
   const touchStart = useRef<{ x: number; y: number } | null>(null)
   const prefs = useQuery(api.preferences.get)
   const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
-  const template = getTemplateOrDefault(activeProgramId)
-  const dayCount = template.days.length
+  const template = useTemplate(activeProgramId)
+  const dayCount = template?.days.length ?? 6
 
-  const ROUTES = useMemo(() => {
-    const workout = Array.from({ length: dayCount }, (_, i) => `/workout/${i}`)
-    return [...workout, ...UTILITY_ROUTES]
-  }, [dayCount])
+  const ROUTES = useMemo(
+    () => Array.from({ length: dayCount }, (_, i) => `/workout/${i}`),
+    [dayCount]
+  )
 
   useEffect(() => {
     const onTouchStart = (e: TouchEvent) => {

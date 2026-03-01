@@ -3,7 +3,7 @@
 import { useQuery } from 'convex/react'
 import { Trophy, X } from 'lucide-react'
 import { useMemo } from 'react'
-import { getTemplateOrDefault } from '@/lib/data/programs/registry'
+import { useTemplate } from '@/hooks/use-template'
 import { formatDate, parseLocalDate } from '@/lib/format'
 import { useLocale, useT } from '@/lib/i18n'
 import { calcWeekNumber } from '@/lib/workout/helpers'
@@ -25,6 +25,7 @@ export function CalendarDetail({ date, onClose }: CalendarDetailProps) {
   const startDate = prefs?.startDate ?? null
   const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
   const trainingDays = prefs?.trainingDays ?? [0, 1, 2, 3, 4, 5]
+  const template = useTemplate(activeProgramId)
 
   const d = parseLocalDate(date)
   const dow = d.getDay()
@@ -33,8 +34,7 @@ export function CalendarDetail({ date, onClose }: CalendarDetailProps) {
   const dayIdx = sortedTrainingDays.indexOf(weekdayIdx)
 
   const week = startDate ? calcWeekNumber(startDate, d) : 0
-  const template = getTemplateOrDefault(activeProgramId)
-  const prog = dayIdx >= 0 ? template.days[dayIdx] : undefined
+  const prog = dayIdx >= 0 ? template?.days[dayIdx] : undefined
 
   const historyMap = useMemo(() => {
     if (!historyEntries)
@@ -77,7 +77,7 @@ export function CalendarDetail({ date, onClose }: CalendarDetailProps) {
     return map
   }, [sessions])
 
-  if (dayIdx === -1 || !startDate || !prog) return null
+  if (!template || dayIdx === -1 || !startDate || !prog) return null
 
   const timerKey = `w${week}-d${dayIdx}`
   const timer = workoutTimers[timerKey]

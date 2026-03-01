@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { PROGRAM } from '@/lib/data/program'
-import { SUPERSET_REST_SEC, SUPERSET_TRANSITION_SEC } from '../superset'
+import type { Day } from '@/lib/data/program'
+import {
+  getSupersetPartner,
+  isSupersetExercise,
+  SUPERSET_REST_SEC,
+  SUPERSET_TRANSITION_SEC,
+} from '../superset'
 
 describe('superset constants', () => {
   it('has transition time', () => {
@@ -12,32 +17,63 @@ describe('superset constants', () => {
   })
 })
 
-describe('PROGRAM superset data', () => {
-  it('has superset exercises', () => {
-    let found = false
-    for (const day of PROGRAM) {
-      for (const ex of day.exercises) {
-        if (ex.superset != null) {
-          found = true
-          expect(typeof ex.superset).toBe('number')
-        }
-      }
-    }
-    expect(found).toBe(true)
+const mockDay: Day = {
+  day: 'Monday',
+  name: 'Push',
+  type: 'push',
+  focus: 'Chest & Triceps',
+  exercises: [
+    {
+      name: 'Bench Press',
+      equipment: 'barbell',
+      sets: 4,
+      reps: '6-8',
+      rest: 180,
+      rir: '1-2',
+      compound: true,
+    },
+    {
+      name: 'Lateral Raise',
+      equipment: 'dumbbell',
+      sets: 3,
+      reps: '12-15',
+      rest: 60,
+      rir: '1',
+      superset: 3,
+    },
+    {
+      name: 'Overhead Extension',
+      equipment: 'cable',
+      sets: 3,
+      reps: '12-15',
+      rest: 90,
+      rir: '1',
+      superset: 2,
+    },
+  ],
+}
+
+describe('isSupersetExercise', () => {
+  it('returns false for non-superset exercise', () => {
+    expect(isSupersetExercise(mockDay, 0)).toBe(false)
   })
 
-  it('superset pairs exist', () => {
-    for (const day of PROGRAM) {
-      const supersets = new Map<number, number>()
-      day.exercises.forEach((ex, i) => {
-        if (ex.superset != null) {
-          const prev = supersets.get(ex.superset)
-          if (prev != null) {
-            expect(prev).not.toBe(i)
-          }
-          supersets.set(ex.superset, i)
-        }
-      })
-    }
+  it('returns true for superset exercise', () => {
+    expect(isSupersetExercise(mockDay, 1)).toBe(true)
+    expect(isSupersetExercise(mockDay, 2)).toBe(true)
+  })
+})
+
+describe('getSupersetPartner', () => {
+  it('returns null for non-superset exercise', () => {
+    expect(getSupersetPartner(mockDay, 0)).toBeNull()
+  })
+
+  it('returns partner index for first in pair', () => {
+    expect(getSupersetPartner(mockDay, 1)).toBe(2)
+  })
+
+  it('returns partner index for second in pair', () => {
+    expect(getSupersetPartner(mockDay, 2)).toBe(1)
   })
 })
