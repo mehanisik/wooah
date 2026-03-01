@@ -29,13 +29,13 @@ const days: Day[] = [
       {
         name: 'Barbell Bent-over Row',
         equipment: 'barbell',
-        sets: 4,
+        sets: 5,
         reps: '5',
         rest: 120,
         rir: '1-2',
         compound: true,
         notes:
-          'Overhand grip, pull to lower chest. Add weight when all sets done',
+          '5x5 — overhand grip, pull to lower chest. Add weight when all sets done',
         alternatives: [
           { name: 'Pendlay Row', equipment: 'barbell' },
           { name: 'DB Row', equipment: 'dumbbell' },
@@ -124,7 +124,7 @@ const days: Day[] = [
       {
         name: 'Flat Barbell Bench Press',
         equipment: 'barbell',
-        sets: 4,
+        sets: 5,
         reps: '5',
         rest: 180,
         rir: '1-2',
@@ -198,11 +198,11 @@ const days: Day[] = [
       {
         name: 'Lateral Raises',
         equipment: 'dumbbell',
-        sets: 3,
+        sets: 6,
         reps: '15-20',
         rest: 60,
         rir: '0-1',
-        notes: 'Light weight, high reps. Lead with elbows',
+        notes: 'High volume side delt work. Light weight, lead with elbows',
         alternatives: [
           { name: 'Cable Lateral Raise', equipment: 'cable' },
           { name: 'Machine Lateral Raise', equipment: 'machine' },
@@ -304,7 +304,7 @@ const days: Day[] = [
       {
         name: 'Barbell Bent-over Row',
         equipment: 'barbell',
-        sets: 4,
+        sets: 5,
         reps: '5',
         rest: 120,
         rir: '1-2',
@@ -401,7 +401,7 @@ const days: Day[] = [
       {
         name: 'Standing Barbell OHP',
         equipment: 'barbell',
-        sets: 4,
+        sets: 5,
         reps: '5',
         rest: 180,
         rir: '1-2',
@@ -475,11 +475,11 @@ const days: Day[] = [
       {
         name: 'Lateral Raises',
         equipment: 'dumbbell',
-        sets: 3,
+        sets: 6,
         reps: '15-20',
         rest: 60,
         rir: '0-1',
-        notes: 'Light and strict',
+        notes: 'High volume side delt work. Light and strict',
         alternatives: [
           { name: 'Cable Lateral Raise', equipment: 'cable' },
           { name: 'Machine Lateral Raise', equipment: 'machine' },
@@ -538,20 +538,6 @@ const days: Day[] = [
           { name: 'Hack Squat', equipment: 'machine' },
           { name: 'Belt Squat', equipment: 'machine' },
           { name: 'Pendulum Squat', equipment: 'machine' },
-        ],
-      },
-      {
-        name: 'Leg Extension',
-        equipment: 'machine',
-        sets: 3,
-        reps: '8-12',
-        rest: 90,
-        rir: '0-1',
-        notes: 'Quad isolation. Squeeze at top',
-        alternatives: [
-          { name: 'Sissy Squat', equipment: 'bodyweight' },
-          { name: 'Hack Squat', equipment: 'machine' },
-          { name: 'Leg Press (narrow)', equipment: 'machine' },
         ],
       },
       {

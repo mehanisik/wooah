@@ -97,6 +97,19 @@ const days: Day[] = [
           { name: 'Skull Crushers', equipment: 'ez_bar' },
         ],
       },
+      {
+        name: 'Face Pulls',
+        equipment: 'cable',
+        sets: 3,
+        reps: '15-20',
+        rest: 60,
+        rir: '0-1',
+        notes: 'Rear delt & rotator cuff. Pull to forehead, externally rotate',
+        alternatives: [
+          { name: 'Band Pull-Aparts', equipment: 'bodyweight' },
+          { name: 'Reverse Pec Deck', equipment: 'machine' },
+        ],
+      },
     ],
   },
   {
@@ -335,15 +348,18 @@ const days: Day[] = [
         ],
       },
       {
-        name: 'Glute Bridge',
-        equipment: 'bodyweight',
+        name: 'Barbell Hip Thrust',
+        equipment: 'barbell',
         sets: 3,
-        reps: '12-15',
+        reps: '10-12',
         rest: 90,
-        rir: '0-1',
+        rir: '1-2',
+        compound: true,
+        notes:
+          'Glute focus. Drive through heels, full hip extension, 2 sec squeeze at top',
         alternatives: [
-          { name: 'Barbell Hip Thrust', equipment: 'barbell' },
           { name: 'Machine Hip Thrust', equipment: 'machine' },
+          { name: 'Glute Bridge', equipment: 'bodyweight' },
         ],
       },
       {

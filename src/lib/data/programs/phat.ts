@@ -60,8 +60,8 @@ const days: Day[] = [
         ],
       },
       {
-        name: 'Flat Barbell Bench Press',
-        equipment: 'barbell',
+        name: 'Flat Dumbbell Press',
+        equipment: 'dumbbell',
         sets: 3,
         reps: '3-5',
         rest: 180,
@@ -69,7 +69,7 @@ const days: Day[] = [
         amrap: true,
         compound: true,
         notes:
-          'Primary power press. Arch back, retract scapulae, leg drive. Add 2.5kg when you hit 5 reps on all sets',
+          'Heavy DB press for power. Retract scapulae, drive through chest. Add weight when you hit 5 reps on all sets',
         alternatives: [
           { name: 'DB Bench Press', equipment: 'dumbbell' },
           { name: 'Machine Chest Press', equipment: 'machine' },
@@ -111,7 +111,7 @@ const days: Day[] = [
       {
         name: 'Barbell Curl',
         equipment: 'barbell',
-        sets: 2,
+        sets: 3,
         reps: '6-10',
         rest: 120,
         rir: '1-2',
@@ -126,7 +126,7 @@ const days: Day[] = [
       {
         name: 'Skull Crushers',
         equipment: 'ez_bar',
-        sets: 2,
+        sets: 3,
         reps: '6-10',
         rest: 120,
         rir: '1-2',
@@ -182,15 +182,14 @@ const days: Day[] = [
         ],
       },
       {
-        name: 'Leg Press',
+        name: 'Leg Extension',
         equipment: 'machine',
         sets: 2,
         reps: '6-10',
-        rest: 150,
+        rest: 120,
         rir: '1-2',
-        compound: true,
         notes:
-          'Additional quad volume. Mid-high foot placement, full depth without butt wink',
+          'Quad isolation. Squeeze at top, controlled eccentric. Heavier than hypertrophy day',
         alternatives: [
           { name: 'Hack Squat', equipment: 'machine' },
           { name: 'Pendulum Squat', equipment: 'machine' },
@@ -512,14 +511,14 @@ const days: Day[] = [
         ],
       },
       {
-        name: 'Standing Calf Raise',
+        name: 'Donkey Calf Raise',
         equipment: 'machine',
         sets: 4,
         reps: '10-15',
         rest: 60,
         rir: '0-1',
         notes:
-          'Gastrocnemius focus. Full stretch at bottom, pause at top. Higher reps than power day',
+          'Gastrocnemius focus at stretched position. Full stretch at bottom, pause at top',
         alternatives: [
           { name: 'Leg Press Calf Raise', equipment: 'machine' },
           { name: 'Smith Machine Calf Raise', equipment: 'smith' },
@@ -600,18 +599,18 @@ const days: Day[] = [
         ],
       },
       {
-        name: 'Cable Fly',
+        name: 'Incline Cable Fly',
         equipment: 'cable',
         sets: 2,
         reps: '15-20',
         rest: 60,
         rir: '0-1',
         notes:
-          'Chest isolation pump set. Slight bend in elbows, squeeze at peak. Constant cable tension',
+          'Upper chest isolation pump. Low-to-high angle, squeeze at peak. Constant cable tension',
         alternatives: [
           { name: 'Pec Deck', equipment: 'machine' },
           { name: 'DB Fly', equipment: 'dumbbell' },
-          { name: 'Low-to-High Cable Fly', equipment: 'cable' },
+          { name: 'Incline DB Fly', equipment: 'dumbbell' },
         ],
       },
       {
@@ -660,18 +659,18 @@ const days: Day[] = [
         ],
       },
       {
-        name: 'Skull Crushers',
-        equipment: 'ez_bar',
+        name: 'Seated Tricep Extension',
+        equipment: 'dumbbell',
         sets: 3,
         reps: '8-12',
         rest: 90,
         rir: '1-2',
         notes:
-          'Primary tricep builder. Lower to forehead, keep elbows tucked. Lighter than power day, more reps',
+          'Overhead DB extension. Full stretch at bottom, squeeze at lockout. Long head emphasis',
         alternatives: [
+          { name: 'Overhead Cable Extension', equipment: 'cable' },
           { name: 'French Press', equipment: 'ez_bar' },
-          { name: 'Close-Grip Bench Press', equipment: 'barbell' },
-          { name: 'Overhead Tricep Extension', equipment: 'cable' },
+          { name: 'Skull Crushers', equipment: 'ez_bar' },
         ],
       },
       {
@@ -690,18 +689,18 @@ const days: Day[] = [
         ],
       },
       {
-        name: 'Overhead Cable Extension',
+        name: 'Cable Kickbacks',
         equipment: 'cable',
         sets: 2,
         reps: '15-20',
         rest: 60,
         rir: '0-1',
         notes:
-          'Long head tricep pump finisher. Full stretch overhead, squeeze at lockout. Constant cable tension',
+          'Tricep pump finisher. One arm at a time, squeeze at lockout. Lateral head emphasis',
         alternatives: [
-          { name: 'French Press', equipment: 'ez_bar' },
-          { name: 'DB Overhead Extension', equipment: 'dumbbell' },
-          { name: 'Skull Crusher', equipment: 'ez_bar' },
+          { name: 'DB Kickback', equipment: 'dumbbell' },
+          { name: 'Overhead Cable Extension', equipment: 'cable' },
+          { name: 'Rope Pushdown', equipment: 'cable' },
         ],
       },
     ],

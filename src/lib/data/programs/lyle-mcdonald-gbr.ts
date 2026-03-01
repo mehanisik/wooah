@@ -3,7 +3,7 @@ import type { ProgramTemplate } from './types'
 
 const days: Day[] = [
   {
-    day: 'MON',
+    day: 'TUE',
     name: 'Upper A',
     type: 'upper',
     focus:
@@ -119,7 +119,7 @@ const days: Day[] = [
     ],
   },
   {
-    day: 'TUE',
+    day: 'MON',
     name: 'Lower A',
     type: 'lower',
     focus: 'Heavy squat & SLDL + moderate quad/hamstring work + calves',
@@ -218,7 +218,7 @@ const days: Day[] = [
     ],
   },
   {
-    day: 'THU',
+    day: 'FRI',
     name: 'Upper B',
     type: 'upper',
     focus:
@@ -335,7 +335,7 @@ const days: Day[] = [
     ],
   },
   {
-    day: 'FRI',
+    day: 'THU',
     name: 'Lower B',
     type: 'lower',
     focus:

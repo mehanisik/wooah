@@ -44,36 +44,6 @@ const days: Day[] = [
         ],
       },
       {
-        name: 'Leg Curl (lying/seated)',
-        equipment: 'machine',
-        sets: 3,
-        reps: '10-15',
-        rest: 90,
-        rir: '1-2',
-        notes:
-          'Hamstring balance work. Slow eccentric (3 sec), squeeze at contraction',
-        alternatives: [
-          { name: 'Nordic Curl', equipment: 'bodyweight' },
-          { name: 'GHR', equipment: 'bodyweight' },
-          { name: 'Romanian Deadlift', equipment: 'barbell' },
-        ],
-      },
-      {
-        name: 'Leg Extension',
-        equipment: 'machine',
-        sets: 3,
-        reps: '12-15',
-        rest: 90,
-        rir: '0-1',
-        notes:
-          'Quad isolation. Squeeze at top, 1 sec hold. Light and controlled',
-        alternatives: [
-          { name: 'Sissy Squat', equipment: 'bodyweight' },
-          { name: 'Bulgarian Split Squat', equipment: 'dumbbell' },
-          { name: 'Walking Lunges', equipment: 'dumbbell' },
-        ],
-      },
-      {
         name: 'Hanging Leg Raise',
         equipment: 'bodyweight',
         sets: 3,
@@ -148,36 +118,6 @@ const days: Day[] = [
           { name: 'Seated Cable Row', equipment: 'cable' },
         ],
       },
-      {
-        name: 'Dumbbell Fly',
-        equipment: 'dumbbell',
-        sets: 3,
-        reps: '12-15',
-        rest: 90,
-        rir: '0-1',
-        notes:
-          'Chest isolation. Slight bend in elbows, stretch at bottom, squeeze at top',
-        alternatives: [
-          { name: 'Cable Chest Fly', equipment: 'cable' },
-          { name: 'Pec Deck', equipment: 'machine' },
-          { name: 'Incline Dumbbell Fly', equipment: 'dumbbell' },
-        ],
-      },
-      {
-        name: 'Face Pulls',
-        equipment: 'cable',
-        sets: 3,
-        reps: '15-20',
-        rest: 60,
-        rir: '0-1',
-        notes:
-          'Rear delt & external rotation. Pull rope to forehead, hold 1 sec. Shoulder health essential',
-        alternatives: [
-          { name: 'Band Pull-Aparts', equipment: 'bodyweight' },
-          { name: 'Reverse Pec Deck', equipment: 'machine' },
-          { name: 'DB Reverse Fly', equipment: 'dumbbell' },
-        ],
-      },
     ],
   },
   {
@@ -220,36 +160,6 @@ const days: Day[] = [
           { name: 'Romanian Deadlift', equipment: 'barbell' },
           { name: 'Sumo Deadlift', equipment: 'barbell' },
           { name: 'Trap Bar Deadlift', equipment: 'barbell' },
-        ],
-      },
-      {
-        name: 'Leg Press',
-        equipment: 'machine',
-        sets: 3,
-        reps: '10-15',
-        rest: 90,
-        rir: '1-2',
-        notes:
-          'Quad volume. Mid foot placement, full depth. Lighter after heavy deads',
-        alternatives: [
-          { name: 'Hack Squat', equipment: 'machine' },
-          { name: 'Bulgarian Split Squat', equipment: 'dumbbell' },
-          { name: 'Pendulum Squat', equipment: 'machine' },
-        ],
-      },
-      {
-        name: 'Lying Leg Curl',
-        equipment: 'machine',
-        sets: 3,
-        reps: '10-15',
-        rest: 90,
-        rir: '0-1',
-        notes:
-          'Hamstring isolation. 3 sec eccentric, squeeze at contraction. Complements deadlift volume',
-        alternatives: [
-          { name: 'Seated Leg Curl', equipment: 'machine' },
-          { name: 'Nordic Curl', equipment: 'bodyweight' },
-          { name: 'GHR', equipment: 'bodyweight' },
         ],
       },
       {
@@ -324,36 +234,6 @@ const days: Day[] = [
           { name: 'Pull-ups', equipment: 'bodyweight' },
           { name: 'Chin-ups', equipment: 'bodyweight' },
           { name: 'Machine Pulldown', equipment: 'machine' },
-        ],
-      },
-      {
-        name: 'Dumbbell Lateral Raise',
-        equipment: 'dumbbell',
-        sets: 4,
-        reps: '12-15',
-        rest: 60,
-        rir: '0-1',
-        notes:
-          'Side delt isolation. Light weight, lead with elbows, slight lean forward. High reps for medial delts',
-        alternatives: [
-          { name: 'Cable Lateral Raise', equipment: 'cable' },
-          { name: 'Machine Lateral Raise', equipment: 'machine' },
-          { name: 'DB Y-Raise', equipment: 'dumbbell' },
-        ],
-      },
-      {
-        name: 'Barbell Curl (EZ/straight)',
-        equipment: 'ez_bar',
-        sets: 3,
-        reps: '10-12',
-        rest: 60,
-        rir: '0-1',
-        notes:
-          'Bicep work. Strict form, no swinging. Full ROM from stretch to peak contraction',
-        alternatives: [
-          { name: 'DB Curl', equipment: 'dumbbell' },
-          { name: 'Cable Curl', equipment: 'cable' },
-          { name: 'Hammer Curl', equipment: 'dumbbell' },
         ],
       },
     ],
