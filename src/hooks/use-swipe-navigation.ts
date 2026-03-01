@@ -6,8 +6,6 @@ import { useEffect, useMemo, useRef } from 'react'
 import { getTemplateOrDefault } from '@/lib/data/programs/registry'
 import { api } from '../../convex/_generated/api'
 
-const UTILITY_ROUTES = ['/rest', '/info', '/stats', '/calendar', '/photos']
-
 const SWIPE_THRESHOLD = 50
 
 export function useSwipeNavigation() {
@@ -19,10 +17,10 @@ export function useSwipeNavigation() {
   const template = getTemplateOrDefault(activeProgramId)
   const dayCount = template.days.length
 
-  const ROUTES = useMemo(() => {
-    const workout = Array.from({ length: dayCount }, (_, i) => `/workout/${i}`)
-    return [...workout, ...UTILITY_ROUTES]
-  }, [dayCount])
+  const ROUTES = useMemo(
+    () => Array.from({ length: dayCount }, (_, i) => `/workout/${i}`),
+    [dayCount]
+  )
 
   useEffect(() => {
     const onTouchStart = (e: TouchEvent) => {

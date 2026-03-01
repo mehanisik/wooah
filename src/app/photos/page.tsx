@@ -1,10 +1,5 @@
-import type { Metadata } from 'next'
-import { PhotosPage as PhotosContent } from '@/components/photos/photos-page'
-
-export const metadata: Metadata = {
-  title: 'Photos — Wooah!',
-}
+import { redirect } from 'next/navigation'
 
 export default function PhotosPage() {
-  return <PhotosContent />
+  redirect('/progress')
 }

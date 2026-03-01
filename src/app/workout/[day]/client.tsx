@@ -1,6 +1,7 @@
 'use client'
 
 import { useQuery } from 'convex/react'
+import { DayTabBar } from '@/components/workout/day-tab-bar'
 import { WorkoutPage } from '@/components/workout/workout-page'
 import { useSwipeNavigation } from '@/hooks/use-swipe-navigation'
 import { getTemplateOrDefault } from '@/lib/data/programs/registry'
@@ -31,5 +32,10 @@ export function WorkoutPageClient({ dayIdx }: { dayIdx: number }) {
     )
   }
 
-  return <WorkoutPage dayIdx={dayIdx} />
+  return (
+    <>
+      <DayTabBar activeDayIdx={dayIdx} />
+      <WorkoutPage dayIdx={dayIdx} />
+    </>
+  )
 }

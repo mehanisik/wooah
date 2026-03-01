@@ -1,10 +1,5 @@
-import type { Metadata } from 'next'
-import { RestPageClient } from './client'
-
-export const metadata: Metadata = {
-  title: 'Rest Day — Wooah!',
-}
+import { redirect } from 'next/navigation'
 
 export default function RestPage() {
-  return <RestPageClient />
+  redirect('/')
 }

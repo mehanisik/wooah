@@ -1,209 +1,44 @@
 'use client'
 
-import { useQuery } from 'convex/react'
-import {
-  BarChart3,
-  CalendarDays,
-  Camera,
-  Check,
-  Coffee,
-  Info,
-} from 'lucide-react'
+import { BarChart3, CalendarDays, Home, User } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useEffect, useState } from 'react'
-import { useAuth } from '@/hooks/auth-context'
-import { useCurrentWeek } from '@/hooks/use-current-week'
-import { getTemplateOrDefault } from '@/lib/data/programs/registry'
 import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
-import { getTodayDayIdx, getWeekDates } from '@/lib/workout/helpers'
-import { api } from '../../../convex/_generated/api'
 
-function useDateKey() {
-  const [key, setKey] = useState(() => new Date().toDateString())
-  useEffect(() => {
-    const update = () => setKey(new Date().toDateString())
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') update()
-    }
-    document.addEventListener('visibilitychange', onVisible)
-    const timer = setInterval(update, 60_000)
-    return () => {
-      document.removeEventListener('visibilitychange', onVisible)
-      clearInterval(timer)
-    }
-  }, [])
-  return key
-}
-
-const TYPE_COLORS: Record<string, string> = {
-  push: 'bg-push',
-  pull: 'bg-pull',
-  legs: 'bg-legs',
-  rest: 'bg-rest',
-  upper: 'bg-upper',
-  lower: 'bg-lower',
-  full: 'bg-full',
-  chest: 'bg-chest',
-  back: 'bg-back',
-  shoulders: 'bg-shoulders',
-  arms: 'bg-arms',
-  power_upper: 'bg-upper',
-  power_lower: 'bg-lower',
-}
-
-const TYPE_CHECK_COLORS: Record<string, string> = {
-  push: 'text-push',
-  pull: 'text-pull',
-  legs: 'text-legs',
-  upper: 'text-upper',
-  lower: 'text-lower',
-  full: 'text-full',
-  chest: 'text-chest',
-  back: 'text-back',
-  shoulders: 'text-shoulders',
-  arms: 'text-arms',
-  power_upper: 'text-upper',
-  power_lower: 'text-lower',
-}
+const TABS = [
+  { href: '/', icon: Home, labelKey: 'navToday' as const },
+  { href: '/stats', icon: BarChart3, labelKey: 'navStats' as const },
+  { href: '/progress', icon: CalendarDays, labelKey: 'navProgress' as const },
+  { href: '/me', icon: User, labelKey: 'navMe' as const },
+]
 
 export function NavBar() {
   const t = useT()
-  const WEEKDAY_LABELS = [
-    t('navMon'),
-    t('navTue'),
-    t('navWed'),
-    t('navThu'),
-    t('navFri'),
-    t('navSat'),
-    t('navSun'),
-  ]
-
-  const UTILITY_TABS = [
-    { href: '/rest', label: t('navSun'), icon: Coffee },
-    { href: '/info', label: t('navInfo'), icon: Info },
-    { href: '/stats', label: t('navStats'), icon: BarChart3 },
-    { href: '/calendar', label: t('navCal'), icon: CalendarDays },
-    { href: '/photos', label: t('navPics'), icon: Camera },
-  ]
-
   const pathname = usePathname()
-  const _dateKey = useDateKey()
-  const dates = getWeekDates()
-  const { isAuthenticated } = useAuth()
-
-  const prefs = useQuery(api.preferences.get, isAuthenticated ? {} : 'skip')
-  const currentWeek = useCurrentWeek()
-  const weekSessions = useQuery(
-    api.sessions.getByWeek,
-    isAuthenticated ? { week: currentWeek } : 'skip'
-  )
-
-  const trainingDays = prefs?.trainingDays ?? [0, 1, 2, 3, 4, 5]
-  const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
-  const template = getTemplateOrDefault(activeProgramId)
-
-  const finishedDays = new Set<number>()
-  if (weekSessions) {
-    for (const s of weekSessions) {
-      if (s.finishedAt != null) finishedDays.add(s.dayIndex)
-    }
-  }
-
-  const todayIdx = getTodayDayIdx(trainingDays)
-  const sortedTrainingDays = [...trainingDays].sort((a, b) => a - b)
 
   return (
     <nav className="safe-area-pb fixed right-0 bottom-0 left-0 z-40 border-border border-t bg-background/95 backdrop-blur-sm">
       <div className="mx-auto max-w-lg">
-        <div className="scrollbar-none flex overflow-x-auto">
-          {sortedTrainingDays.map((weekday, programDayIdx) => {
-            const day = template.days[programDayIdx]
-            if (!day) return null
-            const href = `/workout/${programDayIdx}`
-            const isActive = pathname === href
-            const isToday = programDayIdx === todayIdx
-            const finished = finishedDays.has(programDayIdx)
-
-            return (
-              <Link
-                key={weekday}
-                href={href}
-                className={cn(
-                  'relative flex min-w-[44px] flex-1 flex-col items-center py-2.5 transition-colors',
-                  isActive
-                    ? 'text-foreground'
-                    : 'text-muted-foreground hover:text-foreground'
-                )}
-              >
-                <span className="font-body font-semibold text-[10px] uppercase tracking-wider">
-                  {WEEKDAY_LABELS[weekday]}
-                </span>
-                <span
-                  className={cn(
-                    'flex h-5 w-5 items-center justify-center rounded-full',
-                    !finished && 'font-mono text-xs tabular-nums',
-                    isToday && 'font-semibold text-white',
-                    isToday && (TYPE_COLORS[day.type] || 'bg-primary')
-                  )}
-                >
-                  {finished ? (
-                    <Check
-                      className={cn(
-                        'h-3.5 w-3.5',
-                        isToday
-                          ? 'text-white'
-                          : TYPE_CHECK_COLORS[day.type] || 'text-success'
-                      )}
-                      strokeWidth={3}
-                    />
-                  ) : (
-                    dates[weekday]
-                  )}
-                </span>
-                {isActive && (
-                  <span
-                    className={cn(
-                      'absolute right-1/4 bottom-0 left-1/4 h-0.5 rounded-full',
-                      TYPE_COLORS[day.type] || 'bg-primary'
-                    )}
-                  />
-                )}
-              </Link>
-            )
-          })}
-
-          <div className="my-2 w-px flex-shrink-0 bg-border" />
-
-          {UTILITY_TABS.map(({ href, label, icon: Icon }) => {
-            const isActive = pathname === href
-            const isSundayToday = href === '/rest' && todayIdx === null
+        <div className="flex">
+          {TABS.map(({ href, icon: Icon, labelKey }) => {
+            const isActive =
+              href === '/' ? pathname === '/' : pathname.startsWith(href)
             return (
               <Link
                 key={href}
                 href={href}
                 className={cn(
-                  'relative flex min-w-[44px] flex-1 flex-col items-center py-2.5 transition-colors',
+                  'flex flex-1 flex-col items-center gap-0.5 py-2.5 transition-colors',
                   isActive
                     ? 'text-foreground'
                     : 'text-muted-foreground hover:text-foreground'
                 )}
               >
-                <span
-                  className={cn(
-                    'flex h-5 w-5 items-center justify-center rounded-full',
-                    isSundayToday && 'bg-rest text-white'
-                  )}
-                >
-                  <Icon className="h-3.5 w-3.5" />
+                <Icon className="h-5 w-5" />
+                <span className="font-body font-semibold text-[10px] uppercase tracking-wider">
+                  {t(labelKey)}
                 </span>
-                <span className="mt-0.5 font-body font-semibold text-[10px] uppercase tracking-wider">
-                  {label}
-                </span>
-                {isActive && (
-                  <span className="absolute right-1/4 bottom-0 left-1/4 h-0.5 rounded-full bg-rest" />
-                )}
               </Link>
             )
           })}

@@ -337,6 +337,23 @@ const pl: Messages = {
   circuitNext: 'Dalej',
   circuitLast: 'Ostatnie ćwiczenie!',
 
+  // Dashboard Nav
+  navToday: 'DZIŚ',
+  navProgress: 'POSTĘPY',
+  navMe: 'JA',
+
+  // Dashboard
+  startWorkout: 'ROZPOCZNIJ TRENING',
+  todayWorkout: 'DZISIEJSZY TRENING',
+  workoutCompleted: 'UKOŃCZONY',
+  exercisesCount: '{count} ćwiczeń',
+  estDuration: '~{minutes} min',
+  thisWeekProgress: 'TEN TYDZIEŃ',
+  recentPRs: 'OSTATNIE REKORDY',
+  noWorkoutToday: 'Brak treningu na dziś',
+  profile: 'PROFIL',
+  trainingInfo: 'INFORMACJE O TRENINGU',
+
   // Misc
   redirecting: 'Przekierowywanie…',
   invalidDay: 'Nieprawidłowy dzień',

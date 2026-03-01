@@ -331,6 +331,23 @@ const en = {
   circuitNext: 'Next',
   circuitLast: 'Last exercise!',
 
+  // Dashboard Nav
+  navToday: 'TODAY',
+  navProgress: 'PROGRESS',
+  navMe: 'ME',
+
+  // Dashboard
+  startWorkout: 'START WORKOUT',
+  todayWorkout: "TODAY'S WORKOUT",
+  workoutCompleted: 'COMPLETED',
+  exercisesCount: '{count} exercises',
+  estDuration: '~{minutes} min',
+  thisWeekProgress: 'THIS WEEK',
+  recentPRs: 'RECENT PRs',
+  noWorkoutToday: 'No workout today',
+  profile: 'PROFILE',
+  trainingInfo: 'TRAINING INFO',
+
   // Misc
   redirecting: 'Redirecting…',
   invalidDay: 'Invalid day',
