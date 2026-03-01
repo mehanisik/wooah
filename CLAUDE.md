@@ -35,14 +35,14 @@
 - **Package manager**: `bun` (never npm/yarn)
 - **Linter**: Biome (`bun run lint`)
 - **Build**: `bun run build`
-- **Backend**: Supabase (auth, postgres, storage)
+- **Backend**: Convex (reactive database, auth, file storage)
 - **i18n**: Custom hook `useT()` from `@/lib/i18n` — English + Polish
 
 ## Key Rules
 
 - All user-facing strings use `useT()` hook — no hardcoded text
 - Exercise names, muscle groups, fitness abbreviations (RIR, AMRAP, 1RM) stay in English
-- Never call `supabase.auth.getUser()` inside `onAuthStateChange` — causes navigator.locks deadlock
+- Use Convex Auth (`useConvexAuth`, `getAuthUserId`) for auth — never call `getUser()` inside `onAuthStateChange` (causes navigator.locks deadlock)
 - All exercise/program access goes through `getEffectiveProgram(dayIdx)` from store
 - `localStorage` keys use `ironppl_` prefix (migration compat)
 
