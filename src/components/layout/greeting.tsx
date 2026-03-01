@@ -4,7 +4,7 @@ import { useQuery } from 'convex/react'
 import { useMemo, useState } from 'react'
 import { useAuth } from '@/hooks/auth-context'
 import { useCurrentWeek } from '@/hooks/use-current-week'
-import { getTemplateOrDefault } from '@/lib/data/programs/registry'
+import { useTemplate } from '@/hooks/use-template'
 import { formatDateFull } from '@/lib/format'
 import { useLocale, useMotivational, useT } from '@/lib/i18n'
 import { getTodayDayIdx } from '@/lib/workout/helpers'
@@ -25,8 +25,8 @@ export function Greeting() {
 
   const trainingDays = prefs?.trainingDays ?? [0, 1, 2, 3, 4, 5]
   const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
-  const template = getTemplateOrDefault(activeProgramId)
-  const dayCount = template.days.length
+  const template = useTemplate(activeProgramId)
+  const dayCount = template?.days.length ?? 0
   const todayIdx = getTodayDayIdx(trainingDays)
 
   const completedThisWeek = useMemo(() => {
@@ -42,7 +42,7 @@ export function Greeting() {
   }, [weekSessions, todayIdx])
 
   const todayWorkout =
-    todayIdx !== null ? (template.days[todayIdx] ?? null) : null
+    todayIdx !== null ? (template?.days[todayIdx] ?? null) : null
 
   const hour = new Date().getHours()
   let timeGreeting: string

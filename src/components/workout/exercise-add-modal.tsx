@@ -13,7 +13,7 @@ import {
   CommandList,
 } from '@/components/ui/command'
 import { useExerciseDb } from '@/hooks/use-exercise-db'
-import { getTemplateOrDefault } from '@/lib/data/programs/registry'
+import { useTemplate } from '@/hooks/use-template'
 import {
   DAY_TYPE_MUSCLES,
   type ExerciseDbEntry,
@@ -50,9 +50,11 @@ export function ExerciseAddModal({
   const { exercises, loading } = useExerciseDb()
   const [search, setSearch] = useState('')
 
-  const template = getTemplateOrDefault(activeProgramId ?? 'wooah-ppl')
+  const template = useTemplate(activeProgramId ?? 'wooah-ppl')
   const day =
-    dayIdx >= 0 && dayIdx < template.days.length ? template.days[dayIdx] : null
+    template && dayIdx >= 0 && dayIdx < template.days.length
+      ? template.days[dayIdx]
+      : null
   const dayType = day?.type ?? 'push'
   const relevantMuscles = DAY_TYPE_MUSCLES[dayType] ?? []
 

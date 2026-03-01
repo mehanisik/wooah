@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { getTemplateOrDefault } from '@/lib/data/programs/registry'
+import { useTemplate } from '@/hooks/use-template'
 import { useT } from '@/lib/i18n'
 import { api } from '../../../convex/_generated/api'
 import { ChartCard } from './chart-card'
@@ -33,8 +33,8 @@ export function ExerciseComparison() {
 
   const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
   const unit = prefs?.plateSettings?.unit ?? 'kg'
-  const template = getTemplateOrDefault(activeProgramId)
-  const dayCount = template.days.length
+  const template = useTemplate(activeProgramId)
+  const dayCount = template?.days.length ?? 0
 
   const oneRmHistory = useMemo(() => {
     if (!oneRmEntries)
@@ -64,7 +64,7 @@ export function ExerciseComparison() {
   const nameMap = useMemo(() => {
     const map: Record<string, string> = {}
     for (let d = 0; d < dayCount; d++) {
-      const day = template.days[d]
+      const day = template?.days[d]
       if (!day) continue
       day.exercises.forEach((ex, eIdx) => {
         map[`d${d}-e${eIdx}`] = ex.name

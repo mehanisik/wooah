@@ -294,6 +294,12 @@ const pl: Messages = {
   saturday: 'Sobota',
   sunday: 'Niedziela',
   dayPreview: 'Dzień {n}: {name}',
+  myPrograms: 'MOJE PROGRAMY',
+  templates: 'SZABLONY',
+  forkProgram: 'KOPIUJ',
+  deleteProgram: 'USUŃ',
+  confirmDeleteProgram: 'Na pewno? Tej operacji nie można cofnąć.',
+  forkNamePlaceholder: 'Nazwij swoją kopię...',
 
   // Settings
   settings: 'USTAWIENIA',

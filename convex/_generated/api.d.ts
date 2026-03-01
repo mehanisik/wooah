@@ -19,6 +19,8 @@ import type * as oneRm from "../oneRm.js";
 import type * as personalRecords from "../personalRecords.js";
 import type * as photos from "../photos.js";
 import type * as preferences from "../preferences.js";
+import type * as programs from "../programs.js";
+import type * as seedData from "../seedData.js";
 import type * as sessions from "../sessions.js";
 import type * as sets from "../sets.js";
 import type * as users from "../users.js";
@@ -41,6 +43,8 @@ declare const fullApi: ApiFromModules<{
   personalRecords: typeof personalRecords;
   photos: typeof photos;
   preferences: typeof preferences;
+  programs: typeof programs;
+  seedData: typeof seedData;
   sessions: typeof sessions;
   sets: typeof sets;
   users: typeof users;

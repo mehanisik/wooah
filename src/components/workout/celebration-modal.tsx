@@ -5,7 +5,7 @@ import { Star, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { useCurrentWeek } from '@/hooks/use-current-week'
-import { getTemplateOrDefault } from '@/lib/data/programs/registry'
+import { useTemplate } from '@/hooks/use-template'
 import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { formatDuration } from '@/lib/workout/helpers'
@@ -36,7 +36,8 @@ export function CelebrationModal({
   const sets = useQuery(api.sets.getByWeekAndDay, { week, dayIndex: dayIdx })
   const setNotesMut = useMutation(api.sessions.setNotes)
 
-  const prog = getTemplateOrDefault(activeProgramId).days[dayIdx]
+  const template = useTemplate(activeProgramId)
+  const prog = template?.days[dayIdx]
 
   const { totalSets, totalVolume } = useMemo(() => {
     if (!sets) return { totalSets: 0, totalVolume: 0 }

@@ -7,7 +7,7 @@ import { useMemo, useState } from 'react'
 import { MesoBanner } from '@/components/mesocycle/meso-banner'
 import { useAuth } from '@/hooks/auth-context'
 import { useCurrentWeek } from '@/hooks/use-current-week'
-import { getTemplateOrDefault } from '@/lib/data/programs/registry'
+import { useTemplate } from '@/hooks/use-template'
 import { formatDateFull } from '@/lib/format'
 import { useLocale, useRestQuotes, useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
@@ -79,8 +79,8 @@ export function DashboardPage() {
 
   const trainingDays = prefs?.trainingDays ?? [0, 1, 2, 3, 4, 5]
   const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
-  const template = getTemplateOrDefault(activeProgramId)
-  const dayCount = template.days.length
+  const template = useTemplate(activeProgramId)
+
   const todayIdx = getTodayDayIdx(trainingDays)
 
   const completedThisWeek = useMemo(() => {
@@ -98,9 +98,10 @@ export function DashboardPage() {
     return set
   }, [weekSessions])
 
+  const dayCount = template?.days.length ?? 0
   const todayFinished = todayIdx !== null && finishedDays.has(todayIdx)
   const todayWorkout =
-    todayIdx !== null ? (template.days[todayIdx] ?? null) : null
+    todayIdx !== null ? (template?.days[todayIdx] ?? null) : null
   const isRestDay = todayIdx === null
 
   const hour = new Date().getHours()
@@ -222,7 +223,7 @@ export function DashboardPage() {
           {t('thisWeekProgress')}
         </h3>
         <div className="mt-2 flex items-center justify-center gap-2">
-          {template.days.map((day, i) => {
+          {template?.days.map((day, i) => {
             const finished = finishedDays.has(i)
             const isTodayDot = i === todayIdx
             return (

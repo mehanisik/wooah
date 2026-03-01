@@ -289,6 +289,12 @@ const en = {
   saturday: 'Saturday',
   sunday: 'Sunday',
   dayPreview: 'Day {n}: {name}',
+  myPrograms: 'MY PROGRAMS',
+  templates: 'TEMPLATES',
+  forkProgram: 'FORK',
+  deleteProgram: 'DELETE',
+  confirmDeleteProgram: 'Are you sure? This cannot be undone.',
+  forkNamePlaceholder: 'Name your copy...',
 
   // Settings
   settings: 'SETTINGS',

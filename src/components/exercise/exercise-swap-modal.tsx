@@ -8,8 +8,8 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command'
+import { useTemplate } from '@/hooks/use-template'
 import { MUSCLE_GROUPS, MUSCLE_MAP } from '@/lib/data/muscles'
-import { getTemplateOrDefault } from '@/lib/data/programs/registry'
 import { useT } from '@/lib/i18n'
 
 interface ExerciseSwapModalProps {
@@ -31,11 +31,13 @@ export function ExerciseSwapModal({
   currentSwapName,
   onSwap,
 }: ExerciseSwapModalProps) {
-  const ex =
-    getTemplateOrDefault(activeProgramId).days[dayIdx]?.exercises[exIdx]
-  const currentName = currentSwapName || ex?.name
-
+  const template = useTemplate(activeProgramId)
   const t = useT()
+
+  if (!template) return null
+
+  const ex = template.days[dayIdx]?.exercises[exIdx]
+  const currentName = currentSwapName || ex?.name
 
   if (!ex) return null
 

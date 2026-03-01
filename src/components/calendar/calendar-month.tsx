@@ -2,7 +2,7 @@
 
 import { useQuery } from 'convex/react'
 import { useMemo } from 'react'
-import { getTemplateOrDefault } from '@/lib/data/programs/registry'
+import { useTemplate } from '@/hooks/use-template'
 import { formatMonthYear } from '@/lib/format'
 import { useLocale, useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
@@ -41,7 +41,7 @@ export function CalendarMonth({
   const startDate = prefs?.startDate ?? null
   const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
   const trainingDays = prefs?.trainingDays ?? [0, 1, 2, 3, 4, 5]
-  const template = getTemplateOrDefault(activeProgramId)
+  const template = useTemplate(activeProgramId)
   const sortedTrainingDays = [...trainingDays].sort((a, b) => a - b)
 
   const finishedDays = useMemo(() => {
@@ -54,6 +54,8 @@ export function CalendarMonth({
     }
     return map
   }, [sessions])
+
+  if (!template) return null
 
   const DAY_HEADERS = [
     t('navMon'),

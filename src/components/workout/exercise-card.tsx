@@ -9,7 +9,7 @@ import { useCurrentWeek } from '@/hooks/use-current-week'
 import { useExerciseGif } from '@/hooks/use-exercise-gif'
 import type { MuscleGroup } from '@/lib/data/muscles'
 import { MUSCLE_MAP } from '@/lib/data/muscles'
-import type { Exercise } from '@/lib/data/program'
+import type { Day, Exercise } from '@/lib/data/program'
 import { getMuscleMapping } from '@/lib/exercise-db'
 import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
@@ -35,6 +35,7 @@ const MUSCLE_COLORS: Record<MuscleGroup, string> = {
 }
 
 interface ExerciseCardProps {
+  day: Day
   dayIdx: number
   exIdx: number
   exercise: Exercise
@@ -45,6 +46,7 @@ interface ExerciseCardProps {
 }
 
 export function ExerciseCard({
+  day,
   dayIdx,
   exIdx,
   exercise,
@@ -71,8 +73,8 @@ export function ExerciseCard({
 
   const extraSets = extraSetsDoc ?? 0
   const totalSets = exercise.sets + extraSets
-  const isSuperset = isSupersetExercise(dayIdx, exIdx)
-  const partnerIdx = isSuperset ? getSupersetPartner(dayIdx, exIdx) : null
+  const isSuperset = isSupersetExercise(day, exIdx)
+  const partnerIdx = isSuperset ? getSupersetPartner(day, exIdx) : null
 
   const { allDone, completedCount } = useMemo(() => {
     if (!sets) return { allDone: false, completedCount: 0 }

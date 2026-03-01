@@ -19,7 +19,7 @@ import { useMutation, useQuery } from 'convex/react'
 import { Plus, Save, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { getTemplateOrDefault } from '@/lib/data/programs/registry'
+import { useTemplate } from '@/hooks/use-template'
 import { useT } from '@/lib/i18n'
 import type { ProgramOverrideEntry } from '@/lib/store/types'
 import { api } from '../../../convex/_generated/api'
@@ -37,25 +37,32 @@ export function ProgramEditor({ dayIdx, onClose }: ProgramEditorProps) {
   const upsertPrefs = useMutation(api.preferences.upsert)
 
   const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
+  const template = useTemplate(activeProgramId)
   const programOverrides = (prefs?.programOverrides ?? {}) as Record<
     number,
     ProgramOverrideEntry[]
   >
-  const base = getTemplateOrDefault(activeProgramId).days[dayIdx]
+  const base = template?.days[dayIdx]
   const existingOverrides = programOverrides[dayIdx]
   const [pickerOpen, setPickerOpen] = useState(false)
 
   const [items, setItems] = useState<ProgramOverrideEntry[]>(() => {
     if (existingOverrides) return [...existingOverrides]
-    return base.exercises.map((_, i) => ({ originalIdx: i }))
+    return (
+      base?.exercises.map((_: unknown, i: number) => ({ originalIdx: i })) ?? []
+    )
   })
 
   useEffect(() => {
     if (!prefs) return
     const overrides = programOverrides[dayIdx]
     if (overrides) setItems([...overrides])
-    else setItems(base.exercises.map((_, i) => ({ originalIdx: i })))
-  }, [prefs, dayIdx])
+    else
+      setItems(
+        base?.exercises.map((_: unknown, i: number) => ({ originalIdx: i })) ??
+          []
+      )
+  }, [prefs, dayIdx, base, programOverrides])
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -104,6 +111,8 @@ export function ProgramEditor({ dayIdx, onClose }: ProgramEditorProps) {
       // mutation failed, keep editor open
     }
   }
+
+  if (!(template && base)) return null
 
   return (
     <div className="space-y-3">

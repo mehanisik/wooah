@@ -5,6 +5,7 @@ import { AlertTriangle } from 'lucide-react'
 import { useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { useCurrentWeek } from '@/hooks/use-current-week'
+import { useTemplate } from '@/hooks/use-template'
 import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { checkDeloadSignals } from '@/lib/workout/deload-detect'
@@ -24,19 +25,25 @@ export function DeloadBanner() {
   const upsertPrefs = useMutation(api.preferences.upsert)
 
   const raw = prefs?.mesocycleConfig ?? DEFAULT_MESO
-  const config = { ...raw, startWeek: raw.startWeek ?? null }
+  const config = useMemo(
+    () => ({ ...raw, startWeek: raw.startWeek ?? null }),
+    [raw]
+  )
   const deloadDismissed = prefs?.deloadDismissed ?? null
   const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
+  const template = useTemplate(activeProgramId)
 
   const signal = useMemo(
     () =>
-      checkDeloadSignals({
-        mesocycleConfig: config,
-        currentWeek,
-        deloadDismissed,
-        activeProgramId,
-      }),
-    [config, currentWeek, deloadDismissed, activeProgramId]
+      template
+        ? checkDeloadSignals({
+            mesocycleConfig: config,
+            currentWeek,
+            deloadDismissed,
+            dayCount: template.days.length,
+          })
+        : null,
+    [config, currentWeek, deloadDismissed, template]
   )
 
   if (!signal) return null

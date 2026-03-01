@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/hooks/auth-context'
 import { useCurrentWeek } from '@/hooks/use-current-week'
-import { getTemplateOrDefault } from '@/lib/data/programs/registry'
+import { useTemplate } from '@/hooks/use-template'
 import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { getTodayDayIdx, getWeekDates } from '@/lib/workout/helpers'
@@ -85,7 +85,7 @@ export function DayTabBar({ activeDayIdx }: { activeDayIdx: number }) {
 
   const trainingDays = prefs?.trainingDays ?? [0, 1, 2, 3, 4, 5]
   const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
-  const template = getTemplateOrDefault(activeProgramId)
+  const template = useTemplate(activeProgramId)
 
   const finishedDays = new Set<number>()
   if (weekSessions) {
@@ -96,6 +96,8 @@ export function DayTabBar({ activeDayIdx }: { activeDayIdx: number }) {
 
   const todayIdx = getTodayDayIdx(trainingDays)
   const sortedTrainingDays = [...trainingDays].sort((a, b) => a - b)
+
+  if (!template) return null
 
   return (
     <div className="scrollbar-none -mx-4 mb-4 flex overflow-x-auto border-border border-b">

@@ -12,7 +12,7 @@ import {
   YAxis,
 } from 'recharts'
 import { useCurrentWeek } from '@/hooks/use-current-week'
-import { getTemplateOrDefault } from '@/lib/data/programs/registry'
+import { useTemplate } from '@/hooks/use-template'
 import { useT } from '@/lib/i18n'
 import { api } from '../../../convex/_generated/api'
 import { ChartCard } from './chart-card'
@@ -32,8 +32,8 @@ export function VolumeChart() {
 
   const unit = prefs?.plateSettings?.unit ?? 'kg'
   const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
-  const template = getTemplateOrDefault(activeProgramId)
-  const dayCount = template.days.length
+  const template = useTemplate(activeProgramId)
+  const dayCount = template?.days.length ?? 0
 
   const historyMap = useMemo(() => {
     if (!historyEntries)
@@ -59,7 +59,7 @@ export function VolumeChart() {
     for (let w = startWeek; w <= currentWeek; w++) {
       const row = { label: `W${w}`, push: 0, pull: 0, legs: 0 }
       for (let d = 0; d < dayCount; d++) {
-        const day = template.days[d]
+        const day = template?.days[d]
         const type = day?.type as 'push' | 'pull' | 'legs'
         if (!day) continue
         day.exercises.forEach((_, eIdx) => {

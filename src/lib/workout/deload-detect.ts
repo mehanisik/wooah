@@ -1,4 +1,3 @@
-import { getTemplateOrDefault } from '@/lib/data/programs/registry'
 import type {
   MesocycleConfig,
   OneRmEntry,
@@ -15,7 +14,7 @@ export interface DeloadCheckParams {
   mesocycleConfig: MesocycleConfig
   currentWeek: number
   deloadDismissed: number | null
-  activeProgramId: string
+  dayCount: number
   oneRmHistory?: Record<string, OneRmEntry[]>
   sessionNotes?: Record<string, SessionNotes>
 }
@@ -69,15 +68,13 @@ export function checkDeloadSignals(
     mesocycleConfig,
     currentWeek,
     deloadDismissed,
-    activeProgramId,
+    dayCount,
     oneRmHistory = {},
     sessionNotes = {},
   } = params
 
   if (isDeloadWeek(mesocycleConfig, currentWeek)) return null
   if (deloadDismissed === currentWeek) return null
-
-  const dayCount = getTemplateOrDefault(activeProgramId).days.length
 
   const oneRMDrops = getRecentOneRMDrops(oneRmHistory)
   const weeksSinceDeload = getWeeksSinceDeload(mesocycleConfig, currentWeek)

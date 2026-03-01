@@ -3,13 +3,13 @@
 import { useQuery } from 'convex/react'
 import { useMemo } from 'react'
 import { useCurrentWeek } from '@/hooks/use-current-week'
+import { useTemplate } from '@/hooks/use-template'
 import {
   MUSCLE_GROUPS,
   MUSCLE_MAP,
   type MuscleGroup,
   VOLUME_LANDMARKS,
 } from '@/lib/data/muscles'
-import { getTemplateOrDefault } from '@/lib/data/programs/registry'
 import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { api } from '../../../convex/_generated/api'
@@ -53,8 +53,8 @@ export function MuscleVolumeChart() {
   const setsData = useQuery(api.sets.getByUser)
 
   const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
-  const template = getTemplateOrDefault(activeProgramId)
-  const dayCount = template.days.length
+  const template = useTemplate(activeProgramId)
+  const dayCount = template?.days.length ?? 0
 
   const logsMap = useMemo(() => {
     if (!setsData) return {} as Record<string, { done: boolean }>
@@ -71,7 +71,7 @@ export function MuscleVolumeChart() {
     for (const group of MUSCLE_GROUPS) vol[group] = 0
 
     for (let d = 0; d < dayCount; d++) {
-      const day = template.days[d]
+      const day = template?.days[d]
       if (!day) continue
       day.exercises.forEach((ex, eIdx) => {
         let doneSets = 0

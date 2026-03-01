@@ -1,5 +1,4 @@
 import type { Day } from '@/lib/data/program'
-import { getTemplateOrDefault } from '@/lib/data/programs/registry'
 import type { SessionNotes } from '@/lib/store/types'
 
 const ENERGY_SCORES: Record<string, number> = {
@@ -50,17 +49,9 @@ export interface SetLogEntry {
 
 export interface ReadinessState {
   currentWeek: number
-  activeProgramId: string
+  days: Day[]
   logs: Record<string, SetLogEntry>
   extraSets: Record<string, number>
-}
-
-function getDay(programId: string, dayIdx: number): Day {
-  return getTemplateOrDefault(programId).days[dayIdx]
-}
-
-function getDayCount(programId: string): number {
-  return getTemplateOrDefault(programId).days.length
 }
 
 function calcVolumeLoad(
@@ -69,8 +60,8 @@ function calcVolumeLoad(
   dayIdx: number
 ): number {
   let load = 0
-  const day = getDay(state.activeProgramId, dayIdx)
-  if (!day.exercises.length) return 0
+  const day = state.days[dayIdx]
+  if (!day?.exercises.length) return 0
 
   for (let e = 0; e < day.exercises.length; e++) {
     const ex = day.exercises[e]
@@ -89,9 +80,9 @@ function calcVolumeLoad(
 }
 
 function getWeeklyVolumeLoad(state: ReadinessState, week: number): number {
-  const dayCount = getDayCount(state.activeProgramId)
   let total = 0
-  for (let d = 0; d < dayCount; d++) total += calcVolumeLoad(state, week, d)
+  for (let d = 0; d < state.days.length; d++)
+    total += calcVolumeLoad(state, week, d)
   return total
 }
 

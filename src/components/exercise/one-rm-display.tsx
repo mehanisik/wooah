@@ -3,7 +3,7 @@
 import { useQuery } from 'convex/react'
 import { useMemo } from 'react'
 import { useCurrentWeek } from '@/hooks/use-current-week'
-import { getTemplateOrDefault } from '@/lib/data/programs/registry'
+import { useTemplate } from '@/hooks/use-template'
 import { useT } from '@/lib/i18n'
 import { calcOneRM } from '@/lib/workout/one-rm'
 import { api } from '../../../convex/_generated/api'
@@ -20,11 +20,12 @@ export function OneRmDisplay({
   activeProgramId,
 }: OneRmDisplayProps) {
   const t = useT()
+  const template = useTemplate(activeProgramId)
   const prefs = useQuery(api.preferences.get)
   const unit = prefs?.plateSettings?.unit ?? 'kg'
   const week = useCurrentWeek()
-  const ex =
-    getTemplateOrDefault(activeProgramId).days[dayIdx]?.exercises[exIdx]
+
+  const ex = template?.days[dayIdx]?.exercises[exIdx]
   const amrapSetIdx = ex ? ex.sets - 1 : 0
 
   const sets = useQuery(api.sets.getByWeekAndDay, { week, dayIndex: dayIdx })

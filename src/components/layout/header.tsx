@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { WooahLogo } from '@/components/ui/wooah-logo'
 import { useAuth } from '@/hooks/auth-context'
 import { useCurrentWeek } from '@/hooks/use-current-week'
-import { getTemplateOrDefault } from '@/lib/data/programs/registry'
+import { useTemplate } from '@/hooks/use-template'
 import { useT } from '@/lib/i18n'
 import type { MesocycleConfig } from '@/lib/store/types'
 import { getMesoWeek, isDeloadWeek } from '@/lib/workout/mesocycle'
@@ -20,7 +20,7 @@ export function Header() {
   const prefs = useQuery(api.preferences.get, isAuthenticated ? {} : 'skip')
 
   const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
-  const template = getTemplateOrDefault(activeProgramId)
+  const template = useTemplate(activeProgramId)
   const mesocycleConfig: MesocycleConfig = {
     length: prefs?.mesocycleConfig?.length ?? 6,
     deloadLength: prefs?.mesocycleConfig?.deloadLength ?? 1,
@@ -51,7 +51,7 @@ export function Header() {
               aria-label={t('browseProgramsAriaLabel')}
             >
               <span className="max-w-[120px] truncate font-body text-[10px] text-muted-foreground">
-                {template.meta.name}
+                {template?.meta.name}
               </span>
               <ChevronRight className="h-3 w-3 text-muted-foreground" />
             </Link>
