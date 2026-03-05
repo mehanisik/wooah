@@ -361,6 +361,12 @@ const en = {
   trainAnyway: 'TRAIN ANYWAY',
   doingInstead: 'Instead of {original}',
   discardWorkout: 'DISCARD',
+  cancelWorkout: 'CANCEL WORKOUT',
+  cancelWorkoutTitle: 'Cancel this workout?',
+  cancelWorkoutDesc:
+    'This will delete the session and all logged sets. This cannot be undone.',
+  cancelWorkoutConfirm: 'Yes, cancel',
+  cancelWorkoutKeep: 'Keep going',
 
   // Freestyle
   startFreestyle: 'FREESTYLE',

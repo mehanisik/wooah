@@ -1,12 +1,20 @@
 'use client'
 
 import { useMutation, useQuery } from 'convex/react'
-import { Dumbbell, Pencil, Plus, Trophy } from 'lucide-react'
+import { Dumbbell, Pencil, Plus, Trophy, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useMemo, useState } from 'react'
 import { ProgramEditor } from '@/components/program/program-editor'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import {
   Sheet,
   SheetContent,
@@ -46,6 +54,7 @@ export function WorkoutPage({ dayIdx, programDayIdx }: WorkoutPageProps) {
 
   const finishDayMut = useMutation(api.sessions.finishDay)
   const startTimerMut = useMutation(api.sessions.startTimer)
+  const cancelSessionMut = useMutation(api.sessions.cancelSession)
 
   const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
   const template = useTemplate(activeProgramId)
@@ -61,6 +70,7 @@ export function WorkoutPage({ dayIdx, programDayIdx }: WorkoutPageProps) {
   const [addModalOpen, setAddModalOpen] = useState(false)
   const [celebrationOpen, setCelebrationOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
+  const [cancelOpen, setCancelOpen] = useState(false)
 
   useWakeLock(!finished)
 
@@ -80,6 +90,12 @@ export function WorkoutPage({ dayIdx, programDayIdx }: WorkoutPageProps) {
   function handleFinish() {
     finishDayMut({ week, dayIndex: programDayIdx })
     setCelebrationOpen(true)
+  }
+
+  async function handleCancelConfirm() {
+    await cancelSessionMut({ week, dayIndex: programDayIdx })
+    setCancelOpen(false)
+    router.push('/')
   }
 
   function handleAddExercise(_entry: {
@@ -117,6 +133,16 @@ export function WorkoutPage({ dayIdx, programDayIdx }: WorkoutPageProps) {
           <p className="font-body text-muted-foreground text-xs">{day.focus}</p>
         </div>
         <div className="flex items-center gap-2">
+          {started && !finished && (
+            <button
+              type="button"
+              onClick={() => setCancelOpen(true)}
+              className="rounded-md p-1.5 text-destructive transition-colors hover:text-destructive/80"
+              aria-label={t('cancelWorkout')}
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
           {!finished && (
             <button
               type="button"
@@ -209,6 +235,26 @@ export function WorkoutPage({ dayIdx, programDayIdx }: WorkoutPageProps) {
         onClose={() => setCelebrationOpen(false)}
         activeProgramId={activeProgramId}
       />
+
+      {/* Cancel workout confirmation */}
+      <Dialog open={cancelOpen} onOpenChange={setCancelOpen}>
+        <DialogContent showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle className="font-display tracking-wider">
+              {t('cancelWorkoutTitle')}
+            </DialogTitle>
+            <DialogDescription>{t('cancelWorkoutDesc')}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCancelOpen(false)}>
+              {t('cancelWorkoutKeep')}
+            </Button>
+            <Button variant="destructive" onClick={handleCancelConfirm}>
+              {t('cancelWorkoutConfirm')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Sheet open={editOpen} onOpenChange={setEditOpen}>
         <SheetContent

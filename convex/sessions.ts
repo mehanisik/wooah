@@ -200,6 +200,65 @@ export const setNotes = mutation({
   },
 })
 
+export const cancelSession = mutation({
+  args: {
+    week: v.number(),
+    dayIndex: v.number(),
+  },
+  handler: async (ctx, { week, dayIndex }) => {
+    const userId = await getAuthUserId(ctx)
+    if (!userId) throw new Error('Not authenticated')
+
+    // Delete session
+    const session = await ctx.db
+      .query('sessions')
+      .withIndex('by_user_week_day', (q) =>
+        q.eq('userId', userId).eq('week', week).eq('dayIndex', dayIndex)
+      )
+      .unique()
+    if (session) {
+      if (session.finishedAt) throw new Error('Cannot cancel a finished session')
+      await ctx.db.delete(session._id)
+    }
+
+    // Delete sets
+    const sets = await ctx.db
+      .query('sets')
+      .withIndex('by_user_week_day', (q) =>
+        q.eq('userId', userId).eq('week', week).eq('dayIndex', dayIndex)
+      )
+      .collect()
+    for (const s of sets) await ctx.db.delete(s._id)
+
+    // Delete extra sets
+    const extras = await ctx.db
+      .query('extraSets')
+      .withIndex('by_user_week_day_ex', (q) =>
+        q.eq('userId', userId).eq('week', week).eq('dayIndex', dayIndex)
+      )
+      .collect()
+    for (const e of extras) await ctx.db.delete(e._id)
+
+    // Delete cardio logs
+    const cardio = await ctx.db
+      .query('cardioLogs')
+      .withIndex('by_user_week_day', (q) =>
+        q.eq('userId', userId).eq('week', week).eq('dayIndex', dayIndex)
+      )
+      .collect()
+    for (const c of cardio) await ctx.db.delete(c._id)
+
+    // Delete exercise notes
+    const notes = await ctx.db
+      .query('exerciseNotes')
+      .withIndex('by_user_week_day_ex', (q) =>
+        q.eq('userId', userId).eq('week', week).eq('dayIndex', dayIndex)
+      )
+      .collect()
+    for (const n of notes) await ctx.db.delete(n._id)
+  },
+})
+
 export const count = query({
   args: {},
   handler: async (ctx) => {
