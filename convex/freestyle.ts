@@ -128,6 +128,28 @@ export const getExercises = query({
   },
 })
 
+export const getActiveSession = query({
+  args: { week: v.number() },
+  handler: async (ctx, { week }) => {
+    const userId = await getAuthUserId(ctx)
+    if (!userId) return null
+
+    const weekSessions = await ctx.db
+      .query('sessions')
+      .withIndex('by_user_week', (q) =>
+        q.eq('userId', userId).eq('week', week)
+      )
+      .collect()
+
+    // Find most recent freestyle session that is not finished
+    const active = weekSessions
+      .filter((s) => s.sessionType === 'freestyle' && !s.finishedAt)
+      .sort((a, b) => (b.startedAt ?? '').localeCompare(a.startedAt ?? ''))
+
+    return active[0] ?? null
+  },
+})
+
 export const getFreestyleSessions = query({
   args: { week: v.number() },
   handler: async (ctx, { week }) => {

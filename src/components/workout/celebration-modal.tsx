@@ -58,12 +58,24 @@ export function CelebrationModal({
 
   const duration = useMemo(() => {
     if (!(session?.startedAt && session?.finishedAt)) return null
-    return Math.round(
+    const pausedSec =
+      (session as { pausedDurationSec?: number }).pausedDurationSec ?? 0
+    const activeSec = Math.round(
       (new Date(session.finishedAt).getTime() -
         new Date(session.startedAt).getTime()) /
         1000
     )
+    return pausedSec + activeSec
   }, [session])
+
+  // Initialize rating from session notes (survives reopen)
+  useEffect(() => {
+    const savedRating = (session?.notes as { rating?: number } | undefined)
+      ?.rating
+    if (savedRating && rating === 0) {
+      setRating(savedRating)
+    }
+  }, [session?.notes, rating])
 
   useEffect(() => {
     if (!(open && canvasRef.current)) return

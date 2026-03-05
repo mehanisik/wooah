@@ -90,7 +90,12 @@ export function WorkoutPage({ dayIdx, programDayIdx }: WorkoutPageProps) {
 
   function handleFinish() {
     finishDayMut({ week, dayIndex: programDayIdx })
-    setCelebrationOpen(true)
+    // Only show celebration on first finish, not after reopen+re-finish
+    const alreadyRated = !!(session?.notes as { rating?: number } | undefined)
+      ?.rating
+    if (!alreadyRated) {
+      setCelebrationOpen(true)
+    }
   }
 
   function handleReopen() {

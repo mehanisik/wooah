@@ -1,5 +1,7 @@
 import { getAuthUserId } from '@convex-dev/auth/server'
 import { v } from 'convex/values'
+import type { Id } from './_generated/dataModel'
+import type { MutationCtx } from './_generated/server'
 import { mutation, query } from './_generated/server'
 
 export const getByWeek = query({
@@ -96,6 +98,194 @@ export const startTimer = mutation({
   },
 })
 
+/** Resolve exercise name for a given session+exerciseIndex */
+async function resolveExerciseName(
+  ctx: MutationCtx,
+  userId: Id<'users'>,
+  session: { sessionType?: string; dayIndex: number },
+  exerciseIndex: number
+): Promise<string | null> {
+  if (session.sessionType === 'freestyle') {
+    // Look up from freestyleExercises
+    const freestyleExs = await ctx.db
+      .query('freestyleExercises')
+      .withIndex('by_user', (q) => q.eq('userId', userId))
+      .collect()
+    const match = freestyleExs.find(
+      (e) => e.exerciseIndex === exerciseIndex
+    )
+    return match?.name ?? null
+  }
+
+  // Program workout — look up from programTemplates via userPreferences
+  const prefs = await ctx.db
+    .query('userPreferences')
+    .withIndex('by_user', (q) => q.eq('userId', userId))
+    .unique()
+  if (!prefs) return null
+
+  const template = await ctx.db
+    .query('programTemplates')
+    .withIndex('by_programId', (q) =>
+      q.eq('programId', prefs.activeProgramId)
+    )
+    .first()
+  if (!template) return null
+
+  const days = template.days as Array<{
+    exercises: Array<{ name: string }>
+  }>
+  const day = days[session.dayIndex]
+  if (!day) return null
+
+  return day.exercises[exerciseIndex]?.name ?? null
+}
+
+/** Persist history, personal records, and 1RM data for all completed sets in a session */
+async function persistWorkoutData(
+  ctx: MutationCtx,
+  userId: Id<'users'>,
+  session: {
+    week: number
+    dayIndex: number
+    sessionType?: string
+  }
+) {
+  const { week, dayIndex } = session
+  const date = new Date().toISOString().split('T')[0]
+
+  // Get all completed sets for this session
+  const allSets = await ctx.db
+    .query('sets')
+    .withIndex('by_user_week_day', (q) =>
+      q.eq('userId', userId).eq('week', week).eq('dayIndex', dayIndex)
+    )
+    .collect()
+
+  const doneSets = allSets.filter((s) => s.done)
+  if (doneSets.length === 0) return
+
+  // Group by exerciseIndex
+  const byExercise = new Map<
+    number,
+    Array<{ weight: number; reps: number }>
+  >()
+  for (const s of doneSets) {
+    const w = Number.parseFloat(String(s.weight)) || 0
+    const r = Number.parseInt(String(s.reps), 10) || 0
+    if (w === 0 && r === 0) continue
+    const group = byExercise.get(s.exerciseIndex) ?? []
+    group.push({ weight: w, reps: r })
+    byExercise.set(s.exerciseIndex, group)
+  }
+
+  for (const [exerciseIndex, sets] of byExercise) {
+    const exerciseName = await resolveExerciseName(
+      ctx,
+      userId,
+      session,
+      exerciseIndex
+    )
+    if (!exerciseName) continue
+
+    const bestWeight = Math.max(...sets.map((s) => s.weight))
+    const bestReps = Math.max(...sets.map((s) => s.reps))
+    const bestVolume = sets.reduce((sum, s) => sum + s.weight * s.reps, 0)
+    const detailedSets = sets.map((s) => ({
+      weight: s.weight,
+      reps: s.reps,
+    }))
+
+    // Upsert history (same logic as history.add)
+    const existingHistory = await ctx.db
+      .query('history')
+      .withIndex('by_user_day_exercise', (q) =>
+        q
+          .eq('userId', userId)
+          .eq('dayIndex', dayIndex)
+          .eq('exerciseIndex', exerciseIndex)
+      )
+      .filter((q) =>
+        q.and(
+          q.eq(q.field('week'), week),
+          q.eq(q.field('date'), date)
+        )
+      )
+      .first()
+
+    if (existingHistory) {
+      await ctx.db.patch(existingHistory._id, {
+        weight: bestWeight,
+        reps: bestReps,
+        detailedSets,
+      })
+    } else {
+      await ctx.db.insert('history', {
+        userId,
+        dayIndex,
+        exerciseIndex,
+        week,
+        weight: bestWeight,
+        reps: bestReps,
+        date,
+        detailedSets,
+      })
+    }
+
+    // Upsert personal records (only if new volume is higher)
+    const existingPR = await ctx.db
+      .query('personalRecords')
+      .withIndex('by_user_exercise', (q) =>
+        q
+          .eq('userId', userId)
+          .eq('dayIndex', dayIndex)
+          .eq('exerciseIndex', exerciseIndex)
+      )
+      .unique()
+
+    if (existingPR) {
+      if (bestVolume > existingPR.bestVolume) {
+        await ctx.db.patch(existingPR._id, {
+          exerciseName,
+          bestVolume,
+          bestWeight,
+          bestReps,
+          achievedAt: new Date().toISOString(),
+        })
+      }
+    } else {
+      await ctx.db.insert('personalRecords', {
+        userId,
+        dayIndex,
+        exerciseIndex,
+        exerciseName,
+        bestVolume,
+        bestWeight,
+        bestReps,
+        achievedAt: new Date().toISOString(),
+      })
+    }
+
+    // 1RM via Epley formula for the set with highest reps (AMRAP candidate)
+    const amrapSet = sets.reduce((best, s) =>
+      s.reps > best.reps ? s : best
+    )
+    if (amrapSet.weight > 0 && amrapSet.reps > 1) {
+      const oneRm = Math.round(
+        amrapSet.weight * (1 + amrapSet.reps / 30)
+      )
+      await ctx.db.insert('oneRmHistory', {
+        userId,
+        dayIndex,
+        exerciseIndex,
+        date,
+        value: oneRm,
+        week,
+      })
+    }
+  }
+}
+
 export const finishDay = mutation({
   args: {
     week: v.number(),
@@ -114,26 +304,34 @@ export const finishDay = mutation({
 
     const now = new Date().toISOString()
 
+    let sessionId: Id<'sessions'>
+    let sessionType: string | undefined
+
     if (existing) {
-      const duration = existing.startedAt
+      const pausedSec = existing.pausedDurationSec ?? 0
+      const activeSec = existing.startedAt
         ? Math.round(
             (Date.now() - new Date(existing.startedAt).getTime()) / 1000
           )
         : 0
       await ctx.db.patch(existing._id, {
         finishedAt: now,
-        durationSec: duration,
+        durationSec: pausedSec + activeSec,
       })
-      return existing._id
+      sessionId = existing._id
+      sessionType = existing.sessionType
+    } else {
+      sessionId = await ctx.db.insert('sessions', {
+        userId,
+        week,
+        dayIndex,
+        finishedAt: now,
+        durationSec: 0,
+      })
     }
 
-    return ctx.db.insert('sessions', {
-      userId,
-      week,
-      dayIndex,
-      finishedAt: now,
-      durationSec: 0,
-    })
+    await persistWorkoutData(ctx, userId, { week, dayIndex, sessionType })
+    return sessionId
   },
 })
 
@@ -151,12 +349,22 @@ export const finishById = mutation({
     if (session.finishedAt) return sessionId
 
     const now = new Date().toISOString()
-    const duration = session.startedAt
+    const pausedSec = session.pausedDurationSec ?? 0
+    const activeSec = session.startedAt
       ? Math.round(
           (Date.now() - new Date(session.startedAt).getTime()) / 1000
         )
       : 0
-    await ctx.db.patch(sessionId, { finishedAt: now, durationSec: duration })
+    await ctx.db.patch(sessionId, {
+      finishedAt: now,
+      durationSec: pausedSec + activeSec,
+    })
+
+    await persistWorkoutData(ctx, userId, {
+      week: session.week,
+      dayIndex: session.dayIndex,
+      sessionType: session.sessionType,
+    })
     return sessionId
   },
 })
@@ -219,7 +427,10 @@ export const reopenSession = mutation({
     if (!session) throw new Error('Session not found')
     if (!session.finishedAt) return session._id
 
+    // Store accumulated duration, reset clock
     await ctx.db.patch(session._id, {
+      pausedDurationSec: session.durationSec ?? 0,
+      startedAt: new Date().toISOString(),
       finishedAt: undefined,
       durationSec: undefined,
     })
