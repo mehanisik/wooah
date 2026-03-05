@@ -68,10 +68,15 @@ export function DayPickerSheet({
             const finished = finishedDays.has(i)
             const isToday = i === todayIdx
 
+            const href =
+              todayIdx !== null && i !== todayIdx
+                ? `/workout/${todayIdx}?programDay=${i}`
+                : `/workout/${i}`
+
             return (
               <Link
                 key={day.day}
-                href={`/workout/${i}`}
+                href={href}
                 onClick={() => onOpenChange(false)}
                 className={cn(
                   'flex items-center gap-3 rounded-lg border border-border p-3 transition-colors active:bg-muted/50',

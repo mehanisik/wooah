@@ -365,6 +365,8 @@ const pl: Messages = {
   scheduledToday: 'Zaplanowany na dziś',
   switchDay: 'ZMIEŃ DZIEŃ',
   trainAnyway: 'TRENUJ MIMO WSZYSTKO',
+  doingInstead: 'Zamiast {original}',
+  discardWorkout: 'ODRZUĆ',
 
   // Freestyle
   startFreestyle: 'DOWOLNY',

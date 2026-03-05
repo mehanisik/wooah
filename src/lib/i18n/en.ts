@@ -359,6 +359,8 @@ const en = {
   scheduledToday: 'Scheduled today',
   switchDay: 'SWITCH DAY',
   trainAnyway: 'TRAIN ANYWAY',
+  doingInstead: 'Instead of {original}',
+  discardWorkout: 'DISCARD',
 
   // Freestyle
   startFreestyle: 'FREESTYLE',
