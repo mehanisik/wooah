@@ -38,6 +38,7 @@ export default defineSchema({
     startedAt: v.optional(v.string()),
     finishedAt: v.optional(v.string()),
     durationSec: v.optional(v.number()),
+    pausedDurationSec: v.optional(v.number()),
     notes: v.optional(
       v.object({
         energy: v.optional(v.string()),

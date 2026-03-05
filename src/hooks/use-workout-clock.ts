@@ -16,20 +16,22 @@ export function useWorkoutClock(dayIdx: number) {
 
   const startedAt = session?.startedAt ?? null
   const finishedAt = session?.finishedAt ?? null
+  const pausedSec =
+    (session as { pausedDurationSec?: number } | null)?.pausedDurationSec ?? 0
 
   const isRunning = !!startedAt && !finishedAt
 
   const update = useEffectEvent(() => {
     if (startedAt && !finishedAt) {
-      const diff = Math.round(
+      const activeSec = Math.round(
         (Date.now() - new Date(startedAt).getTime()) / 1000
       )
-      setElapsed(diff)
+      setElapsed(pausedSec + activeSec)
     } else if (startedAt && finishedAt) {
-      const duration = Math.round(
+      const activeSec = Math.round(
         (new Date(finishedAt).getTime() - new Date(startedAt).getTime()) / 1000
       )
-      setElapsed(duration)
+      setElapsed(pausedSec + activeSec)
     } else {
       setElapsed(0)
     }

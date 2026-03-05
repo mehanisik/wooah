@@ -1,11 +1,20 @@
 'use client'
 
 import { useMutation, useQuery } from 'convex/react'
-import { Pencil, Plus, Trophy } from 'lucide-react'
+import { Dumbbell, Pencil, Plus, Trophy, X } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { useMemo, useState } from 'react'
 import { ProgramEditor } from '@/components/program/program-editor'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import {
   Sheet,
   SheetContent,
@@ -29,31 +38,40 @@ import { WorkoutClock } from './workout-clock'
 
 interface WorkoutPageProps {
   dayIdx: number
+  programDayIdx: number
 }
 
-export function WorkoutPage({ dayIdx }: WorkoutPageProps) {
+export function WorkoutPage({ dayIdx, programDayIdx }: WorkoutPageProps) {
   const t = useT()
   const week = useCurrentWeek()
+  const router = useRouter()
 
   const prefs = useQuery(api.preferences.get)
   const session = useQuery(api.sessions.getByWeekAndDay, {
     week,
-    dayIndex: dayIdx,
+    dayIndex: programDayIdx,
   })
 
   const finishDayMut = useMutation(api.sessions.finishDay)
+  const startTimerMut = useMutation(api.sessions.startTimer)
+  const cancelSessionMut = useMutation(api.sessions.cancelSession)
+  const reopenSessionMut = useMutation(api.sessions.reopenSession)
 
   const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
   const template = useTemplate(activeProgramId)
-  const day = template?.days[dayIdx]
+  const day = template?.days[programDayIdx]
+  const originalDay = dayIdx !== programDayIdx ? template?.days[dayIdx] : null
   const finished = !!session?.finishedAt
+  const started = !!session?.startedAt
+  const isOverride = dayIdx !== programDayIdx
 
-  const elapsed = useWorkoutClock(dayIdx)
+  const elapsed = useWorkoutClock(programDayIdx)
   const restTimer = useRestTimer()
 
   const [addModalOpen, setAddModalOpen] = useState(false)
   const [celebrationOpen, setCelebrationOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
+  const [cancelOpen, setCancelOpen] = useState(false)
 
   useWakeLock(!finished)
 
@@ -62,9 +80,32 @@ export function WorkoutPage({ dayIdx }: WorkoutPageProps) {
     return day.exercises.map((ex) => ex.name)
   }, [day])
 
+  function handleStart() {
+    startTimerMut({ week, dayIndex: programDayIdx })
+  }
+
+  function handleDiscard() {
+    router.push('/')
+  }
+
   function handleFinish() {
-    finishDayMut({ week, dayIndex: dayIdx })
-    setCelebrationOpen(true)
+    finishDayMut({ week, dayIndex: programDayIdx })
+    // Only show celebration on first finish, not after reopen+re-finish
+    const alreadyRated = !!(session?.notes as { rating?: number } | undefined)
+      ?.rating
+    if (!alreadyRated) {
+      setCelebrationOpen(true)
+    }
+  }
+
+  function handleReopen() {
+    reopenSessionMut({ week, dayIndex: programDayIdx })
+  }
+
+  async function handleCancelConfirm() {
+    await cancelSessionMut({ week, dayIndex: programDayIdx })
+    setCancelOpen(false)
+    router.push('/')
   }
 
   function handleAddExercise(_entry: {
@@ -102,6 +143,16 @@ export function WorkoutPage({ dayIdx }: WorkoutPageProps) {
           <p className="font-body text-muted-foreground text-xs">{day.focus}</p>
         </div>
         <div className="flex items-center gap-2">
+          {started && !finished && (
+            <button
+              type="button"
+              onClick={() => setCancelOpen(true)}
+              className="rounded-md p-1.5 text-destructive transition-colors hover:text-destructive/80"
+              aria-label={t('cancelWorkout')}
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
           {!finished && (
             <button
               type="button"
@@ -126,11 +177,29 @@ export function WorkoutPage({ dayIdx }: WorkoutPageProps) {
         </div>
       </div>
 
+      {isOverride && originalDay && (
+        <div className="rounded-lg border border-border bg-muted/50 px-3 py-2 text-center font-body text-muted-foreground text-xs">
+          {t('doingInstead', { original: originalDay.name })}
+        </div>
+      )}
+
+      {!(started || finished) && (
+        <div className="flex gap-2">
+          <Button className="flex-1 gap-2" size="lg" onClick={handleStart}>
+            <Dumbbell className="h-4 w-4" />
+            {t('startWorkout')}
+          </Button>
+          <Button variant="outline" size="lg" onClick={handleDiscard}>
+            {t('discardWorkout')}
+          </Button>
+        </div>
+      )}
+
       {day.exercises.map((ex, exIdx) => (
         <ExerciseCard
-          key={`${dayIdx}-${exIdx}`}
+          key={`${programDayIdx}-${exIdx}`}
           day={day}
-          dayIdx={dayIdx}
+          dayIdx={programDayIdx}
           exIdx={exIdx}
           exercise={ex}
           displayName={exerciseDisplayNames[exIdx] ?? ex.name}
@@ -150,20 +219,32 @@ export function WorkoutPage({ dayIdx }: WorkoutPageProps) {
       )}
 
       {day.cardio && day.cardio.length > 0 && (
-        <CardioSection dayIdx={dayIdx} items={day.cardio} />
+        <CardioSection dayIdx={programDayIdx} items={day.cardio} />
       )}
 
-      {!finished && (
+      {started && !finished && (
         <Button className="w-full gap-2" size="lg" onClick={handleFinish}>
           <Trophy className="h-4 w-4" />
           {t('finishWorkout')}
         </Button>
       )}
 
+      {finished && (
+        <Button
+          variant="outline"
+          className="w-full gap-2"
+          size="lg"
+          onClick={handleReopen}
+        >
+          <Pencil className="h-4 w-4" />
+          {t('editCompletedWorkout')}
+        </Button>
+      )}
+
       <RestTimerBar timer={restTimer} />
 
       <ExerciseAddModal
-        dayIdx={dayIdx}
+        dayIdx={programDayIdx}
         activeProgramId={activeProgramId}
         open={addModalOpen}
         onOpenChange={setAddModalOpen}
@@ -171,11 +252,31 @@ export function WorkoutPage({ dayIdx }: WorkoutPageProps) {
       />
 
       <CelebrationModal
-        dayIdx={dayIdx}
+        dayIdx={programDayIdx}
         open={celebrationOpen}
         onClose={() => setCelebrationOpen(false)}
         activeProgramId={activeProgramId}
       />
+
+      {/* Cancel workout confirmation */}
+      <Dialog open={cancelOpen} onOpenChange={setCancelOpen}>
+        <DialogContent showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle className="font-display tracking-wider">
+              {t('cancelWorkoutTitle')}
+            </DialogTitle>
+            <DialogDescription>{t('cancelWorkoutDesc')}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCancelOpen(false)}>
+              {t('cancelWorkoutKeep')}
+            </Button>
+            <Button variant="destructive" onClick={handleCancelConfirm}>
+              {t('cancelWorkoutConfirm')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Sheet open={editOpen} onOpenChange={setEditOpen}>
         <SheetContent
@@ -186,7 +287,10 @@ export function WorkoutPage({ dayIdx }: WorkoutPageProps) {
           <SheetHeader className="sr-only">
             <SheetTitle>{t('editProgram')}</SheetTitle>
           </SheetHeader>
-          <ProgramEditor dayIdx={dayIdx} onClose={() => setEditOpen(false)} />
+          <ProgramEditor
+            dayIdx={programDayIdx}
+            onClose={() => setEditOpen(false)}
+          />
         </SheetContent>
       </Sheet>
     </div>

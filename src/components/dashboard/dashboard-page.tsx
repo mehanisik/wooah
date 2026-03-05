@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from 'convex/react'
-import { ArrowRightLeft, Coffee, Dumbbell, Trophy } from 'lucide-react'
+import { ArrowRightLeft, Coffee, Dumbbell, Pencil, Trophy } from 'lucide-react'
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { MesoBanner } from '@/components/mesocycle/meso-banner'
@@ -213,28 +213,48 @@ export function DashboardPage() {
               })}
             </span>
           </div>
-          {!todayFinished && (
-            <div className="mt-3 flex gap-2">
-              <Link
-                href={`/workout/${todayIdx}`}
-                className={cn(
-                  'flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5 font-display text-sm text-white tracking-wider transition-colors',
-                  TYPE_COLORS[todayWorkout.type] || 'bg-primary'
-                )}
-              >
-                <Dumbbell className="h-4 w-4" />
-                {t('startWorkout')}
-              </Link>
-              <button
-                type="button"
-                onClick={() => setPickerOpen(true)}
-                className="flex items-center justify-center rounded-lg border border-border px-3 transition-colors active:bg-muted"
-                aria-label={t('switchDay')}
-              >
-                <ArrowRightLeft className="h-4 w-4 text-muted-foreground" />
-              </button>
-            </div>
-          )}
+          <div className="mt-3 flex gap-2">
+            {todayFinished ? (
+              <>
+                <Link
+                  href={`/workout/${todayIdx}`}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-border py-2.5 font-display text-sm tracking-wider transition-colors active:bg-muted"
+                >
+                  <Pencil className="h-4 w-4" />
+                  {t('editCompletedWorkout')}
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setPickerOpen(true)}
+                  className="flex items-center justify-center rounded-lg border border-border px-3 transition-colors active:bg-muted"
+                  aria-label={t('switchDay')}
+                >
+                  <ArrowRightLeft className="h-4 w-4 text-muted-foreground" />
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href={`/workout/${todayIdx}`}
+                  className={cn(
+                    'flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5 font-display text-sm text-white tracking-wider transition-colors',
+                    TYPE_COLORS[todayWorkout.type] || 'bg-primary'
+                  )}
+                >
+                  <Dumbbell className="h-4 w-4" />
+                  {t('startWorkout')}
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setPickerOpen(true)}
+                  className="flex items-center justify-center rounded-lg border border-border px-3 transition-colors active:bg-muted"
+                  aria-label={t('switchDay')}
+                >
+                  <ArrowRightLeft className="h-4 w-4 text-muted-foreground" />
+                </button>
+              </>
+            )}
+          </div>
         </div>
       )}
 
@@ -248,8 +268,9 @@ export function DashboardPage() {
             const finished = finishedDays.has(i)
             const isTodayDot = i === todayIdx
             return (
-              <div
+              <Link
                 key={day.day}
+                href={`/workout/${i}`}
                 className={cn(
                   'h-3.5 w-3.5 rounded-full border-2 transition-colors',
                   finished

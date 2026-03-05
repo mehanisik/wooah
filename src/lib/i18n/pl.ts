@@ -365,6 +365,15 @@ const pl: Messages = {
   scheduledToday: 'Zaplanowany na dziś',
   switchDay: 'ZMIEŃ DZIEŃ',
   trainAnyway: 'TRENUJ MIMO WSZYSTKO',
+  doingInstead: 'Zamiast {original}',
+  discardWorkout: 'ODRZUĆ',
+  cancelWorkout: 'ANULUJ TRENING',
+  cancelWorkoutTitle: 'Anulować ten trening?',
+  cancelWorkoutDesc:
+    'Spowoduje usunięcie sesji i wszystkich zapisanych serii. Tej operacji nie można cofnąć.',
+  cancelWorkoutConfirm: 'Tak, anuluj',
+  cancelWorkoutKeep: 'Kontynuuj',
+  editCompletedWorkout: 'EDYTUJ TRENING',
 
   // Freestyle
   startFreestyle: 'DOWOLNY',
