@@ -38,10 +38,11 @@ function WorkoutContent({ dayIdx }: { dayIdx: number }) {
     )
   }
 
-  const programDayIdx =
-    programDayParam != null
-      ? Math.max(0, Math.min(Number(programDayParam), dayCount - 1))
-      : dayIdx
+  const parsed =
+    programDayParam != null ? Number.parseInt(programDayParam, 10) : Number.NaN
+  const programDayIdx = !Number.isNaN(parsed)
+    ? Math.max(0, Math.min(parsed, dayCount - 1))
+    : dayIdx
 
   return (
     <>

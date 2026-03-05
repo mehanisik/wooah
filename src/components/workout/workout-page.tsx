@@ -73,28 +73,36 @@ export function WorkoutPage({ dayIdx, programDayIdx }: WorkoutPageProps) {
   const [editOpen, setEditOpen] = useState(false)
   const [cancelOpen, setCancelOpen] = useState(false)
 
-  useWakeLock(!finished)
+  useWakeLock(started && !finished)
 
   const exerciseDisplayNames = useMemo(() => {
     if (!day) return []
     return day.exercises.map((ex) => ex.name)
   }, [day])
 
-  function handleStart() {
-    startTimerMut({ week, dayIndex: programDayIdx })
+  async function handleStart() {
+    try {
+      await startTimerMut({ week, dayIndex: programDayIdx })
+    } catch {
+      // Session may already exist — swallow
+    }
   }
 
   function handleDiscard() {
     router.push('/')
   }
 
-  function handleFinish() {
-    finishDayMut({ week, dayIndex: programDayIdx })
-    // Only show celebration on first finish, not after reopen+re-finish
-    const alreadyRated = !!(session?.notes as { rating?: number } | undefined)
-      ?.rating
-    if (!alreadyRated) {
-      setCelebrationOpen(true)
+  async function handleFinish() {
+    try {
+      await finishDayMut({ week, dayIndex: programDayIdx })
+      // Only show celebration on first finish, not after reopen+re-finish
+      const alreadyRated = !!(session?.notes as { rating?: number } | undefined)
+        ?.rating
+      if (!alreadyRated) {
+        setCelebrationOpen(true)
+      }
+    } catch {
+      // finish failed — don't open celebration
     }
   }
 
