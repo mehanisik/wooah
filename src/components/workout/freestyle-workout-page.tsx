@@ -25,6 +25,7 @@ export function FreestyleWorkoutPage() {
   const [addModalOpen, setAddModalOpen] = useState(false)
   const [celebrationOpen, setCelebrationOpen] = useState(false)
   const [finished, setFinished] = useState(false)
+  const [error, setError] = useState(false)
   const creatingRef = useRef(false)
 
   const createSession = useMutation(api.freestyle.createSession)
@@ -36,10 +37,15 @@ export function FreestyleWorkoutPage() {
   useEffect(() => {
     if (sessionId || creatingRef.current) return
     creatingRef.current = true
-    createSession({ week }).then((result) => {
-      setSessionId(result.sessionId)
-      setDayIndex(result.dayIndex)
-    })
+    createSession({ week })
+      .then((result) => {
+        setSessionId(result.sessionId)
+        setDayIndex(result.dayIndex)
+      })
+      .catch(() => {
+        creatingRef.current = false
+        setError(true)
+      })
   }, [sessionId, createSession, week])
 
   const exercises = useQuery(
@@ -47,9 +53,8 @@ export function FreestyleWorkoutPage() {
     sessionId ? { sessionId } : 'skip'
   )
 
-  // Use the actual negative dayIndex for the workout clock
-  const clockDayIdx = dayIndex ?? -999
-  const elapsed = useWorkoutClockBySession(clockDayIdx)
+  // Use the actual negative dayIndex for the workout clock (skip query until known)
+  const elapsed = useWorkoutClockBySession(dayIndex)
   const restTimer = useRestTimer()
   useWakeLock(!finished)
 
@@ -89,6 +94,14 @@ export function FreestyleWorkoutPage() {
     setFinished(true)
     setCelebrationOpen(true)
   }, [sessionId, finishByIdMut])
+
+  if (error) {
+    return (
+      <div className="py-8 text-center text-muted-foreground">
+        {t('somethingWentWrong')}
+      </div>
+    )
+  }
 
   if (!sessionId || dayIndex === null) {
     return (
@@ -159,7 +172,7 @@ export function FreestyleWorkoutPage() {
       <RestTimerBar timer={restTimer} />
 
       <ExerciseAddModal
-        dayIdx={-1}
+        dayIdx={dayIndex}
         open={addModalOpen}
         onOpenChange={setAddModalOpen}
         onAddExercise={handleAddExercise}
@@ -176,15 +189,15 @@ export function FreestyleWorkoutPage() {
   )
 }
 
-// Inline hook that uses the actual dayIndex for the workout clock
-function useWorkoutClockBySession(dayIdx: number) {
+// Hook that uses the actual dayIndex for the workout clock, skips query until dayIndex is known
+function useWorkoutClockBySession(dayIdx: number | null) {
   const [elapsed, setElapsed] = useState(0)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const week = useCurrentWeek()
-  const session = useQuery(api.sessions.getByWeekAndDay, {
-    week,
-    dayIndex: dayIdx,
-  })
+  const session = useQuery(
+    api.sessions.getByWeekAndDay,
+    dayIdx !== null ? { week, dayIndex: dayIdx } : 'skip'
+  )
 
   const startedAt = session?.startedAt ?? null
   const finishedAt = session?.finishedAt ?? null
