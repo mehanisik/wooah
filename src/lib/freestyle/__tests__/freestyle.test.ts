@@ -6,12 +6,15 @@ import { describe, expect, it } from 'vitest'
  */
 
 // --- dayIndex generation logic (mirrors createSession) ---
+// Uses sessionType for classification and min(existing) - 1 to avoid gaps
 
 function computeFreestyleDayIndex(
-  existingSessions: { dayIndex: number }[]
+  existingSessions: { dayIndex: number; sessionType?: string }[]
 ): number {
-  const freestyleCount = existingSessions.filter((s) => s.dayIndex < 0).length
-  return -(freestyleCount + 1)
+  const freestyleIndices = existingSessions
+    .filter((s) => s.sessionType === 'freestyle')
+    .map((s) => s.dayIndex)
+  return freestyleIndices.length > 0 ? Math.min(...freestyleIndices) - 1 : -1
 }
 
 // --- exercise reindex logic (mirrors removeExercise) ---
@@ -51,16 +54,25 @@ describe('computeFreestyleDayIndex', () => {
       expect(computeFreestyleDayIndex([])).toBe(-1)
     })
 
-    it('returns -1 when only program sessions exist (dayIndex >= 0)', () => {
-      const sessions = [{ dayIndex: 0 }, { dayIndex: 1 }, { dayIndex: 2 }]
+    it('returns -1 when only program sessions exist', () => {
+      const sessions = [
+        { dayIndex: 0, sessionType: 'program' },
+        { dayIndex: 1, sessionType: 'program' },
+        { dayIndex: 2, sessionType: 'program' },
+      ]
       expect(computeFreestyleDayIndex(sessions)).toBe(-1)
     })
 
-    it('ignores program sessions when counting freestyle', () => {
+    it('returns -1 when sessions have no sessionType', () => {
+      const sessions = [{ dayIndex: 0 }, { dayIndex: 1 }]
+      expect(computeFreestyleDayIndex(sessions)).toBe(-1)
+    })
+
+    it('ignores program sessions when computing min', () => {
       const sessions = [
-        { dayIndex: 0 },
-        { dayIndex: 1 },
-        { dayIndex: -1 }, // one freestyle
+        { dayIndex: 0, sessionType: 'program' },
+        { dayIndex: 1, sessionType: 'program' },
+        { dayIndex: -1, sessionType: 'freestyle' },
       ]
       expect(computeFreestyleDayIndex(sessions)).toBe(-2)
     })
@@ -68,45 +80,50 @@ describe('computeFreestyleDayIndex', () => {
     it('handles many freestyle sessions without collision', () => {
       const sessions = Array.from({ length: 10 }, (_, i) => ({
         dayIndex: -(i + 1),
+        sessionType: 'freestyle' as const,
       }))
+      // min is -10, so next is -11
       expect(computeFreestyleDayIndex(sessions)).toBe(-11)
     })
 
     it('handles mixed program and freestyle sessions', () => {
       const sessions = [
-        { dayIndex: 0 },
-        { dayIndex: -1 },
-        { dayIndex: 1 },
-        { dayIndex: -2 },
-        { dayIndex: 2 },
+        { dayIndex: 0, sessionType: 'program' },
+        { dayIndex: -1, sessionType: 'freestyle' },
+        { dayIndex: 1, sessionType: 'program' },
+        { dayIndex: -2, sessionType: 'freestyle' },
+        { dayIndex: 2, sessionType: 'program' },
       ]
+      // min of freestyle is -2, so next is -3
       expect(computeFreestyleDayIndex(sessions)).toBe(-3)
     })
 
-    it('handles dayIndex = 0 correctly (not counted as freestyle)', () => {
+    it('handles dayIndex = 0 correctly (not counted as freestyle without type)', () => {
       const sessions = [{ dayIndex: 0 }]
       expect(computeFreestyleDayIndex(sessions)).toBe(-1)
     })
 
     it('produces strictly decreasing sequence for consecutive calls', () => {
-      const sessions: { dayIndex: number }[] = []
+      const sessions: { dayIndex: number; sessionType: string }[] = []
       const indices: number[] = []
 
       for (let i = 0; i < 5; i++) {
         const idx = computeFreestyleDayIndex(sessions)
         indices.push(idx)
-        sessions.push({ dayIndex: idx })
+        sessions.push({ dayIndex: idx, sessionType: 'freestyle' })
       }
 
       expect(indices).toEqual([-1, -2, -3, -4, -5])
     })
 
-    it('gaps in freestyle indices still produce correct next index', () => {
-      // If session with dayIndex -2 was somehow deleted, we still have -1 and -3
-      const sessions = [{ dayIndex: -1 }, { dayIndex: -3 }]
-      // Count is 2 freestyle sessions → next is -(2+1) = -3
-      // This IS a potential collision — documenting the behavior
-      expect(computeFreestyleDayIndex(sessions)).toBe(-3)
+    it('gaps in freestyle indices still produce correct next index (no collision)', () => {
+      // If session with dayIndex -2 was deleted, we still have -1 and -3
+      const sessions = [
+        { dayIndex: -1, sessionType: 'freestyle' },
+        { dayIndex: -3, sessionType: 'freestyle' },
+      ]
+      // min is -3, so next is -4 (no collision!)
+      expect(computeFreestyleDayIndex(sessions)).toBe(-4)
     })
   })
 
@@ -116,13 +133,16 @@ describe('computeFreestyleDayIndex', () => {
     })
 
     it('second freestyle session gets -2', () => {
-      expect(computeFreestyleDayIndex([{ dayIndex: -1 }])).toBe(-2)
+      const sessions = [{ dayIndex: -1, sessionType: 'freestyle' }]
+      expect(computeFreestyleDayIndex(sessions)).toBe(-2)
     })
 
     it('third freestyle session gets -3', () => {
-      expect(
-        computeFreestyleDayIndex([{ dayIndex: -1 }, { dayIndex: -2 }])
-      ).toBe(-3)
+      const sessions = [
+        { dayIndex: -1, sessionType: 'freestyle' },
+        { dayIndex: -2, sessionType: 'freestyle' },
+      ]
+      expect(computeFreestyleDayIndex(sessions)).toBe(-3)
     })
   })
 })

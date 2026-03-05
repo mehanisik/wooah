@@ -16,11 +16,12 @@ export const createSession = mutation({
       )
       .collect()
 
-    const freestyleCount = weekSessions.filter(
-      (s) => s.sessionType === 'freestyle'
-    ).length
+    const freestyleIndices = weekSessions
+      .filter((s) => s.sessionType === 'freestyle')
+      .map((s) => s.dayIndex)
 
-    const dayIndex = -(freestyleCount + 1)
+    const dayIndex =
+      freestyleIndices.length > 0 ? Math.min(...freestyleIndices) - 1 : -1
 
     const sessionId = await ctx.db.insert('sessions', {
       userId,
