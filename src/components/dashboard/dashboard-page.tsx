@@ -215,13 +215,23 @@ export function DashboardPage() {
           </div>
           <div className="mt-3 flex gap-2">
             {todayFinished ? (
-              <Link
-                href={`/workout/${todayIdx}`}
-                className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-border py-2.5 font-display text-sm tracking-wider transition-colors active:bg-muted"
-              >
-                <Pencil className="h-4 w-4" />
-                {t('editCompletedWorkout')}
-              </Link>
+              <>
+                <Link
+                  href={`/workout/${todayIdx}`}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-border py-2.5 font-display text-sm tracking-wider transition-colors active:bg-muted"
+                >
+                  <Pencil className="h-4 w-4" />
+                  {t('editCompletedWorkout')}
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setPickerOpen(true)}
+                  className="flex items-center justify-center rounded-lg border border-border px-3 transition-colors active:bg-muted"
+                  aria-label={t('switchDay')}
+                >
+                  <ArrowRightLeft className="h-4 w-4 text-muted-foreground" />
+                </button>
+              </>
             ) : (
               <>
                 <Link
@@ -258,8 +268,9 @@ export function DashboardPage() {
             const finished = finishedDays.has(i)
             const isTodayDot = i === todayIdx
             return (
-              <div
+              <Link
                 key={day.day}
+                href={`/workout/${i}`}
                 className={cn(
                   'h-3.5 w-3.5 rounded-full border-2 transition-colors',
                   finished
