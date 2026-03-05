@@ -373,6 +373,7 @@ const pl: Messages = {
     'Spowoduje usunięcie sesji i wszystkich zapisanych serii. Tej operacji nie można cofnąć.',
   cancelWorkoutConfirm: 'Tak, anuluj',
   cancelWorkoutKeep: 'Kontynuuj',
+  editCompletedWorkout: 'EDYTUJ TRENING',
 
   // Freestyle
   startFreestyle: 'DOWOLNY',

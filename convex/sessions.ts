@@ -200,6 +200,33 @@ export const setNotes = mutation({
   },
 })
 
+export const reopenSession = mutation({
+  args: {
+    week: v.number(),
+    dayIndex: v.number(),
+  },
+  handler: async (ctx, { week, dayIndex }) => {
+    const userId = await getAuthUserId(ctx)
+    if (!userId) throw new Error('Not authenticated')
+
+    const session = await ctx.db
+      .query('sessions')
+      .withIndex('by_user_week_day', (q) =>
+        q.eq('userId', userId).eq('week', week).eq('dayIndex', dayIndex)
+      )
+      .unique()
+
+    if (!session) throw new Error('Session not found')
+    if (!session.finishedAt) return session._id
+
+    await ctx.db.patch(session._id, {
+      finishedAt: undefined,
+      durationSec: undefined,
+    })
+    return session._id
+  },
+})
+
 export const cancelSession = mutation({
   args: {
     week: v.number(),

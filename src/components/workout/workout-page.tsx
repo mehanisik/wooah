@@ -55,6 +55,7 @@ export function WorkoutPage({ dayIdx, programDayIdx }: WorkoutPageProps) {
   const finishDayMut = useMutation(api.sessions.finishDay)
   const startTimerMut = useMutation(api.sessions.startTimer)
   const cancelSessionMut = useMutation(api.sessions.cancelSession)
+  const reopenSessionMut = useMutation(api.sessions.reopenSession)
 
   const activeProgramId = prefs?.activeProgramId ?? 'wooah-ppl'
   const template = useTemplate(activeProgramId)
@@ -90,6 +91,10 @@ export function WorkoutPage({ dayIdx, programDayIdx }: WorkoutPageProps) {
   function handleFinish() {
     finishDayMut({ week, dayIndex: programDayIdx })
     setCelebrationOpen(true)
+  }
+
+  function handleReopen() {
+    reopenSessionMut({ week, dayIndex: programDayIdx })
   }
 
   async function handleCancelConfirm() {
@@ -216,6 +221,18 @@ export function WorkoutPage({ dayIdx, programDayIdx }: WorkoutPageProps) {
         <Button className="w-full gap-2" size="lg" onClick={handleFinish}>
           <Trophy className="h-4 w-4" />
           {t('finishWorkout')}
+        </Button>
+      )}
+
+      {finished && (
+        <Button
+          variant="outline"
+          className="w-full gap-2"
+          size="lg"
+          onClick={handleReopen}
+        >
+          <Pencil className="h-4 w-4" />
+          {t('editCompletedWorkout')}
         </Button>
       )}
 

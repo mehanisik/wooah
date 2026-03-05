@@ -367,6 +367,7 @@ const en = {
     'This will delete the session and all logged sets. This cannot be undone.',
   cancelWorkoutConfirm: 'Yes, cancel',
   cancelWorkoutKeep: 'Keep going',
+  editCompletedWorkout: 'EDIT WORKOUT',
 
   // Freestyle
   startFreestyle: 'FREESTYLE',
