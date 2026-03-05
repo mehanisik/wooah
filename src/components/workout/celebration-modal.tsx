@@ -16,6 +16,7 @@ interface CelebrationModalProps {
   open: boolean
   onClose: () => void
   activeProgramId: string
+  sessionType?: 'program' | 'freestyle'
 }
 
 export function CelebrationModal({
@@ -23,6 +24,7 @@ export function CelebrationModal({
   open,
   onClose,
   activeProgramId,
+  sessionType,
 }: CelebrationModalProps) {
   const t = useT()
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -148,7 +150,9 @@ export function CelebrationModal({
           {t('workoutDone')}
         </div>
         <div className="mb-4 font-body text-muted-foreground text-xs">
-          {prog?.day} — {prog?.name}
+          {sessionType === 'freestyle'
+            ? t('freestyleComplete')
+            : `${prog?.day} — ${prog?.name}`}
         </div>
 
         <div className="mb-4 grid grid-cols-3 gap-3">

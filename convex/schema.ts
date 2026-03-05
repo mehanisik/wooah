@@ -32,6 +32,9 @@ export default defineSchema({
     userId: v.id('users'),
     week: v.number(),
     dayIndex: v.number(),
+    sessionType: v.optional(
+      v.union(v.literal('program'), v.literal('freestyle'))
+    ),
     startedAt: v.optional(v.string()),
     finishedAt: v.optional(v.string()),
     durationSec: v.optional(v.number()),
@@ -49,6 +52,19 @@ export default defineSchema({
     .index('by_user', ['userId'])
     .index('by_user_week', ['userId', 'week'])
     .index('by_user_week_day', ['userId', 'week', 'dayIndex']),
+
+  freestyleExercises: defineTable({
+    userId: v.id('users'),
+    sessionId: v.id('sessions'),
+    exerciseIndex: v.number(),
+    name: v.string(),
+    equipment: v.optional(v.string()),
+    targetSets: v.number(),
+    targetReps: v.optional(v.string()),
+    rest: v.optional(v.number()),
+  })
+    .index('by_session', ['sessionId'])
+    .index('by_user', ['userId']),
 
   sets: defineTable({
     userId: v.id('users'),

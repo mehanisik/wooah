@@ -354,6 +354,21 @@ const en = {
   profile: 'PROFILE',
   trainingInfo: 'TRAINING INFO',
 
+  // Day Picker / Switch
+  chooseWorkout: 'CHOOSE WORKOUT',
+  scheduledToday: 'Scheduled today',
+  switchDay: 'SWITCH DAY',
+  trainAnyway: 'TRAIN ANYWAY',
+
+  // Freestyle
+  startFreestyle: 'FREESTYLE',
+  freestyleDesc: 'Build your own workout on the fly',
+  freestyleTitle: 'FREESTYLE WORKOUT',
+  addFirstExercise: 'ADD YOUR FIRST EXERCISE',
+  noExercisesYet: 'No exercises yet. Tap to add one!',
+  removeExercise: 'REMOVE EXERCISE',
+  freestyleComplete: 'Freestyle Workout',
+
   // Misc
   redirecting: 'Redirecting…',
   invalidDay: 'Invalid day',

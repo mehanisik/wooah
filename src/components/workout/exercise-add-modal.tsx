@@ -55,8 +55,9 @@ export function ExerciseAddModal({
     template && dayIdx >= 0 && dayIdx < template.days.length
       ? template.days[dayIdx]
       : null
+  const isFreestyle = dayIdx < 0
   const dayType = day?.type ?? 'push'
-  const relevantMuscles = DAY_TYPE_MUSCLES[dayType] ?? []
+  const relevantMuscles = isFreestyle ? [] : (DAY_TYPE_MUSCLES[dayType] ?? [])
 
   const filtered = useMemo(() => {
     let list: ExerciseDbEntry[]
