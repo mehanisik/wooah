@@ -54,8 +54,14 @@ export const getByWeekAndDay = query({
 })
 
 export const startTimer = mutation({
-  args: { week: v.number(), dayIndex: v.number() },
-  handler: async (ctx, { week, dayIndex }) => {
+  args: {
+    week: v.number(),
+    dayIndex: v.number(),
+    sessionType: v.optional(
+      v.union(v.literal('program'), v.literal('freestyle'))
+    ),
+  },
+  handler: async (ctx, { week, dayIndex, sessionType }) => {
     const userId = await getAuthUserId(ctx)
     if (!userId) throw new Error('Not authenticated')
 
@@ -67,10 +73,15 @@ export const startTimer = mutation({
       .unique()
 
     if (existing) {
+      const patch: Record<string, string> = {}
       if (!existing.startedAt) {
-        await ctx.db.patch(existing._id, {
-          startedAt: new Date().toISOString(),
-        })
+        patch.startedAt = new Date().toISOString()
+      }
+      if (sessionType && !existing.sessionType) {
+        patch.sessionType = sessionType
+      }
+      if (Object.keys(patch).length > 0) {
+        await ctx.db.patch(existing._id, patch)
       }
       return existing._id
     }
@@ -80,6 +91,7 @@ export const startTimer = mutation({
       week,
       dayIndex,
       startedAt: new Date().toISOString(),
+      ...(sessionType ? { sessionType } : {}),
     })
   },
 })
@@ -122,6 +134,30 @@ export const finishDay = mutation({
       finishedAt: now,
       durationSec: 0,
     })
+  },
+})
+
+export const finishById = mutation({
+  args: { sessionId: v.id('sessions') },
+  handler: async (ctx, { sessionId }) => {
+    const userId = await getAuthUserId(ctx)
+    if (!userId) throw new Error('Not authenticated')
+
+    const session = await ctx.db.get(sessionId)
+    if (!session || session.userId !== userId)
+      throw new Error('Session not found')
+
+    // Idempotent: don't overwrite if already finished
+    if (session.finishedAt) return sessionId
+
+    const now = new Date().toISOString()
+    const duration = session.startedAt
+      ? Math.round(
+          (Date.now() - new Date(session.startedAt).getTime()) / 1000
+        )
+      : 0
+    await ctx.db.patch(sessionId, { finishedAt: now, durationSec: duration })
+    return sessionId
   },
 })
 

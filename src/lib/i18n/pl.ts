@@ -360,6 +360,21 @@ const pl: Messages = {
   profile: 'PROFIL',
   trainingInfo: 'INFORMACJE O TRENINGU',
 
+  // Day Picker / Switch
+  chooseWorkout: 'WYBIERZ TRENING',
+  scheduledToday: 'Zaplanowany na dziś',
+  switchDay: 'ZMIEŃ DZIEŃ',
+  trainAnyway: 'TRENUJ MIMO WSZYSTKO',
+
+  // Freestyle
+  startFreestyle: 'DOWOLNY',
+  freestyleDesc: 'Zbuduj własny trening na bieżąco',
+  freestyleTitle: 'TRENING DOWOLNY',
+  addFirstExercise: 'DODAJ PIERWSZE ĆWICZENIE',
+  noExercisesYet: 'Brak ćwiczeń. Dotknij aby dodać!',
+  removeExercise: 'USUŃ ĆWICZENIE',
+  freestyleComplete: 'Trening dowolny',
+
   // Misc
   redirecting: 'Przekierowywanie…',
   invalidDay: 'Nieprawidłowy dzień',
