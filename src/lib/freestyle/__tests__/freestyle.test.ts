@@ -10,9 +10,7 @@ import { describe, expect, it } from 'vitest'
 function computeFreestyleDayIndex(
   existingSessions: { dayIndex: number }[]
 ): number {
-  const freestyleCount = existingSessions.filter(
-    (s) => s.dayIndex < 0
-  ).length
+  const freestyleCount = existingSessions.filter((s) => s.dayIndex < 0).length
   return -(freestyleCount + 1)
 }
 
@@ -54,11 +52,7 @@ describe('computeFreestyleDayIndex', () => {
     })
 
     it('returns -1 when only program sessions exist (dayIndex >= 0)', () => {
-      const sessions = [
-        { dayIndex: 0 },
-        { dayIndex: 1 },
-        { dayIndex: 2 },
-      ]
+      const sessions = [{ dayIndex: 0 }, { dayIndex: 1 }, { dayIndex: 2 }]
       expect(computeFreestyleDayIndex(sessions)).toBe(-1)
     })
 

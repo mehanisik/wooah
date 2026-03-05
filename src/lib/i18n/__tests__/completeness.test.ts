@@ -17,12 +17,14 @@ describe('i18n completeness', () => {
   })
 
   it('no EN values are empty strings', () => {
-    const empty = enKeys.filter((k) => en[k] === '')
+    const empty = enKeys.filter((k) => (en[k] as string) === '')
     expect(empty).toEqual([])
   })
 
   it('no PL values are empty strings', () => {
-    const empty = plKeys.filter((k) => pl[k as keyof typeof pl] === '')
+    const empty = plKeys.filter(
+      (k) => (pl[k as keyof typeof pl] as string) === ''
+    )
     expect(empty).toEqual([])
   })
 

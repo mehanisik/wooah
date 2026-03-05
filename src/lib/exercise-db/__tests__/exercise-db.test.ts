@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import type { ExerciseDbEntry } from '../../exercise-db'
 import {
   DAY_TYPE_MUSCLES,
   filterByMuscle,
@@ -6,7 +7,6 @@ import {
   mapApiMuscle,
   searchExercises,
 } from '../../exercise-db'
-import type { ExerciseDbEntry } from '../../exercise-db'
 
 // Helper to create a minimal ExerciseDbEntry
 function makeEntry(
@@ -96,13 +96,13 @@ describe('mapApiEquipment', () => {
 describe('DAY_TYPE_MUSCLES', () => {
   describe('failure / edge cases', () => {
     it('returns undefined for unknown day type', () => {
-      expect(DAY_TYPE_MUSCLES['nonexistent']).toBeUndefined()
+      expect(DAY_TYPE_MUSCLES.nonexistent).toBeUndefined()
       expect(DAY_TYPE_MUSCLES['']).toBeUndefined()
     })
 
     it('freestyle has no day type mapping (empty/undefined)', () => {
       // Freestyle doesn't use a day type — any unknown key should be undefined
-      expect(DAY_TYPE_MUSCLES['freestyle']).toBeUndefined()
+      expect(DAY_TYPE_MUSCLES.freestyle).toBeUndefined()
     })
   })
 
@@ -114,18 +114,18 @@ describe('DAY_TYPE_MUSCLES', () => {
     })
 
     it('push includes Chest and Triceps', () => {
-      expect(DAY_TYPE_MUSCLES['push']).toContain('Chest')
-      expect(DAY_TYPE_MUSCLES['push']).toContain('Triceps')
+      expect(DAY_TYPE_MUSCLES.push).toContain('Chest')
+      expect(DAY_TYPE_MUSCLES.push).toContain('Triceps')
     })
 
     it('pull includes Back and Biceps', () => {
-      expect(DAY_TYPE_MUSCLES['pull']).toContain('Back')
-      expect(DAY_TYPE_MUSCLES['pull']).toContain('Biceps')
+      expect(DAY_TYPE_MUSCLES.pull).toContain('Back')
+      expect(DAY_TYPE_MUSCLES.pull).toContain('Biceps')
     })
 
     it('legs includes Quads and Glutes', () => {
-      expect(DAY_TYPE_MUSCLES['legs']).toContain('Quads')
-      expect(DAY_TYPE_MUSCLES['legs']).toContain('Glutes')
+      expect(DAY_TYPE_MUSCLES.legs).toContain('Quads')
+      expect(DAY_TYPE_MUSCLES.legs).toContain('Glutes')
     })
   })
 })
