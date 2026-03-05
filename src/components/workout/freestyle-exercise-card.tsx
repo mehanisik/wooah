@@ -15,6 +15,7 @@ interface FreestyleExerciseCardProps {
   name: string
   equipment?: string
   targetSets: number
+  rest?: number
   onRemove: () => void
   onStartRest: (sec: number, label: string) => void
 }
@@ -25,6 +26,7 @@ export function FreestyleExerciseCard({
   name,
   equipment,
   targetSets,
+  rest,
   onRemove,
   onStartRest,
 }: FreestyleExerciseCardProps) {
@@ -90,7 +92,7 @@ export function FreestyleExerciseCard({
               exIdx={exerciseIndex}
               setIdx={setIdx}
               isAmrap={false}
-              restSeconds={90}
+              restSeconds={rest ?? 90}
               exerciseName={name}
               onStartRest={onStartRest}
             />

@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/command'
 import { useExerciseDb } from '@/hooks/use-exercise-db'
 import { useTemplate } from '@/hooks/use-template'
+import type { MuscleGroup } from '@/lib/data/muscles'
 import {
   DAY_TYPE_MUSCLES,
   type ExerciseDbEntry,
@@ -22,6 +23,8 @@ import {
 } from '@/lib/exercise-db'
 
 import { useT } from '@/lib/i18n'
+
+const EMPTY_MUSCLES: MuscleGroup[] = []
 
 interface ExerciseAddModalProps {
   dayIdx: number
@@ -57,7 +60,9 @@ export function ExerciseAddModal({
       : null
   const isFreestyle = dayIdx < 0
   const dayType = day?.type ?? 'push'
-  const relevantMuscles = isFreestyle ? [] : (DAY_TYPE_MUSCLES[dayType] ?? [])
+  const relevantMuscles = isFreestyle
+    ? EMPTY_MUSCLES
+    : (DAY_TYPE_MUSCLES[dayType] ?? EMPTY_MUSCLES)
 
   const filtered = useMemo(() => {
     let list: ExerciseDbEntry[]

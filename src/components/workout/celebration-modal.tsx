@@ -150,7 +150,7 @@ export function CelebrationModal({
           {t('workoutDone')}
         </div>
         <div className="mb-4 font-body text-muted-foreground text-xs">
-          {sessionType === 'freestyle'
+          {sessionType === 'freestyle' || dayIdx < 0
             ? t('freestyleComplete')
             : `${prog?.day} — ${prog?.name}`}
         </div>

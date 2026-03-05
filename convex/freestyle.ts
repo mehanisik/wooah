@@ -17,7 +17,7 @@ export const createSession = mutation({
       .collect()
 
     const freestyleCount = weekSessions.filter(
-      (s) => s.dayIndex < 0
+      (s) => s.sessionType === 'freestyle'
     ).length
 
     const dayIndex = -(freestyleCount + 1)
@@ -50,6 +50,8 @@ export const addExercise = mutation({
     const session = await ctx.db.get(sessionId)
     if (!session || session.userId !== userId)
       throw new Error('Session not found')
+    if (session.sessionType !== 'freestyle')
+      throw new Error('Not a freestyle session')
 
     // Get current max exerciseIndex
     const existing = await ctx.db
@@ -112,14 +114,16 @@ export const getExercises = query({
     const userId = await getAuthUserId(ctx)
     if (!userId) return []
 
+    // Validate session ownership upfront
+    const session = await ctx.db.get(sessionId)
+    if (!session || session.userId !== userId) return []
+
     const exercises = await ctx.db
       .query('freestyleExercises')
       .withIndex('by_session', (q) => q.eq('sessionId', sessionId))
       .collect()
 
-    return exercises
-      .filter((e) => e.userId === userId)
-      .sort((a, b) => a.exerciseIndex - b.exerciseIndex)
+    return exercises.sort((a, b) => a.exerciseIndex - b.exerciseIndex)
   },
 })
 
@@ -136,6 +140,6 @@ export const getFreestyleSessions = query({
       )
       .collect()
 
-    return weekSessions.filter((s) => s.dayIndex < 0)
+    return weekSessions.filter((s) => s.sessionType === 'freestyle')
   },
 })

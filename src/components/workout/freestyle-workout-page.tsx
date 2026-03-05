@@ -52,9 +52,10 @@ export function FreestyleWorkoutPage() {
     api.freestyle.getExercises,
     sessionId ? { sessionId } : 'skip'
   )
+  const isLoadingExercises = exercises === undefined && sessionId !== null
 
   // Use the actual negative dayIndex for the workout clock (skip query until known)
-  const elapsed = useWorkoutClockBySession(dayIndex)
+  const elapsed = useWorkoutClockBySession(dayIndex, week)
   const restTimer = useRestTimer()
   useWakeLock(!finished)
 
@@ -89,11 +90,15 @@ export function FreestyleWorkoutPage() {
   )
 
   const handleFinish = useCallback(async () => {
-    if (!sessionId) return
-    await finishByIdMut({ sessionId })
-    setFinished(true)
-    setCelebrationOpen(true)
-  }, [sessionId, finishByIdMut])
+    if (!sessionId || finished) return
+    try {
+      await finishByIdMut({ sessionId })
+      setFinished(true)
+      setCelebrationOpen(true)
+    } catch {
+      setError(true)
+    }
+  }, [sessionId, finished, finishByIdMut])
 
   if (error) {
     return (
@@ -125,7 +130,14 @@ export function FreestyleWorkoutPage() {
       </div>
 
       {/* Exercises */}
-      {exercises && exercises.length > 0 ? (
+      {isLoadingExercises && (
+        <div className="py-8 text-center text-muted-foreground">
+          {t('loading')}
+        </div>
+      )}
+      {!isLoadingExercises &&
+        exercises &&
+        exercises.length > 0 &&
         exercises.map((ex) => (
           <FreestyleExerciseCard
             key={ex._id}
@@ -134,11 +146,12 @@ export function FreestyleWorkoutPage() {
             name={ex.name}
             equipment={ex.equipment}
             targetSets={ex.targetSets}
+            rest={ex.rest}
             onRemove={() => handleRemoveExercise(ex._id)}
             onStartRest={(sec, label) => restTimer.start(sec, label)}
           />
-        ))
-      ) : (
+        ))}
+      {!isLoadingExercises && (!exercises || exercises.length === 0) && (
         <div className="rounded-lg border border-border border-dashed bg-card px-4 py-12 text-center">
           <Dumbbell className="mx-auto h-10 w-10 text-muted-foreground/40" />
           <p className="mt-3 font-body text-muted-foreground text-sm">
@@ -190,10 +203,9 @@ export function FreestyleWorkoutPage() {
 }
 
 // Hook that uses the actual dayIndex for the workout clock, skips query until dayIndex is known
-function useWorkoutClockBySession(dayIdx: number | null) {
+function useWorkoutClockBySession(dayIdx: number | null, week: number) {
   const [elapsed, setElapsed] = useState(0)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const week = useCurrentWeek()
   const session = useQuery(
     api.sessions.getByWeekAndDay,
     dayIdx !== null ? { week, dayIndex: dayIdx } : 'skip'
